@@ -89,6 +89,10 @@ Use the shared CE REST error envelope. At minimum distinguish malformed request,
 
 Expose `GET /api/v1/chunking/health` and `GET /api/v1/chunking/ready`. Readiness reports whether configured chunking profiles are available. Diagnostics include effective profile/version and duration, but do not log document content by default.
 
+## Bounded ingestion preflight
+
+`POST /api/v1/chunking/preflight` accepts source text and the resolved immutable `index_profile` identity. It runs the same deterministic chunking algorithm as normal ingestion but does not call Tokenization, Embedding, Index, or Graph. The response includes `chunk_count`, `max_chunk_text_bytes`, `estimated_representation_bytes_upper_bound`, `max_request_bytes`, `fits_profile`, `chunking_profile`, and `request_id`. The upper bound is `chunk_count * max_chunk_representation_bytes + max_envelope_bytes` from the Index-owned profile. A profile is invalid if `max_chunks * max_chunk_representation_bytes + max_envelope_bytes > max_request_bytes`. Every downstream component must enforce the per-chunk serialized representation cap. If the upper bound exceeds the request cap, Memory/Knowledge reject with `422 source_too_large` before canonical commit.
+
 ## Acceptance tests
 
 - Same input and policy produce byte-for-byte equivalent structured output across fresh processes.
