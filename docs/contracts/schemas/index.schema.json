@@ -926,7 +926,8 @@
         "lexical_profile",
         "terms",
         "limit",
-        "request_id"
+        "request_id",
+        "index_generation"
       ],
       "properties": {
         "scope": {
@@ -999,6 +1000,11 @@
           "type": "string",
           "minLength": 1,
           "maxLength": 128
+        },
+        "index_generation": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
         }
       }
     },
@@ -1177,7 +1183,8 @@
         "input_type",
         "metric",
         "limit",
-        "request_id"
+        "request_id",
+        "index_generation"
       ],
       "properties": {
         "scope": {
@@ -1223,6 +1230,11 @@
           "type": "string",
           "minLength": 1,
           "maxLength": 128
+        },
+        "index_generation": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
         }
       }
     },
