@@ -120,7 +120,7 @@ Requires `Idempotency-Key`. Idempotently mark a non-active building generation a
 
 ### GET /api/v1/index/generations/active
 
-Return the active generation's ID, status, immutable `index_profile` identity including digest, and request ID. Gateway calls this once at the start of each retrieval request and pins all lexical/vector lookups and pagination to the returned generation and profile digest. If the active generation cannot be resolved, Gateway does not mix generations or guess a profile; it returns an explicit degraded/failed outcome.
+Return the active generation's ID, status, immutable `index_profile` identity including digest, and request ID. Gateway calls this once at the start of each retrieval request and pins all lexical/vector lookups to the returned generation and profile digest. If the active generation cannot be resolved, Gateway does not mix generations or guess a profile; it returns an explicit degraded/failed outcome.
 
 ### GET /api/v1/index/generations/{generation_id}
 
@@ -179,7 +179,7 @@ The Index service must reject incompatible vector dimensions/model profiles rath
 
 ## Profile bundle resolution
 
-`index_profile` is a stable bundle identifier, not a free-form label. Index is the authoritative profile registry. Initial bundles are loaded from deployment configuration into Index before readiness; new immutable versions are introduced by an operator-controlled registry update, never by a source mutation. Index exposes `GET /api/v1/index/profiles/{profile_name}/versions/{profile_version}`. Its response envelope is `{name, version, digest, bundle, request_id}`; `bundle` contains the complete profile object defined by [`schemas/index-profile.schema.json`](schemas/index-profile.schema.json). The response includes:
+`index_profile` is a stable bundle identifier, not a free-form label. Index is the authoritative profile registry. Initial bundles are loaded from deployment configuration into Index before readiness; new immutable versions are introduced by an operator-controlled registry update, never by a source mutation. There is no implicit built-in `default` bundle: example profile names in contract examples are illustrative only. `GET /api/v1/index/profiles/{profile_name}/current` returns the configured current bundle for a new write that has not yet pinned a profile; `GET /api/v1/index/profiles/{profile_name}/versions/{profile_version}` resolves a pinned immutable version for reads, retries, and rebuilds. Its response envelope is `{name, version, digest, bundle, request_id}`; `bundle` contains the complete profile object defined by [`schemas/index-profile.schema.json`](schemas/index-profile.schema.json). The response includes:
 
 - `name`, `version`, registry lifecycle `status` (`active`, `deprecated`, `retired`). Status is registry metadata and is excluded from the immutable content digest.
 - `chunking`: profile name/version and maximum chunk units.
