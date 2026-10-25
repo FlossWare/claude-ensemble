@@ -40,7 +40,8 @@
       "additionalProperties": false,
       "required": [
         "name",
-        "version"
+        "version",
+        "digest"
       ],
       "properties": {
         "name": {
@@ -639,8 +640,7 @@
         "status",
         "canonical_status",
         "indexing_status",
-        "request_id",
-        "graph_status"
+        "request_id"
       ],
       "properties": {
         "operation_id": {
