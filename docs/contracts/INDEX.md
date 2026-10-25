@@ -171,7 +171,7 @@ The Index service must reject incompatible vector dimensions/model profiles rath
 
 ## Profile bundle resolution
 
-`index_profile` is a stable bundle identifier, not a free-form label. Index is the authoritative profile registry and exposes `GET /api/v1/index/profiles/{profile_name}/versions/{profile_version}`. Its response must validate against [`schemas/index-profile.schema.json`](schemas/index-profile.schema.json). The response includes:
+`index_profile` is a stable bundle identifier, not a free-form label. Index is the authoritative profile registry. Initial bundles are loaded from deployment configuration into Index before readiness; new immutable versions are introduced by an operator-controlled registry update, never by a source mutation. Index exposes `GET /api/v1/index/profiles/{profile_name}/versions/{profile_version}`. Its response must validate against [`schemas/index-profile.schema.json`](schemas/index-profile.schema.json). The response includes:
 
 - `name`, `version`, registry lifecycle `status` (`active`, `deprecated`, `retired`). Status is registry metadata and is excluded from the immutable content digest.
 - `chunking`: profile name/version and maximum chunk units.
