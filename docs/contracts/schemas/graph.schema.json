@@ -729,7 +729,8 @@
         "paths",
         "truncated",
         "request_id",
-        "resolved_start_node_ids"
+        "resolved_start_node_ids",
+        "unresolved_entity_mentions"
       ],
       "properties": {
         "scope": {
@@ -756,6 +757,15 @@
             "type": "string",
             "minLength": 1,
             "maxLength": 512
+          },
+          "maxItems": 16
+        },
+        "unresolved_entity_mentions": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 1024
           },
           "maxItems": 16
         }
