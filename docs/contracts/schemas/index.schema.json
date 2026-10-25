@@ -1033,7 +1033,9 @@
               "revision_sequence",
               "chunk_id",
               "chunker",
-              "text"
+              "text",
+              "document_length",
+              "term_frequency_evidence"
             ],
             "properties": {
               "source_id": {
@@ -1081,9 +1083,27 @@
               },
               "term_frequency_evidence": {
                 "type": "array",
-                "maxItems": 100,
+                "minItems": 0,
+                "maxItems": 512,
                 "items": {
-                  "type": "object"
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "term",
+                    "term_frequency"
+                  ],
+                  "properties": {
+                    "term": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 128
+                    },
+                    "term_frequency": {
+                      "type": "integer",
+                      "minimum": 1,
+                      "maximum": 1000000
+                    }
+                  }
                 }
               },
               "distance": {
@@ -1129,6 +1149,11 @@
                     "const": "document"
                   }
                 }
+              },
+              "document_length": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 1000000
               }
             }
           }
