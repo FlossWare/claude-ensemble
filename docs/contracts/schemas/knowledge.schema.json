@@ -363,14 +363,15 @@
       "properties": {
         "operation_id": {
           "type": "string",
-          "minLength": 1,
-          "maxLength": 128
+          "minLength": 14,
+          "maxLength": 256,
+          "pattern": "^knowledge:op:.+"
         },
         "source_id": {
           "type": "string",
-          "minLength": 3,
+          "minLength": 10,
           "maxLength": 1024,
-          "pattern": "^(memory|knowledge):.+"
+          "pattern": "^knowledge:.+"
         },
         "revision": {
           "type": "string",
@@ -530,6 +531,58 @@
           "maxLength": 128
         }
       }
+    },
+    "operationStatusResponse": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "operation_id",
+        "status",
+        "canonical_status",
+        "indexing_status",
+        "request_id"
+      ],
+      "properties": {
+        "operation_id": {
+          "type": "string",
+          "pattern": "^knowledge:op:.+",
+          "minLength": 14,
+          "maxLength": 256
+        },
+        "status": {
+          "enum": [
+            "accepted",
+            "pending",
+            "complete",
+            "failed",
+            "reconciliation_required"
+          ]
+        },
+        "canonical_status": {
+          "enum": [
+            "committed",
+            "tombstoned"
+          ]
+        },
+        "indexing_status": {
+          "enum": [
+            "pending_index",
+            "indexed",
+            "index_failed",
+            "reconciliation_required"
+          ]
+        },
+        "revision_sequence": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        },
+        "request_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      }
     }
   },
   "x-request-oneOf": [
@@ -590,6 +643,35 @@
     },
     {
       "$ref": "#/$defs/fenceReleaseResponse"
+    },
+    {
+      "$ref": "#/$defs/operationStatusResponse"
     }
-  ]
+  ],
+  "x-endpoints": {
+    "POST /api/v1/knowledge/sources": {
+      "request": "$defs/createRequest",
+      "response": "$defs/mutationResponse",
+      "success_status": 202
+    },
+    "PUT /api/v1/knowledge/sources/{source_key}": {
+      "request": "$defs/updateRequest",
+      "response": "$defs/mutationResponse",
+      "success_status": 202
+    },
+    "DELETE /api/v1/knowledge/sources/{source_key}": {
+      "request": "$defs/deleteRequest",
+      "response": "$defs/mutationResponse",
+      "success_status": 202
+    },
+    "POST /api/v1/knowledge/sources/verify-revisions": {
+      "request": "$defs/verificationRequest",
+      "response": "$defs/verificationResponse",
+      "success_status": 200
+    },
+    "GET /api/v1/knowledge/operations/{operation_id}": {
+      "response": "$defs/operationStatusResponse",
+      "success_status": 200
+    }
+  }
 }
