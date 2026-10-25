@@ -133,7 +133,7 @@ Persist source sequence N, accept N into Index, restore an owner backup whose al
 
 ### AT-ID-01: Source identity and encoded paths
 
-Use source IDs with `/`, `:`, `%`, `?`, and Unicode in the opaque suffix. Assert IDs are encoded as one path segment, decoded once, and routed by the explicit `memory:` or `knowledge:` prefix. Verify endpoints use identical `{source_id, revision_sequence}` payload shapes.
+Use valid source IDs with suffixes containing allowed letters, digits, `.`, `_`, `~`, and `-`; reject suffixes containing `/`, `:`, `%`, `?`, `#`, whitespace, or Unicode. Assert the full valid namespaced ID is percent-encoded as one path segment and decoded once. Verify endpoints use identical `{source_id, revision_sequence}` payload shapes.
 
 ### AT-SCHEMA-02: Contract fixtures and traceability
 
@@ -147,3 +147,24 @@ Before implementation approval, maintain the mapping:
 functional requirement → owner/capability → endpoint/contract section → workflow step → acceptance test.
 
 A test name alone is insufficient. Each test must specify fixture/setup, injected failure or concurrent interleaving, observable assertion, and expected error/degraded status. Reviewers should be able to validate fixtures without relying on language-specific implementation details.
+
+
+### AT-CUTOVER-FENCE-01: Fence release and stale-token rejection
+
+Acquire and register a Memory fence for generation G, invalidate it through Index, then attempt cutover using the old token before its timestamp expiry. Assert Index rejects the released fence and does not change the active pointer. Repeat with Index unavailable during invalidation: Memory must remain write-fenced until expiry; after expiry, Index rejects the token regardless of the caller's supplied timestamp. Instrument the local dispatcher and assert Index emits no request to Memory or Knowledge.
+
+### AT-PROFILE-CHANGE-01: Concurrent mutation during incompatible-profile rebuild
+
+Keep active generation P1 and build target generation P2 with changed chunking/embedding profile. Commit a source update after target snapshot. Assert the owner journal re-derives that revision under P2, the target operation key includes generation/source/revision/profile digest, and the owner checkpoint advances only after Index durably accepts the P2 representation. Cutover is rejected until every owner checkpoint reaches its sealed sequence and the target journal drains. No P1 vector or lexical representation is copied into P2.
+
+### AT-SIZE-PREFLIGHT-01: Conservative representation-size bound
+
+Resolve a profile whose maximum chunk count times per-chunk representation bound plus envelope bound exceeds the request cap; Index must reject the profile as invalid. For a valid profile, run Chunking preflight on sources just below and above the computed upper bound. Assert the over-bound source is rejected before canonical commit, and every downstream component rejects any serialized chunk representation larger than the profile cap. A source must never commit and then fail indexing solely because the promised bound was unsound.
+
+### AT-INDEX-DIRECTION-01: No Index-to-owner calls
+
+Instrument the local REST dispatcher with caller-service identity. Run upsert, delete, owner checkpoint, cutover, and recovery flows. Assert the complete trace contains no Index-originated request to Memory or Knowledge; all owner journal replay and fence registration requests are owner-initiated.
+
+### AT-EXACT-RERANK-01: Exact identifier survives reranking and assembly
+
+Supply a verified candidate with exact identifier `REV-17` and a non-exact candidate containing `REV-170`. Assert only the first is exact. Force Reranking to prefer the non-exact candidate and set the final limit to one. Assert Reranking preserves exact-match candidates and evidence, Gateway restores the exact tier after Reranking, and context assembly includes the exact identifier whenever a verified exact hit exists and the requested budget can fit its minimal evidence.
