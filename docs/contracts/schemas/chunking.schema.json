@@ -386,7 +386,7 @@
         "chunk_count": {
           "type": "integer",
           "minimum": 1,
-          "maximum": 10000
+          "maximum": 262144
         },
         "max_chunk_text_bytes": {
           "type": "integer",
@@ -396,7 +396,7 @@
         "estimated_representation_bytes_upper_bound": {
           "type": "integer",
           "minimum": 1,
-          "maximum": 2097152
+          "maximum": 9007199254740991
         },
         "max_request_bytes": {
           "type": "integer",
