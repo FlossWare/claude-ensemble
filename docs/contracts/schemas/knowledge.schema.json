@@ -1027,6 +1027,10 @@
       "request": "$defs/updateRequest",
       "response": "$defs/mutationResponse",
       "success_status": 202
+    },
+    "GET /api/v1/knowledge/sources/{source_key}/operations/{operation_id}": {
+      "response": "$defs/operationStatusResponse",
+      "success_status": 200
     }
   }
 }
