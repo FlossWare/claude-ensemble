@@ -353,10 +353,10 @@
   },
   "x-endpoints": {
     "POST /api/v1/reranking/rerank": {
-      "request": "$defs/request",
-      "response": "$defs/response",
+      "request": "#/$defs/request",
+      "response": "#/$defs/response",
       "success_status": 200,
-      "error_response": "$defs/errorResponse",
+      "error_response": "#/$defs/errorResponse",
       "error_statuses": [
         400,
         404,
