@@ -639,7 +639,8 @@
         "status",
         "canonical_status",
         "indexing_status",
-        "request_id"
+        "request_id",
+        "graph_status"
       ],
       "properties": {
         "operation_id": {
@@ -680,6 +681,14 @@
           "type": "string",
           "minLength": 1,
           "maxLength": 128
+        },
+        "graph_status": {
+          "enum": [
+            "pending_graph",
+            "deleted",
+            "graph_failed",
+            "reconciliation_required"
+          ]
         }
       }
     },
@@ -964,6 +973,75 @@
           "maxLength": 128
         }
       }
+    },
+    "deleteResponse": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "operation_id",
+        "source_id",
+        "revision",
+        "revision_sequence",
+        "status",
+        "request_id",
+        "indexing_status",
+        "graph_status",
+        "index_profile"
+      ],
+      "properties": {
+        "operation_id": {
+          "type": "string",
+          "minLength": 14,
+          "maxLength": 141,
+          "pattern": "^knowledge:op:[A-Za-z0-9._~-]{1,128}$"
+        },
+        "source_id": {
+          "$ref": "#/$defs/sourceId"
+        },
+        "revision": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "revision_sequence": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        },
+        "status": {
+          "enum": [
+            "accepted",
+            "pending",
+            "complete",
+            "failed",
+            "reconciliation_required"
+          ]
+        },
+        "request_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "indexing_status": {
+          "enum": [
+            "pending_index",
+            "indexed",
+            "index_failed",
+            "reconciliation_required"
+          ]
+        },
+        "graph_status": {
+          "enum": [
+            "pending_graph",
+            "deleted",
+            "graph_failed",
+            "reconciliation_required"
+          ]
+        },
+        "index_profile": {
+          "$ref": "#/$defs/profile"
+        }
+      }
     }
   },
   "x-endpoints": {
@@ -986,7 +1064,7 @@
     },
     "DELETE /api/v1/knowledge/sources/{source_key}": {
       "request": "$defs/deleteRequest",
-      "response": "$defs/mutationResponse",
+      "response": "$defs/deleteResponse",
       "success_status": 202,
       "error_response": "$defs/errorResponse",
       "error_statuses": [
@@ -1143,6 +1221,9 @@
     },
     {
       "$ref": "#/$defs/deleteRequest"
+    },
+    {
+      "$ref": "#/$defs/deleteResponse"
     },
     {
       "$ref": "#/$defs/verificationRequest"
