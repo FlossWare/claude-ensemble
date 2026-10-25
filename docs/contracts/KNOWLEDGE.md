@@ -14,7 +14,7 @@ Knowledge owns canonical records; Index owns derived searchable representations.
 - GET /api/v1/knowledge/sources/{source_key}
 - POST /api/v1/knowledge/sources/{source_key}/revisions
 - DELETE /api/v1/knowledge/sources/{source_key}
-- POST /api/v1/knowledge/sources/revisions/verify: batch-verify candidate source IDs and revision sequences for Gateway freshness checks. Request items use the common shape `{source_id, revision_sequence}`; only `knowledge:` IDs are accepted.
+- POST /api/v1/knowledge/sources/revisions/verify: batch-verify candidate source IDs and revision sequences for Gateway freshness checks. Request body is `{items:[{source_id,revision_sequence}],request_id}`; only `knowledge:` IDs are accepted. Response body is `{results:[{source_id,requested_revision_sequence,status,canonical_revision_sequence?}],request_id}`, where status is `current`, `stale`, `tombstoned`, or `not_found`.
 - GET /api/v1/knowledge/sources/{source_key}/operations/{operation_id}
 - GET /api/v1/knowledge/operations/{operation_id}: report canonical commit and indexing status.
 - GET /api/v1/knowledge/health and GET /api/v1/knowledge/ready
