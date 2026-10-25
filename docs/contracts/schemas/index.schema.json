@@ -1882,8 +1882,6 @@
       ],
       "x-callers": [
         "gateway",
-        "memory",
-        "knowledge",
         "operator"
       ]
     },
@@ -1905,8 +1903,6 @@
       ],
       "x-callers": [
         "gateway",
-        "memory",
-        "knowledge",
         "operator"
       ]
     },
@@ -1927,10 +1923,8 @@
         504
       ],
       "x-callers": [
-        "gateway",
         "memory",
-        "knowledge",
-        "operator"
+        "knowledge"
       ]
     },
     "DELETE /api/v1/index/generations/{generation_id}/owner-fences/{owner}/{fence_id}": {
@@ -1947,10 +1941,8 @@
         504
       ],
       "x-callers": [
-        "gateway",
         "memory",
-        "knowledge",
-        "operator"
+        "knowledge"
       ]
     },
     "POST /api/v1/index/generations/{generation_id}/owner-checkpoints": {
@@ -1970,10 +1962,8 @@
         504
       ],
       "x-callers": [
-        "gateway",
         "memory",
-        "knowledge",
-        "operator"
+        "knowledge"
       ]
     },
     "GET /api/v1/index/profiles/{profile_name}/versions/{profile_version}": {
@@ -2012,8 +2002,6 @@
       "request": "#/$defs/abandonRequest",
       "x-callers": [
         "gateway",
-        "memory",
-        "knowledge",
         "operator"
       ]
     },
