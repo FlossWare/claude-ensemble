@@ -81,7 +81,7 @@
         "term": {
           "type": "string",
           "minLength": 1,
-          "maxLength": 512
+          "maxLength": 128
         },
         "surface": {
           "type": "string",
@@ -204,7 +204,7 @@
         },
         "tokens": {
           "type": "array",
-          "maxItems": 100000,
+          "maxItems": 512,
           "items": {
             "$ref": "#/$defs/token"
           }
@@ -320,7 +320,7 @@
               },
               "tokens": {
                 "type": "array",
-                "maxItems": 100000,
+                "maxItems": 512,
                 "items": {
                   "$ref": "#/$defs/token"
                 }
