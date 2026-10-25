@@ -1045,6 +1045,10 @@
         500,
         503,
         504
+      ],
+      "x-callers": [
+        "memory",
+        "knowledge"
       ]
     },
     "POST /api/v1/graph/source-deletions": {
@@ -1062,6 +1066,10 @@
         500,
         503,
         504
+      ],
+      "x-callers": [
+        "memory",
+        "knowledge"
       ]
     },
     "POST /api/v1/graph/traversals": {
@@ -1079,6 +1087,9 @@
         500,
         503,
         504
+      ],
+      "x-callers": [
+        "gateway"
       ]
     },
     "GET /api/v1/graph/operations/{operation_id}": {
@@ -1092,6 +1103,12 @@
         500,
         503,
         504
+      ],
+      "x-callers": [
+        "gateway",
+        "memory",
+        "knowledge",
+        "operator"
       ]
     },
     "GET /api/v1/graph/sources/manifest": {
@@ -1106,6 +1123,12 @@
         500,
         503,
         504
+      ],
+      "x-callers": [
+        "gateway",
+        "memory",
+        "knowledge",
+        "operator"
       ]
     },
     "POST /api/v1/graph/reconciliation/checkpoints": {
@@ -1120,6 +1143,10 @@
         500,
         503,
         504
+      ],
+      "x-callers": [
+        "memory",
+        "knowledge"
       ]
     },
     "GET /api/v1/graph/health": {
@@ -1130,6 +1157,9 @@
         429,
         500,
         503
+      ],
+      "x-callers": [
+        "health-probe"
       ]
     },
     "GET /api/v1/graph/ready": {
@@ -1140,6 +1170,9 @@
         429,
         500,
         503
+      ],
+      "x-callers": [
+        "health-probe"
       ]
     }
   },
