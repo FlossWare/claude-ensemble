@@ -119,7 +119,8 @@
         "input_types",
         "dimensions",
         "normalization",
-        "metric"
+        "metric",
+        "max_input_tokens"
       ],
       "properties": {
         "required": {
@@ -174,6 +175,12 @@
             "dot_product",
             "euclidean"
           ]
+        },
+        "max_input_tokens": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 1000000,
+          "description": "Maximum model input tokens for each embedded chunk/query as declared by the configured provider/model. Included in the profile digest; exceeding it is a representability failure, not a transient provider outage."
         }
       }
     },
