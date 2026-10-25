@@ -134,6 +134,22 @@ Owner-initiated invalidation. Index atomically marks the registered fence releas
 
 An owner acknowledges a monotonically increasing `applied_change_sequence` only after every journal entry through that sequence has been durably accepted for the target generation under its pinned profile. Index records the owner checkpoint and exposes it from generation status. A checkpoint cannot regress.
 
+### GET /api/v1/index/profiles/{profile_name}/current
+
+Return the current write version, immutable version, digest, and full bundle. Memory and Knowledge resolve this endpoint before accepting a mutation when no pinned version is supplied, then persist `{name, version, digest}` with the canonical revision. A current-pointer change never changes an existing version's content digest.
+
+### PUT /api/v1/index/generations/{generation_id}/owner-fences/{owner}/{fence_id}
+
+After locally acquiring a generation-bound write fence, the owner pushes a registration to Index with `owner`, `target_generation`, `fence_id`, `fence_token`, `sealed_change_sequence`, `expires_at`, and `state=held`. Index validates route/body identity, target generation state, bounded future expiry, and that target replay is acknowledged through the sealed sequence. Reusing a fence ID with different content conflicts. Index never calls owners to validate a fence.
+
+### DELETE /api/v1/index/generations/{generation_id}/owner-fences/{owner}/{fence_id}
+
+Owner-initiated invalidation. Index marks the fence released before the owner resumes canonical writes. If invalidation cannot be confirmed, the owner remains fenced until expiry; Index rejects released or expired tokens regardless of client-supplied timestamps.
+
+### POST /api/v1/index/generations/{generation_id}/owner-checkpoints
+
+An owner acknowledges monotonically increasing `applied_change_sequence` only after every journal entry through it is durably represented in the target generation under the pinned profile. Index records the checkpoint and rejects regression.
+
 ### POST /api/v1/index/generations/{generation_id}/cutover
 
 Request requires `Idempotency-Key`, the expected active generation ID, and exactly two `{owner, fence_id, fence_token, sealed_change_sequence}` references, one for `memory` and one for `knowledge`. Index validates these against its registered fence records, including target generation, held state, token, and server-side expiry. Index atomically switches the active-generation pointer only if both fences remain held and unexpired, owner checkpoints equal or exceed the sealed sequences, every owner change through those sequences is represented under the target profile, Index's target journal is drained, tombstones and profile compatibility pass validation, and readiness checks succeed. Fence registration/release is owner-pushed REST; Index does not call source owners. Otherwise return a stable conflict/not-ready error and keep the previous generation active. V1 does not support rollback after cutover. The previous generation is retained read-only for a configured verification window, then may be retired. If post-cutover validation fails, cutover back is not permitted in v1; recovery is a new forward rebuild. This avoids dropping writes or re-exposing tombstoned data.
@@ -208,7 +224,7 @@ The normative Index lifecycle request/response schema is [`schemas/index.schema.
 
 ## Source identity and path encoding
 
-`source_id` is a full namespaced ID: `memory:<opaque-owner-id>` or `knowledge:<opaque-owner-id>`. The owner-assigned suffix MUST match `[A-Za-z0-9._~-]{1,128}`; slash, colon, percent, query/fragment delimiters, whitespace, and non-ASCII characters are invalid in the suffix. Index accepts the full ID in bodies and query payloads. Any route containing `{source_id}` percent-encodes the entire ID as one RFC 3986 path segment and decodes it exactly once. Consumers may route to Memory or Knowledge using only the prefix; the suffix is opaque.
+`source_id` is a full namespaced ID: `memory:<opaque-owner-id>` or `knowledge:<opaque-owner-id>`. The owner-assigned suffix MUST match `[A-Za-z0-9._~-]{1,128}`; slash, colon, percent, query/fragment delimiters, whitespace, and non-ASCII characters are invalid in the suffix. The owner-assigned suffix MUST match `[A-Za-z0-9._~-]{1,128}`; slash, colon, percent, query/fragment delimiters, whitespace, and non-ASCII characters are invalid in the suffix. Index accepts the full ID in bodies and query payloads. Any route containing `{source_id}` percent-encodes the entire ID as one RFC 3986 path segment and decodes it exactly once. Consumers may route to Memory or Knowledge using only the prefix; the suffix is opaque.
 
 ## Acceptance tests
 
