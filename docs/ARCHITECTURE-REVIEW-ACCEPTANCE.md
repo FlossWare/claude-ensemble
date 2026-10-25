@@ -81,7 +81,7 @@ Use a controllable clock. Finish owner replay and acquire/register both owner fe
 
 ### AT-GEN-03: Abandon, unrepresentable sources, and no rollback
 
-Abandon a non-active generation and verify it cannot cut over. Attempt to abandon the active generation and verify rejection. Build a target whose profile cannot represent one source. Assert rebuild fails visibly by default, or records a named exclusion only when an explicit exclusion policy was supplied. After cutover, issue `POST /api/v1/index/generations/{previous_generation}/rollback`; assert the route is not defined and returns `404 endpoint_not_found` without changing the active pointer. Recovery requires a forward rebuild.
+Abandon a non-active generation and verify it cannot cut over. Attempt to abandon the active generation and verify rejection. Build a target whose profile cannot represent one source. Assert it is recorded as a per-source failure, generation status remains failed/ineligible, and cutover is rejected. No exclusion-approval field exists in v1. After cutover, issue `POST /api/v1/index/generations/{previous_generation}/rollback`; assert the route is not defined and returns `404 endpoint_not_found` without changing the active pointer. Recovery requires a forward rebuild.
 
 ### AT-PROFILE-01: Profile bundle resolution
 
