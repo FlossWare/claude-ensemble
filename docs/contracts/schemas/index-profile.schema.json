@@ -174,7 +174,8 @@
             "cosine",
             "dot_product",
             "euclidean"
-          ]
+          ],
+          "description": "cosine and dot_product are higher-is-better similarities; euclidean is lower-is-better distance. Metric and direction are immutable and covered by the profile digest."
         },
         "max_input_tokens": {
           "type": "integer",
