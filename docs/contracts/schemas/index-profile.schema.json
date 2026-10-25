@@ -160,7 +160,7 @@
         "dimensions": {
           "type": "integer",
           "minimum": 1,
-          "maximum": 65536
+          "maximum": 4096
         },
         "normalization": {
           "enum": [
@@ -186,7 +186,10 @@
         "max_chunk_text_bytes",
         "max_request_bytes",
         "max_chunk_representation_bytes",
-        "max_envelope_bytes"
+        "max_envelope_bytes",
+        "max_metadata_bytes",
+        "max_lexical_terms_per_chunk",
+        "max_lexical_term_bytes"
       ],
       "properties": {
         "max_chunks": {
@@ -212,15 +215,30 @@
         "max_chunk_representation_bytes": {
           "type": "integer",
           "minimum": 256,
-          "maximum": 7168
+          "maximum": 262144
         },
         "max_envelope_bytes": {
           "type": "integer",
           "minimum": 1024,
           "maximum": 131072
+        },
+        "max_metadata_bytes": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 8192
+        },
+        "max_lexical_terms_per_chunk": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 512
+        },
+        "max_lexical_term_bytes": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 128
         }
       },
-      "description": "Profile validity requires max_chunks * max_chunk_representation_bytes + max_envelope_bytes <= max_request_bytes. Every component must reject a per-chunk representation whose canonical serialized size exceeds max_chunk_representation_bytes."
+      "description": "Profile validity is checked by Index before activation: max_chunks * max_chunk_representation_bytes + max_envelope_bytes <= max_request_bytes; max_chunk_representation_bytes must be at least max_chunk_text_bytes + (embedding.required ? 25 * embedding.dimensions + 2 : 0) + max_lexical_terms_per_chunk * (max_lexical_term_bytes + 4) + max_metadata_bytes + 1024. This uses the RFC 8785 canonical JSON representation with finite IEEE-754 vector values serialized at no more than 24 bytes each. Every component rejects any serialized chunk representation larger than max_chunk_representation_bytes, lexical terms/counts above their profile bounds, or metadata above max_metadata_bytes."
     },
     "digest": {
       "type": "string",
