@@ -34,6 +34,7 @@ The profile is resolved through Index and each request carries the immutable `in
 
 ~~~json
 {
+  "index_profile": {"name": "default", "version": "0.1", "digest": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"},
   "profile": "technical-default",
   "profile_version": "0.1",
   "model": {
@@ -49,7 +50,7 @@ The profile is resolved through Index and each request carries the immutable `in
       "input_type": "document",
       "status": "complete",
       "vector": [0.01, 0.02],
-      "dimensions": 768
+      "dimensions": 2
     }
   ],
   "request_id": "correlation-id"
