@@ -630,7 +630,6 @@
         "request_id",
         "fence_id",
         "sealed_change_sequence",
-        "target_generation",
         "fence_state"
       ],
       "properties": {
