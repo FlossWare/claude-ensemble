@@ -948,6 +948,15 @@
       "request": "$defs/ownerCheckpointRequest",
       "response": "$defs/ownerCheckpointResponse",
       "success_status": 200
+    },
+    "GET /api/v1/index/profiles/{profile_name}/versions/{profile_version}": {
+      "response": "$defs/profileCurrentResponse",
+      "success_status": 200
+    },
+    "POST /api/v1/index/generations/{generation_id}/abandon": {
+      "request": "$defs/generationCreateRequest",
+      "response": "$defs/generationResponse",
+      "success_status": 200
     }
   }
 }
