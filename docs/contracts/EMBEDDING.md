@@ -79,7 +79,7 @@ Vector values above are illustrative; real responses must have exactly the decla
 
 ## Errors
 
-Use the common REST error envelope. Distinguish invalid input, unknown/incompatible profile, input too large, unauthorized policy/profile, provider rate limit, provider unavailable, deadline exceeded, and internal failure. A valid empty input batch is rejected as invalid; a valid input that produces a zero vector or non-finite vector is a provider/profile failure, not a successful embedding.
+Use the common REST error envelope. Distinguish invalid input, unknown/incompatible profile, input too large, unsupported policy/profile, provider rate limit, provider unavailable, deadline exceeded, and internal failure. A valid empty input batch is rejected as invalid; a valid input that produces a zero vector or non-finite vector is a provider/profile failure, not a successful embedding.
 
 ## Acceptance tests
 
