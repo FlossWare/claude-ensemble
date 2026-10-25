@@ -478,10 +478,7 @@
       "type": "object",
       "additionalProperties": false,
       "required": [
-        "scope",
-        null,
-        "max_depth",
-        "limit"
+        "scope"
       ],
       "properties": {
         "scope": {
@@ -618,7 +615,8 @@
         "source_id",
         "source_revision",
         "revision_sequence",
-        "scope"
+        "scope",
+        "source_edge_id"
       ],
       "properties": {
         "source_id": {
@@ -639,6 +637,11 @@
         },
         "provenance": {
           "$ref": "#/$defs/provenance"
+        },
+        "source_edge_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512
         }
       }
     },
@@ -657,7 +660,8 @@
         "edge_id": {
           "type": "string",
           "minLength": 1,
-          "maxLength": 512
+          "maxLength": 512,
+          "description": "Stable canonical relationship ID derived from the normalized relationship identity tuple, not an arbitrary source-local edge ID."
         },
         "source_node_id": {
           "type": "string",
