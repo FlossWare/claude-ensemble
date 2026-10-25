@@ -987,8 +987,7 @@
         "status",
         "request_id",
         "indexing_status",
-        "graph_status",
-        "index_profile"
+        "graph_status"
       ],
       "properties": {
         "operation_id": {
@@ -1039,9 +1038,6 @@
             "graph_failed",
             "reconciliation_required"
           ]
-        },
-        "index_profile": {
-          "$ref": "#/$defs/profile"
         }
       }
     },
