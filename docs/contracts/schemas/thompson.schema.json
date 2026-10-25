@@ -149,7 +149,7 @@
             "properties": {
               "source_id": {
                 "type": "string",
-                "minLength": 10,
+                "minLength": 8,
                 "maxLength": 138,
                 "pattern": "^(memory|knowledge):[A-Za-z0-9._~-]{1,128}$"
               },
@@ -413,7 +413,7 @@
     },
     "sourceId": {
       "type": "string",
-      "minLength": 10,
+      "minLength": 8,
       "maxLength": 138,
       "pattern": "^(memory|knowledge):[A-Za-z0-9._~-]{1,128}$"
     }
