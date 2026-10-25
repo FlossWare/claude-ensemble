@@ -13,7 +13,7 @@ from jsonschema import Draft202012Validator
 
 ROOT = Path(__file__).resolve().parents[1]
 SCHEMA_DIR = ROOT / "docs" / "contracts" / "schemas"
-JSON_FENCE = re.compile(r"^\\x60{3}json\\s*\\n(.*?)^\\x60{3}\\s*$", re.MULTILINE | re.DOTALL)
+JSON_FENCE = re.compile(r"^\x60{3}json\s*\n(.*?)^\x60{3}\s*$", re.MULTILINE | re.DOTALL)
 
 
 def resolve_pointer(document: Any, pointer: str) -> Any:
@@ -133,7 +133,7 @@ def main() -> int:
                 )
 
     if errors:
-        print("\\n".join(f"ERROR: {error}" for error in errors), file=sys.stderr)
+        print("\n".join(f"ERROR: {error}" for error in errors), file=sys.stderr)
         return 1
     print(
         f"OK: {len(schemas)} Draft 2020-12 schemas; local and sibling references plus endpoint bindings valid; "
