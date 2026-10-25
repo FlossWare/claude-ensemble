@@ -48,7 +48,6 @@ A caller may supply a query vector instead of text only when the vector profile,
     "text": "Bounded evidence text for this chunk",
     "retrieval_rank": 1,
     "distance": 0.123,
-    "chunker": {"profile": "markdown-default", "version": "0.1"},
     "provenance": {"embedding_model_version": "model-revision"}
   }],
   "truncated": false,
