@@ -95,9 +95,9 @@
       "properties": {
         "source_id": {
           "type": "string",
-          "minLength": 3,
-          "maxLength": 1024,
-          "pattern": "^memory:.+"
+          "minLength": 8,
+          "maxLength": 135,
+          "pattern": "^memory:[A-Za-z0-9._~-]{1,128}$"
         },
         "revision_sequence": {
           "type": "integer",
@@ -152,9 +152,9 @@
             "properties": {
               "source_id": {
                 "type": "string",
-                "minLength": 3,
-                "maxLength": 1024,
-                "pattern": "^memory:.+"
+                "minLength": 8,
+                "maxLength": 135,
+                "pattern": "^memory:[A-Za-z0-9._~-]{1,128}$"
               },
               "requested_revision_sequence": {
                 "type": "integer",
@@ -354,7 +354,9 @@
         "revision_sequence",
         "status",
         "request_id",
-        "indexing_status"
+        "indexing_status",
+        "source_id",
+        "index_profile"
       ],
       "properties": {
         "operation_id": {
@@ -366,8 +368,8 @@
         "memory_id": {
           "type": "string",
           "minLength": 1,
-          "maxLength": 1024,
-          "pattern": "^memory:.+"
+          "maxLength": 128,
+          "pattern": "^[A-Za-z0-9._~-]{1,128}$"
         },
         "revision": {
           "type": "string",
@@ -400,6 +402,34 @@
             "index_failed",
             "reconciliation_required"
           ]
+        },
+        "index_profile": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "name",
+            "version",
+            "digest"
+          ],
+          "properties": {
+            "name": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            },
+            "version": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 64
+            },
+            "digest": {
+              "type": "string",
+              "pattern": "^[a-fA-F0-9]{64}$"
+            }
+          }
+        },
+        "source_id": {
+          "$ref": "#/$defs/sourceId"
         }
       }
     },
@@ -463,8 +493,8 @@
     "sourceId": {
       "type": "string",
       "minLength": 8,
-      "maxLength": 138,
-      "pattern": "^(memory|knowledge):[A-Za-z0-9._~-]{1,128}$"
+      "maxLength": 135,
+      "pattern": "^memory:[A-Za-z0-9._~-]{1,128}$"
     },
     "fenceRequest": {
       "type": "object",
@@ -1068,11 +1098,6 @@
       "response": "$defs/createResponse",
       "success_status": 202
     },
-    "PUT /api/v1/memories/{memory_id}": {
-      "request": "$defs/updateRequest",
-      "response": "$defs/createResponse",
-      "success_status": 202
-    },
     "DELETE /api/v1/memories/{memory_id}": {
       "request": "$defs/deleteRequest",
       "response": "$defs/deleteResponse",
@@ -1099,6 +1124,11 @@
     "POST /api/v1/memories/reconciliation": {
       "request": "$defs/reconciliationRequest",
       "response": "$defs/reconciliationResponse",
+      "success_status": 202
+    },
+    "POST /api/v1/memories/{memory_id}/revisions": {
+      "request": "$defs/updateRequest",
+      "response": "$defs/createResponse",
       "success_status": 202
     }
   }
