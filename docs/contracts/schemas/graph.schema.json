@@ -720,6 +720,105 @@
           "maxLength": 128
         }
       }
+    },
+    "reconciliationRequest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "operation_id",
+        "owner",
+        "target_cursor",
+        "request_id"
+      ],
+      "properties": {
+        "operation_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "owner": {
+          "enum": [
+            "memory",
+            "knowledge"
+          ]
+        },
+        "target_cursor": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512
+        },
+        "request_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      }
+    },
+    "reconciliationResponse": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "operation_id",
+        "status",
+        "applied_cursors",
+        "failures",
+        "complete",
+        "request_id"
+      ],
+      "properties": {
+        "operation_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "status": {
+          "enum": [
+            "accepted",
+            "pending",
+            "complete",
+            "failed",
+            "reconciliation_required"
+          ]
+        },
+        "applied_cursors": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string",
+            "maxLength": 512
+          },
+          "maxProperties": 2
+        },
+        "failures": {
+          "type": "array",
+          "maxItems": 100,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "source_id",
+              "code"
+            ],
+            "properties": {
+              "source_id": {
+                "$ref": "#/$defs/sourceId"
+              },
+              "code": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 128
+              }
+            }
+          }
+        },
+        "complete": {
+          "type": "boolean"
+        },
+        "request_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      }
     }
   },
   "x-request-oneOf": [
@@ -790,6 +889,15 @@
     "GET /api/v1/graph/sources/manifest": {
       "request": "$defs/manifestRequest",
       "response": "$defs/manifestResponse",
+      "success_status": 200
+    },
+    "POST /api/v1/graph/reconciliation": {
+      "request": "$defs/reconciliationRequest",
+      "response": "$defs/reconciliationResponse",
+      "success_status": 202
+    },
+    "GET /api/v1/graph/reconciliation/operations/{operation_id}": {
+      "response": "$defs/reconciliationResponse",
       "success_status": 200
     }
   }
