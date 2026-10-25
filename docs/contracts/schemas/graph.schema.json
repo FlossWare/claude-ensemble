@@ -867,10 +867,10 @@
   },
   "x-endpoints": {
     "POST /api/v1/graph/source-projections": {
-      "request": "$defs/projectionRequest",
-      "response": "$defs/operationResponse",
+      "request": "#/$defs/projectionRequest",
+      "response": "#/$defs/operationResponse",
       "success_status": 202,
-      "error_response": "$defs/errorResponse",
+      "error_response": "#/$defs/errorResponse",
       "error_statuses": [
         400,
         404,
@@ -884,10 +884,10 @@
       ]
     },
     "POST /api/v1/graph/source-deletions": {
-      "request": "$defs/deleteRequest",
-      "response": "$defs/operationResponse",
+      "request": "#/$defs/deleteRequest",
+      "response": "#/$defs/operationResponse",
       "success_status": 202,
-      "error_response": "$defs/errorResponse",
+      "error_response": "#/$defs/errorResponse",
       "error_statuses": [
         400,
         404,
@@ -901,10 +901,10 @@
       ]
     },
     "POST /api/v1/graph/traversals": {
-      "request": "$defs/traversalRequest",
-      "response": "$defs/traversalResponse",
+      "request": "#/$defs/traversalRequest",
+      "response": "#/$defs/traversalResponse",
       "success_status": 200,
-      "error_response": "$defs/errorResponse",
+      "error_response": "#/$defs/errorResponse",
       "error_statuses": [
         400,
         404,
@@ -918,9 +918,9 @@
       ]
     },
     "GET /api/v1/graph/operations/{operation_id}": {
-      "response": "$defs/operationResponse",
+      "response": "#/$defs/operationResponse",
       "success_status": 200,
-      "error_response": "$defs/errorResponse",
+      "error_response": "#/$defs/errorResponse",
       "error_statuses": [
         400,
         404,
@@ -931,10 +931,10 @@
       ]
     },
     "GET /api/v1/graph/sources/manifest": {
-      "request": "$defs/manifestRequest",
-      "response": "$defs/manifestResponse",
+      "request": "#/$defs/manifestRequest",
+      "response": "#/$defs/manifestResponse",
       "success_status": 200,
-      "error_response": "$defs/errorResponse",
+      "error_response": "#/$defs/errorResponse",
       "error_statuses": [
         400,
         404,
@@ -945,9 +945,18 @@
       ]
     },
     "POST /api/v1/graph/reconciliation/checkpoints": {
-      "request": "$defs/reconciliationCheckpointRequest",
-      "response": "$defs/reconciliationCheckpointResponse",
-      "success_status": 200
+      "request": "#/$defs/reconciliationCheckpointRequest",
+      "response": "#/$defs/reconciliationCheckpointResponse",
+      "success_status": 200,
+      "error_response": "#/$defs/errorResponse",
+      "error_statuses": [
+        400,
+        409,
+        429,
+        500,
+        503,
+        504
+      ]
     }
   },
   "anyOf": [
