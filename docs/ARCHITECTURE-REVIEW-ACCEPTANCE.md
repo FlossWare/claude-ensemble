@@ -95,9 +95,9 @@ Return `503` from Vector Retrieval while Lexical Retrieval returns candidates; r
 
 Submit valid `memory:` and `knowledge:` IDs whose suffixes use letters, digits, `.`, `_`, `~`, and `-`. Assert Gateway routes by the exact prefix, sends the full unencoded namespaced ID in the common verification body, and percent-encodes the full ID as one path segment exactly once. Reject suffixes containing `/`, `:`, `%`, `?`, `#`, whitespace, or Unicode at creation and route validation. An unknown or missing prefix fails closed; no locator parsing or fallback owner is allowed.
 
-### AT-FRESH-01: Mass freshness filtering and bounded refill
+### AT-FRESH-01: Mass freshness filtering with bounded v1 candidate pools
 
-Return a full first-page candidate set where canonical verification marks most candidates stale or tombstoned. Keep one retrieval path healthy and the other unavailable; then repeat with both healthy. In `interactive`/`lookup` mode, assert Gateway requests at most one additional bounded page from each successful path that needs refill, re-verifies only new candidates, and never broadens scope. In `prompt_recall` mode, assert no refill occurs and the result returns within 1,500 ms. The response must be partial/degraded when a retrieval path or verification failed; it must not report healthy empty success after candidates are filtered.
+Return a full bounded candidate pool where canonical verification marks most candidates stale or tombstoned. Keep one retrieval path healthy and the other unavailable; then repeat with both healthy. Assert Gateway performs no pagination/refill in any mode, never broadens scope, and returns only canonically verified candidates. Set `truncated=true` and `status=partial` when a bounded pool or freshness filtering may have omitted relevant results; return `status=failed`, not healthy empty success, when required retrieval/verification failure leaves no safe candidates. In `prompt_recall` mode, the response must remain within 1,500 ms.
 
 ### AT-VERIFY-01: Canonical owner verification
 
@@ -156,6 +156,14 @@ A test name alone is insufficient. Each test must specify fixture/setup, injecte
 ### AT-CUTOVER-FENCE-01: Fence release and stale-token rejection
 
 Acquire and register a Memory fence for generation G, invalidate it through Index, then attempt cutover using the old token before its timestamp expiry. Assert Index rejects the released fence and does not change the active pointer. Repeat with Index unavailable during invalidation: Memory must remain write-fenced until expiry; after expiry, Index rejects the token regardless of the caller's supplied timestamp. Instrument the local dispatcher and assert Index emits no request to Memory or Knowledge.
+
+### AT-OLD-PROFILE-INFLIGHT-01: Delayed old-profile upsert after cutover
+
+Accept a canonical mutation under active profile P1, hold its P1 Index request, complete a fenced cutover to incompatible profile P2, then release the delayed P1 request. Assert Index rejects it with `409 profile_mismatch`, publishes no P1 representation into P2, and records `reconciliation_required`. The owner re-derives the same canonical revision under P2 with a new operation ID; only after that replacement is durably accepted may the old operation become `superseded` with a replacement-operation reference. Read-your-writes remains `pending_index` or `reconciliation_required` throughout; it must never claim indexed or no-result success.
+
+### AT-INDEX-LEXICAL-ORDER-01: Deterministic bounded Index candidate selection
+
+Submit equal and unequal term-frequency evidence across more than 100 matching chunks, then repeat the same query against the same pinned generation. Assert candidate order is descending sum of requested-term frequencies, then source ID ascending, revision sequence descending, chunk ID ascending, and chunker profile/version ascending. The first 100 are identical across runs, `truncated=true`, and neither Index nor Lexical Retrieval emits a page token in v1.
 
 ### AT-PROFILE-CHANGE-01: Concurrent mutation during incompatible-profile rebuild
 
