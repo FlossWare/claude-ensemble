@@ -37,10 +37,10 @@ def resolve_ref(schema_path: Path, ref: str, schemas: dict[Path, dict[str, Any]]
         fragment = ref
     else:
         file_part, separator, fragment_part = ref.partition("#")
-        if not separator or Path(file_part).name != file_part:
+        if Path(file_part).name != file_part:
             raise ValueError(f"only schema-local or sibling-schema references are permitted, got {ref!r}")
         target_path = SCHEMA_DIR / file_part
-        fragment = "#" + fragment_part
+        fragment = "#" + fragment_part if separator else "#"
     target = schemas.get(target_path)
     if target is None:
         raise ValueError(f"referenced schema does not exist: {target_path.name}")
