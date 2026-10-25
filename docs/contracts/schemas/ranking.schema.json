@@ -149,8 +149,8 @@
         "list_id": {
           "type": "string",
           "minLength": 16,
-          "maxLength": 512,
-          "pattern": "^rl1:(lexical|vector):original:[A-Za-z0-9_-]{1,342}$"
+          "maxLength": 1400,
+          "pattern": "^rl1:(lexical|vector):original:[A-Za-z0-9_-]{1,1366}$"
         },
         "retrieval_path": {
           "enum": [
