@@ -19,9 +19,10 @@ This service does not own source records, embeddings as a durable source of trut
 ~~~json
 {
   "query_id": "request-query-id",
+  "index_generation": "generation-123",
   "index_profile": {"name": "default", "version": "0.1", "digest": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"},
   "scope": {"type": "project", "id": "project-id", "visibility": "private"},
-  "embedding_profile": {"name": "technical-default", "version": "0.1", "digest": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"},
+  "embedding_profile": {"name": "technical-default", "version": "0.1"},
   "input_type": "query",
   "query": {"text": "How are revisions published?"},
   "filters": {"source_ids": [], "source_revisions": []},
@@ -30,13 +31,14 @@ This service does not own source records, embeddings as a durable source of trut
 }
 ~~~
 
-A caller may supply a query vector instead of text only when the vector profile, model/version, dimensions, and query/document mode are explicit and validated. Scope partition filters are enforced server-side; required local access restrictions are separate. Initial maximum is 100 candidates. Requests may include an opaque `page_token`; responses return `next_page_token` when more candidates remain. Pagination is stable for the same query, scope, profile, and Index generation.
+A caller may supply a query vector instead of text only when the vector profile, model/version, dimensions, and query/document mode are explicit and validated. Scope partition filters are enforced server-side; required local access restrictions are separate. Initial maximum is 100 candidates. Requests may include an opaque `page_token`; responses return `next_page_token` when more candidates remain. The caller supplies the pinned `index_generation` and immutable `index_profile` `{name, version, digest}` selected by Gateway. The service rejects a generation/profile mismatch and passes both to Index. The response echoes the same `index_generation` and component profile `{name, version}`. Pagination is stable for the same query, scope, profile, and pinned Index generation.
 
 ## Response
 
 ~~~json
 {
   "query_id": "request-query-id",
+  "index_generation": "generation-123",
   "index_profile": {"name": "default", "version": "0.1", "digest": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"},
   "embedding_profile": {"name": "technical-default", "version": "0.1", "digest": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"},
   "metric": "cosine_distance",
@@ -70,7 +72,7 @@ Distance/similarity values must use the declared metric and semantics; lower-is-
 
 ## Normative response semantics
 
-Every candidate includes the full shared identity tuple: `source_id`, `revision_sequence`, `chunk_id`, and `chunker` profile/version, plus opaque `source_revision`, bounded `text`, 1-based `retrieval_rank`, metric, and raw distance/similarity semantics. `retrieval_rank` is assigned within the vector result set and consumed by Ranking's RRF policy; raw vector values are never directly compared with lexical scores.
+The response echoes `index_generation`, `index_profile`, and `embedding_profile` used for the request. Every candidate includes the full shared identity tuple: `source_id`, `revision_sequence`, `chunk_id`, and `chunker` profile/version, plus opaque `source_revision`, bounded `text`, 1-based `retrieval_rank`, metric, and raw distance/similarity semantics. `retrieval_rank` is assigned within the vector result set and consumed by Ranking's RRF policy; raw vector values are never directly compared with lexical scores.
 
 ## Machine-checkable schemas
 
