@@ -82,7 +82,7 @@ The inventory distinguishes required CE functionality from implementation choice
 
 These 16 entries are logical service boundaries, not a mandate for separate processes. Each service has a REST contract, a clear owner, consumers, failure/readiness semantics, and acceptance tests. Co-deployment is allowed.
 
-**Required Gateway capabilities (not additional services):** Query Planning selects retrieval sources and constructs bounded query plans, including controlled query expansion. Prompt-context assembly/compression and provider prompt-cache optimization also belong to Gateway orchestration/provider adaptation.
+**Required Gateway capabilities (not additional services):** Query Planning selects retrieval sources and constructs bounded query plans, including controlled bounded query expansion (deferred in v1). Prompt-context assembly/compression and provider prompt-cache optimization also belong to Gateway orchestration/provider adaptation.
 
 ### Required behavior, not additional services
 
