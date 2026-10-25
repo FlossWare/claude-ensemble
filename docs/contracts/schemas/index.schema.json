@@ -1782,6 +1782,10 @@
         500,
         503,
         504
+      ],
+      "x-callers": [
+        "memory",
+        "knowledge"
       ]
     },
     "POST /api/v1/index/operations/delete": {
@@ -1799,6 +1803,10 @@
         500,
         503,
         504
+      ],
+      "x-callers": [
+        "memory",
+        "knowledge"
       ]
     },
     "GET /api/v1/index/operations/{operation_id}": {
@@ -1812,6 +1820,12 @@
         500,
         503,
         504
+      ],
+      "x-callers": [
+        "gateway",
+        "memory",
+        "knowledge",
+        "operator"
       ]
     },
     "GET /api/v1/index/sources/{source_id}/status": {
@@ -1825,6 +1839,11 @@
         500,
         503,
         504
+      ],
+      "x-callers": [
+        "gateway",
+        "memory",
+        "knowledge"
       ]
     },
     "GET /api/v1/index/profiles/{profile_name}/current": {
@@ -1838,6 +1857,11 @@
         500,
         503,
         504
+      ],
+      "x-callers": [
+        "gateway",
+        "memory",
+        "knowledge"
       ]
     },
     "POST /api/v1/index/generations": {
@@ -1855,6 +1879,12 @@
         500,
         503,
         504
+      ],
+      "x-callers": [
+        "gateway",
+        "memory",
+        "knowledge",
+        "operator"
       ]
     },
     "POST /api/v1/index/generations/{generation_id}/cutover": {
@@ -1872,6 +1902,12 @@
         500,
         503,
         504
+      ],
+      "x-callers": [
+        "gateway",
+        "memory",
+        "knowledge",
+        "operator"
       ]
     },
     "PUT /api/v1/index/generations/{generation_id}/owner-fences/{owner}/{fence_id}": {
@@ -1889,6 +1925,12 @@
         500,
         503,
         504
+      ],
+      "x-callers": [
+        "gateway",
+        "memory",
+        "knowledge",
+        "operator"
       ]
     },
     "DELETE /api/v1/index/generations/{generation_id}/owner-fences/{owner}/{fence_id}": {
@@ -1903,6 +1945,12 @@
         500,
         503,
         504
+      ],
+      "x-callers": [
+        "gateway",
+        "memory",
+        "knowledge",
+        "operator"
       ]
     },
     "POST /api/v1/index/generations/{generation_id}/owner-checkpoints": {
@@ -1920,6 +1968,12 @@
         500,
         503,
         504
+      ],
+      "x-callers": [
+        "gateway",
+        "memory",
+        "knowledge",
+        "operator"
       ]
     },
     "GET /api/v1/index/profiles/{profile_name}/versions/{profile_version}": {
@@ -1933,6 +1987,11 @@
         500,
         503,
         504
+      ],
+      "x-callers": [
+        "gateway",
+        "memory",
+        "knowledge"
       ]
     },
     "POST /api/v1/index/generations/{generation_id}/abandon": {
@@ -1950,7 +2009,13 @@
         503,
         504
       ],
-      "request": "#/$defs/abandonRequest"
+      "request": "#/$defs/abandonRequest",
+      "x-callers": [
+        "gateway",
+        "memory",
+        "knowledge",
+        "operator"
+      ]
     },
     "POST /api/v1/index/lexical/lookup": {
       "request": "#/$defs/lexicalLookupRequest",
@@ -1967,6 +2032,9 @@
         500,
         503,
         504
+      ],
+      "x-callers": [
+        "lexical-retrieval"
       ]
     },
     "POST /api/v1/index/vector-neighbors": {
@@ -1984,6 +2052,9 @@
         500,
         503,
         504
+      ],
+      "x-callers": [
+        "vector-retrieval"
       ]
     },
     "GET /api/v1/index/sources/manifest": {
@@ -1998,6 +2069,11 @@
         500,
         503,
         504
+      ],
+      "x-callers": [
+        "memory",
+        "knowledge",
+        "operator"
       ]
     },
     "GET /api/v1/index/generations/active": {
@@ -2010,6 +2086,13 @@
         500,
         503,
         504
+      ],
+      "x-callers": [
+        "gateway",
+        "memory",
+        "knowledge",
+        "lexical-retrieval",
+        "vector-retrieval"
       ]
     },
     "GET /api/v1/index/health": {
@@ -2020,6 +2103,9 @@
         429,
         500,
         503
+      ],
+      "x-callers": [
+        "health-probe"
       ]
     },
     "GET /api/v1/index/ready": {
@@ -2030,6 +2116,9 @@
         429,
         500,
         503
+      ],
+      "x-callers": [
+        "health-probe"
       ]
     },
     "GET /api/v1/index/generations/{generation_id}": {
@@ -2043,6 +2132,12 @@
         500,
         503,
         504
+      ],
+      "x-callers": [
+        "gateway",
+        "memory",
+        "knowledge",
+        "operator"
       ]
     }
   },
