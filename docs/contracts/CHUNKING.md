@@ -46,6 +46,7 @@ Response:
 
 ```json
 {
+  "index_profile": {"name": "default", "version": "0.1", "digest": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"},
   "source_id": "knowledge:kn_01J7M6P4V9Q2R8T6W3X5Y0ZABC",
   "source_revision": "rev-17",
   "revision_sequence": 17,
@@ -53,6 +54,7 @@ Response:
     "profile": "markdown-default",
     "version": "0.1"
   },
+  "chunking_profile": {"profile": "markdown-default", "version": "0.1"},
   "chunks": [
     {
       "chunk_id": "opaque-stable-id",
@@ -65,7 +67,8 @@ Response:
       "heading_path": ["Design"],
       "metadata": {}
     }
-  ]
+  ],
+  "request_id": "correlation-id"
 }
 ```
 
