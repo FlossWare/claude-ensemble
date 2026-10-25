@@ -74,6 +74,23 @@ Response:
 
 `degraded` and `failures` distinguish a partial workflow from a successful no-match. On a prompt-hook deadline or total dependency failure, the adapter fails open to the original prompt with no injected context, records a safe diagnostic, and must not claim that no memory exists. Interactive callers receive the documented error envelope when no safe result can be produced.
 
+## Degradation matrix and latency budgets
+
+| Dependency/step | Required behavior on failure | Budget |
+|---|---|---:|
+| Claude Code hook to Gateway | Fail open to the host application; emit bounded diagnostic metadata only | 1,500 ms total |
+| Intent Classification | Continue with `general` intent and mark degraded | 100 ms |
+| Entity/Identifier Extraction | Continue without extracted identifiers; mark degraded | 100 ms |
+| Lexical Retrieval | Continue with Vector results if available; otherwise degraded error | 300 ms |
+| Vector Retrieval | Continue with Lexical results if available; otherwise degraded error | 350 ms |
+| Graph | Omit graph-derived evidence and mark degraded | 150 ms |
+| Canonical freshness verification | Fail closed for candidates whose owner cannot be verified; preserve healthy-owner candidates | 250 ms total |
+| Ranking | Degraded error; no unranked success response | 150 ms |
+| Reranking | Skip and retain Ranking order; mark degraded | 250 ms |
+| Context assembly/compression | Return bounded verified evidence without optional compression; mark degraded | 150 ms |
+
+The budgets are ceilings within the 1,500 ms hook deadline, not additive allowances. Gateway uses one absolute deadline, reserves at least 250 ms for freshness verification and 150 ms for assembly/serialization, and stops optional work when the remaining budget reaches those reserves. Lexical and Vector retrieval run in parallel; Intent and Entity/Identifier Extraction may run in parallel. Every dependency call uses the remaining absolute deadline. If mandatory steps cannot complete within the remaining budget, return a degraded error rather than exceed the deadline.
+
 ## Errors and fallback
 
 Use the common REST error envelope. Distinguish invalid request, budget/deadline exceeded, dependency unavailable, partial workflow failure, and internal failure. The v1 degradation matrix is normative. A request has one scope partition in v1, so there is no per-scope fan-out failure state. Graph evidence is returned separately from ranked text candidates and is not forced into Ranking's chunk-candidate schema. For each Graph path, Gateway verifies every unique support identity within a hard budget of 100 support identities. An edge remains eligible only if at least one support verifies current in the requested scope; a path remains eligible only if every edge has at least one eligible support. If support verification exhausts the budget, affected paths are omitted and the response is partial/degraded. If a Graph owner is unavailable, unverified supports are discarded; a path can remain only through another independently verified current support.
