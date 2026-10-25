@@ -204,6 +204,11 @@
             },
             "retryable": {
               "type": "boolean"
+            },
+            "details": {
+              "type": "object",
+              "additionalProperties": true,
+              "maxProperties": 32
             }
           }
         },
