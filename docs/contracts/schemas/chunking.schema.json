@@ -637,6 +637,10 @@
         500,
         503,
         504
+      ],
+      "x-callers": [
+        "memory",
+        "knowledge"
       ]
     },
     "POST /api/v1/chunking/preflight": {
@@ -654,6 +658,10 @@
         500,
         503,
         504
+      ],
+      "x-callers": [
+        "memory",
+        "knowledge"
       ]
     },
     "GET /api/v1/chunking/health": {
@@ -664,6 +672,9 @@
         429,
         500,
         503
+      ],
+      "x-callers": [
+        "health-probe"
       ]
     },
     "GET /api/v1/chunking/ready": {
@@ -674,6 +685,9 @@
         429,
         500,
         503
+      ],
+      "x-callers": [
+        "health-probe"
       ]
     }
   },
