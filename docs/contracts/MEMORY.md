@@ -15,18 +15,18 @@ Memory owns its canonical records; Index owns only derived searchable representa
 - POST /api/v1/memories/{memory_id}/revisions: create a new immutable revision/update.
 - DELETE /api/v1/memories/{memory_id}: tombstone/delete the memory under explicit retention and deletion policy.
 - GET /api/v1/memories/{memory_id}/operations/{operation_id} and GET /api/v1/memories/operations/{operation_id}: report canonical commit and indexing status.
-- POST /api/v1/memories/revisions/verify: batch-verify candidate source IDs and revision sequences for Gateway freshness checks.
+- POST /api/v1/memories/revisions/verify: batch-verify candidate source IDs and revision sequences for Gateway freshness checks. Request items use the common shape `{source_id, revision_sequence}`; only `memory:` IDs are accepted.
 - GET /api/v1/memory/health and GET /api/v1/memory/ready.
 - GET /api/v1/memories/reconciliation/manifest: paginated manifest of active canonical revisions and tombstones, with stable snapshot/cursor semantics.
 - POST /api/v1/memories/reconciliation: start or resume owner-scoped reconciliation/rebuild into a specified Index generation; return a durable operation ID and status.
 - POST /api/v1/memories/reconciliation/fence: acquire a short-lived canonical-write fence for a reconciled target generation.
 - POST /api/v1/memories/reconciliation/fence/release: idempotently release a fence after cutover or an aborted attempt.
 
-The exact CRUD shape may be revised during schema review; revision and operation identity must remain explicit.
+All ingestion is asynchronous after canonical commit. The response includes `source_id` in the form `memory:<memory_id>`, the effective `index_profile` name/version/digest, `operation_id`, and `indexing_status=pending_index`.
 
 ## Record and revision semantics
 
-- Each memory has a stable ID, owner/scope, type, created/updated timestamps, retention policy, provenance, and opaque revision IDs paired with a monotonically increasing per-memory revision_sequence.
+- Each memory has a stable opaque ID matching `[A-Za-z0-9._~-]{1,128}`; its Index source ID is `memory:<memory_id>`. A source ID never embeds a locator or path. Each memory also has owner/scope, type, created/updated timestamps, retention policy, provenance, and opaque revision IDs paired with a monotonically increasing per-memory `revision_sequence`.
 - Revisions are immutable snapshots. Update creates a new revision rather than mutating content in place; the canonical record identifies the active revision. Revision-update requests supply `expected_base_revision_sequence`; if the active sequence differs, return `409 revision_conflict` rather than silently applying last-write-wins.
 - Every write is idempotent. Reusing an idempotency key with a different payload returns conflict.
 - Any local access restrictions required by the deployment are checked on every create/read/update/delete/status request. Scope is a partition filter and is not trusted as proof of identity.
@@ -55,7 +55,7 @@ Memory supports direct identity lookup and source lifecycle. Generic lexical/vec
 
 ## Normative write schemas
 
-Create `POST /api/v1/memories` requires `Idempotency-Key` and JSON fields `scope`, `type`, `content`, `provenance`, `retention_policy`, and `index_profile`. Before canonical commit, Memory makes one bounded REST preflight call to Chunking to determine the complete chunk count and encoded representation bound under the resolved `index_profile`. The preflight is capped at 500 ms and must not perform Tokenization, Embedding, Index, or Graph work. If preflight times out, no canonical mutation is committed and the endpoint returns `504 deadline_exceeded`; if limits are exceeded, return `422 source_too_large`. After preflight and canonical commit, response is always `202 Accepted` with `operation_id`, `memory_id`, `revision`, `revision_sequence`, `status`, and `indexing_status=pending_index`. No downstream derived work is awaited after canonical commit. A timeout never implies that the mutation did not commit.
+Create `POST /api/v1/memories` requires `Idempotency-Key` and JSON fields `scope`, `type`, `content`, `provenance`, `retention_policy`, and `index_profile`. Before canonical commit, Memory resolves the requested `index_profile` through `GET /api/v1/index/profiles/{name}/{version}` and validates the returned digest. It then makes one bounded REST preflight call to Chunking to determine the complete chunk count and encoded representation bound under the resolved bundle. The preflight is capped at 500 ms and must not perform Tokenization, Embedding, Index, or Graph work. If preflight times out, no canonical mutation is committed and the endpoint returns `504 deadline_exceeded`; if limits are exceeded, return `422 source_too_large`. After preflight and canonical commit, response is always `202 Accepted` with `operation_id`, `memory_id`, `revision`, `revision_sequence`, `status`, and `indexing_status=pending_index`. No downstream derived work is awaited after canonical commit. A timeout never implies that the mutation did not commit.
 
 Revision update `POST /api/v1/memories/{memory_id}/revisions` requires `Idempotency-Key`, `expected_base_revision_sequence`, new `content`, `provenance`, and effective `index_profile`. A stale base sequence returns `409 revision_conflict`. Response carries `memory_id`, opaque `revision`, new `revision_sequence`, `operation_id`, `status`, and `indexing_status`.
 
