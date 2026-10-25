@@ -1981,7 +1981,11 @@
       "x-callers": [
         "gateway",
         "memory",
-        "knowledge"
+        "knowledge",
+        "tokenization",
+        "embedding",
+        "lexical-retrieval",
+        "vector-retrieval"
       ]
     },
     "POST /api/v1/index/generations/{generation_id}/abandon": {
