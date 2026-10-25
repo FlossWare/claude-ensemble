@@ -702,13 +702,6 @@
         "truncated": {
           "type": "boolean"
         },
-        "next_page_token": {
-          "type": [
-            "string",
-            "null"
-          ],
-          "maxLength": 512
-        },
         "request_id": {
           "type": "string",
           "minLength": 1,
