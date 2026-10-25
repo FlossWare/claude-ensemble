@@ -77,9 +77,9 @@ Replay each owner journal to monotonic change sequence W, acquire target-bound f
 
 ### AT-CUTOVER-SEAL-01: Mutation during final cutover barrier
 
-Finish owner replay, acquire both owner fences, then attempt a write and delete before requesting cutover. Assert those mutations do not commit while fenced; cutover either succeeds before fences expire with all journal positions applied or is rejected after expiry. Release fences and retry the same idempotency keys; each mutation commits exactly once and is indexed in the now-active generation.
+Use a controllable clock. Finish owner replay and acquire/register both owner fences for target generation G. In schedule A, request cutover before either fence expires and assert atomic success only when both owner checkpoints and the Index journal cover the sealed cursors. In schedule B, advance the clock beyond one fence expiry before cutover and assert rejection with the active pointer unchanged. Release/invalidate fences and retry the same idempotency keys; each mutation commits exactly once and is indexed in the active generation.
 
-### AT-GEN-03: Abandon, exclusions, and rollback policy
+### AT-GEN-03: Abandon, unrepresentable sources, and no rollback
 
 Abandon a non-active generation and verify it cannot cut over. Attempt to abandon the active generation and verify rejection. Build a target whose profile cannot represent one source. Assert rebuild fails visibly by default, or records a named exclusion only when an explicit exclusion policy was supplied. After cutover, issue `POST /api/v1/index/generations/{previous_generation}/rollback`; assert the route is not defined and returns `404 endpoint_not_found` without changing the active pointer. Recovery requires a forward rebuild.
 
@@ -117,13 +117,15 @@ Create Memory and Knowledge operations whose opaque operation suffix is the same
 
 ### AT-LEARNING-01: Selection and outcome call direction
 
-Call `POST /api/v1/selections` and verify Gateway calls Thompson through REST and returns the selected arm plus state version. Submit `POST /api/v1/outcomes` and verify Gateway calls Learning, Learning validates/persists the event, and Learning calls Thompson through REST exactly once logically under retries. Assert Thompson never calls Learning, duplicate event delivery is idempotent, and status remains queryable after a downstream failure. Validate Learning operation/state and Thompson state responses against their endpoint-specific schemas, including unknown-operation/context `404` behavior.
+Call `POST /api/v1/selections` with policy `beta-bernoulli-v1`/`1` and verify an unseen context initializes Beta(1,1) state for each eligible arm. Repeating the same idempotency key returns the same persisted choice; a new key may draw again. Submit success and failure outcomes under `binary-reward-v1` and verify Learning maps them to rewards 1 and 0 respectively, then calls Thompson through REST exactly once logically under retries. Assert Thompson never calls Learning, duplicate event delivery is idempotent, and status remains queryable after a downstream failure. Validate Learning operation/state and Thompson state responses against their endpoint-specific schemas, including unknown-operation/context `404` behavior.
 
 ### AT-REST-ASYNC-01: Non-blocking ingestion
 
 Gate Tokenization, Embedding, Index, and Graph downstream responses after the bounded Chunking preflight. Create/update must return `202 Accepted` after preflight and canonical commit without waiting for those downstream gates. Dispatcher capacity remains available for health, status, and unrelated reads while preflight handlers are waiting.
 
 ### AT-RECOVERY-01: Crash/restart around canonical and derived writes
+
+Run each crash point as a separate fixture with durable-state inspection: (1) owner crashes after canonical commit before Index call; (2) Index accepts upsert but owner crashes before status persistence; (3) Index crashes mid-staging; (4) Index crashes during atomic publish; (5) Graph crashes after accepting a projection but before owner checkpoint. Restart the affected services and replay the same idempotency keys/journal entries.
 
 Crash after canonical commit before Index submission, after Index acceptance before owner status update, mid-generation staging, during cutover, and after Graph loses its derived projection store. After restart, Memory/Knowledge replay their durable journals through Graph's existing projection/deletion endpoints without any Graph-to-owner calls; Graph stays not-ready until owner watermarks are reached. Retry/reconciliation is idempotent; operation status is truthful; the prior complete Index revision remains active until atomic publication; tombstones cannot be undone.
 
@@ -189,3 +191,28 @@ Erase Graph's derived projection store while retaining the owners' durable Graph
 ### AT-RESTORE-READY-01: Startup high-water reconciliation
 
 Restore a Memory or Knowledge backup whose canonical revision sequence is lower than Index's durable per-source high-water mark, and remove one canonical record that still exists in the Index manifest. Assert the owner pages `GET /api/v1/index/sources/manifest?owner=...`, reconciles the union of local and Index identities, remains not-ready for writes for both regression and missing canonical content, and reports `revision_sequence_regression` until explicit recovery/tombstone resolution. It must not increment a counter and proceed. Index is never treated as the canonical content source.
+
+
+### AT-NO-PAGINATION-01: V1 rejects pagination and refill
+
+Submit `page_token` to Vector Retrieval and Graph traversal requests and assert `400 invalid_parameter`. Assert their responses and the Index lexical/vector lookup schemas contain no continuation token. For a truncated candidate pool, Gateway returns the bounded safe results with `truncated=true` and `status=partial` when relevant candidates may be missing; it performs no second retrieval or refill.
+
+### AT-GW-CAP-01: Deterministic aggregate cap and exact-match boundary
+
+Return 100 candidates from each retrieval path, including duplicate identities, exact identifier matches, equal retrieval ranks, and candidates with differing source revisions. Assert Gateway annotates exact matches before capping, retains one unique identity per aggregate-pool slot, orders by exact tier then minimum rank, `list_id`, and canonical identity tuple, and preserves each occurrence's per-list rank/evidence for Ranking. An exact match outside the retrieved/retained pool is not covered by the v1 guarantee; the response is marked truncated/partial.
+
+### AT-GRAPH-RESOLVE-01: Scoped entity mention resolution
+
+Submit entity mentions with exact labels, aliases, substrings, case differences, and Unicode normalization variants. Assert Graph resolves only exact NFC/case-folded label or alias matches within the requested scope, returns at most four node IDs per mention in deterministic order, reports unresolved mentions, and never traverses a node from another scope.
+
+### AT-VECTOR-ORDER-01: Deterministic vector neighbor order
+
+Insert equal-distance and equal-similarity vectors for multiple source revisions/chunks. Assert `cosine` and `dot_product` sort descending, `euclidean` sorts ascending, then the shared canonical identity comparator applies. The same pinned generation produces the same first 100 candidates and truncation flag across runs.
+
+### AT-PREFLIGHT-PROFILE-01: Pinned profile bundle and provider limit boundary
+
+Resolve an immutable profile bundle from Index and pass the full bundle plus matching `{name,version,digest}` to Chunking preflight. Assert a mismatched digest or component identity is rejected before canonical commit; structural and serialized bounds are computed from the supplied bundle. Then inject an Embedding provider outage and a separate input exceeding `max_input_tokens`: the outage is recorded as retryable asynchronous failure, the oversized input fails explicitly without truncation, and neither case publishes a partial Index representation.
+
+### AT-REBUILD-EXCLUSION-01: Unrepresentable source blocks cutover
+
+Build a target generation whose profile cannot represent one canonical source. Assert the owner and Index record a source-specific failure, the target remains ineligible, and cutover is rejected. No caller-supplied exclusion approval is accepted in v1. After correcting the profile/source and replaying the owner journal, the generation may become eligible.
