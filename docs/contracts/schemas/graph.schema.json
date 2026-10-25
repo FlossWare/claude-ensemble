@@ -495,6 +495,153 @@
       "minLength": 3,
       "maxLength": 1024,
       "pattern": "^(memory|knowledge):.+"
+    },
+    "support": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "source_id",
+        "source_revision",
+        "revision_sequence",
+        "scope"
+      ],
+      "properties": {
+        "source_id": {
+          "$ref": "#/$defs/sourceId"
+        },
+        "source_revision": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "revision_sequence": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        },
+        "scope": {
+          "$ref": "#/$defs/scope"
+        },
+        "provenance": {
+          "$ref": "#/$defs/provenance"
+        }
+      }
+    },
+    "traversalEdge": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "edge_id",
+        "source_node_id",
+        "target_node_id",
+        "relationship_type",
+        "directed",
+        "supports"
+      ],
+      "properties": {
+        "edge_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512
+        },
+        "source_node_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512
+        },
+        "target_node_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512
+        },
+        "relationship_type": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "directed": {
+          "type": "boolean"
+        },
+        "supports": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 100,
+          "items": {
+            "$ref": "#/$defs/support"
+          }
+        }
+      }
+    },
+    "traversalPath": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "path_id",
+        "node_ids",
+        "edges"
+      ],
+      "properties": {
+        "path_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512
+        },
+        "node_ids": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 6,
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512
+          }
+        },
+        "edges": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 5,
+          "items": {
+            "$ref": "#/$defs/traversalEdge"
+          }
+        }
+      }
+    },
+    "traversalResponse": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "scope",
+        "paths",
+        "truncated",
+        "request_id"
+      ],
+      "properties": {
+        "scope": {
+          "$ref": "#/$defs/scope"
+        },
+        "paths": {
+          "type": "array",
+          "maxItems": 100,
+          "items": {
+            "$ref": "#/$defs/traversalPath"
+          }
+        },
+        "truncated": {
+          "type": "boolean"
+        },
+        "next_page_token": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 512
+        },
+        "request_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      }
     }
   },
   "x-request-oneOf": [
@@ -531,6 +678,30 @@
     },
     {
       "$ref": "#/$defs/errorResponse"
+    },
+    {
+      "$ref": "#/$defs/traversalResponse"
     }
-  ]
+  ],
+  "x-endpoints": {
+    "POST /api/v1/graph/source-projections": {
+      "request": "$defs/projectionRequest",
+      "response": "$defs/operationResponse",
+      "success_status": 202
+    },
+    "POST /api/v1/graph/source-deletions": {
+      "request": "$defs/deleteRequest",
+      "response": "$defs/operationResponse",
+      "success_status": 202
+    },
+    "POST /api/v1/graph/traversals": {
+      "request": "$defs/traversalRequest",
+      "response": "$defs/traversalResponse",
+      "success_status": 200
+    },
+    "GET /api/v1/graph/operations/{operation_id}": {
+      "response": "$defs/operationResponse",
+      "success_status": 200
+    }
+  }
 }
