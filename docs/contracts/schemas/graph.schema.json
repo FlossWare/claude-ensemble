@@ -311,6 +311,16 @@
         },
         "provenance": {
           "$ref": "#/$defs/provenance"
+        },
+        "aliases": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 1024
+          },
+          "maxItems": 32,
+          "uniqueItems": true
         }
       }
     },
@@ -469,7 +479,7 @@
       "additionalProperties": false,
       "required": [
         "scope",
-        "start_node_ids",
+        null,
         "max_depth",
         "limit"
       ],
@@ -520,8 +530,31 @@
           "minimum": 1,
           "maximum": 500,
           "default": 500
+        },
+        "entity_mentions": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 1024
+          },
+          "maxItems": 16,
+          "minItems": 1,
+          "uniqueItems": true
         }
-      }
+      },
+      "oneOf": [
+        {
+          "required": [
+            "start_node_ids"
+          ]
+        },
+        {
+          "required": [
+            "entity_mentions"
+          ]
+        }
+      ]
     },
     "operationResponse": {
       "type": "object",
@@ -695,7 +728,8 @@
         "scope",
         "paths",
         "truncated",
-        "request_id"
+        "request_id",
+        "resolved_start_node_ids"
       ],
       "properties": {
         "scope": {
@@ -715,6 +749,15 @@
           "type": "string",
           "minLength": 1,
           "maxLength": 128
+        },
+        "resolved_start_node_ids": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512
+          },
+          "maxItems": 16
         }
       }
     },
