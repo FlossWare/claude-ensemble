@@ -721,7 +721,56 @@
             }
           }
         }
-      }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "const": "complete"
+              }
+            },
+            "required": [
+              "status"
+            ]
+          },
+          "then": {
+            "properties": {
+              "degraded": {
+                "const": false
+              },
+              "degradation_reasons": {
+                "maxItems": 0
+              },
+              "failures": {
+                "maxItems": 0
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "enum": [
+                  "partial",
+                  "failed"
+                ]
+              }
+            },
+            "required": [
+              "status"
+            ]
+          },
+          "then": {
+            "properties": {
+              "degraded": {
+                "const": true
+              }
+            }
+          }
+        }
+      ]
     },
     "sourceId": {
       "type": "string",
