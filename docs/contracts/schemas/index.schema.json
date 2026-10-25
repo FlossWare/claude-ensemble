@@ -233,7 +233,7 @@
         "operation_id": {
           "type": "string",
           "minLength": 1,
-          "maxLength": 128
+          "maxLength": 256
         },
         "source": {
           "type": "object",
@@ -444,7 +444,7 @@
         "operation_id": {
           "type": "string",
           "minLength": 1,
-          "maxLength": 128
+          "maxLength": 256
         },
         "source_id": {
           "$ref": "#/$defs/sourceId"
