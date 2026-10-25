@@ -1164,6 +1164,16 @@
     "GET /api/v1/memories/{memory_id}/operations/{operation_id}": {
       "response": "$defs/operationStatusResponse",
       "success_status": 200
+    },
+    "POST /api/v1/memories/reconciliation/fence": {
+      "request": "$defs/fenceRequest",
+      "response": "$defs/fenceResponse",
+      "success_status": 200
+    },
+    "POST /api/v1/memories/reconciliation/fence/release": {
+      "request": "$defs/fenceReleaseRequest",
+      "response": "$defs/fenceReleaseResponse",
+      "success_status": 200
     }
   }
 }
