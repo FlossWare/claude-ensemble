@@ -560,10 +560,10 @@
   },
   "x-endpoints": {
     "POST /api/v1/lexical-retrieval/search": {
-      "request": "$defs/searchRequest",
-      "response": "$defs/searchResponse",
+      "request": "#/$defs/searchRequest",
+      "response": "#/$defs/searchResponse",
       "success_status": 200,
-      "error_response": "$defs/errorResponse",
+      "error_response": "#/$defs/errorResponse",
       "error_statuses": [
         400,
         404,
