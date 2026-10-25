@@ -68,7 +68,8 @@
         "index_profile",
         "embedding_profile",
         "limit",
-        "query"
+        "query",
+        "index_generation"
       ],
       "properties": {
         "request_id": {
@@ -238,6 +239,11 @@
             "null"
           ],
           "maxLength": 512
+        },
+        "index_generation": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
         }
       }
     },
@@ -328,7 +334,8 @@
         "candidates",
         "truncated",
         "next_page_token",
-        "request_id"
+        "request_id",
+        "index_generation"
       ],
       "properties": {
         "query_id": {
@@ -393,6 +400,11 @@
           "type": "string",
           "minLength": 1,
           "maxLength": 128
+        },
+        "index_generation": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
         }
       }
     },
