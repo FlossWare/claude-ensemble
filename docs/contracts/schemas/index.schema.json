@@ -1024,8 +1024,7 @@
               "revision_sequence",
               "chunk_id",
               "chunker",
-              "text",
-              "retrieval_rank"
+              "text"
             ],
             "properties": {
               "source_id": {
@@ -1070,11 +1069,6 @@
                 "type": "string",
                 "minLength": 1,
                 "maxLength": 65536
-              },
-              "retrieval_rank": {
-                "type": "integer",
-                "minimum": 1,
-                "maximum": 100
               },
               "term_frequency_evidence": {
                 "type": "array",
