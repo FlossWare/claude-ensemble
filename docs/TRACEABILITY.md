@@ -4,25 +4,25 @@ Status: proposed architecture acceptance artifact. Rows map the functional inven
 
 | Inventory ID | Owner / capability | Contract or workflow | Acceptance coverage |
 |---|---|---|---|
-| F-01 | Gateway | `contracts/GATEWAY.md`, `contracts/REST-CONTRACT.md` | AT-GW-01, AT-MAP-01, AT-FRESH-01, AT-PARTIAL-01, AT-VERIFY-01, AT-PERF-01, AT-READ-YOUR-WRITES-01 |
+| F-01 | Gateway | `contracts/GATEWAY.md`, `contracts/REST-CONTRACT.md` | AT-GW-01, AT-MAP-01, AT-FRESH-01, AT-PARTIAL-01, AT-VERIFY-01, AT-PERF-01, AT-READ-YOUR-WRITES-01, AT-OP-ROUTING-01, AT-EXACT-RERANK-01 |
 | F-02 | Gateway request orchestration | `contracts/GATEWAY.md`, `contracts/REST-CONTRACT.md` | AT-GW-01, AT-PARTIAL-01, AT-PERF-01, AT-FRESH-01 |
-| F-03 | Memory | `contracts/MEMORY.md` | AT-DEL-01, AT-CONC-01, AT-IDEMP-01, AT-IDEMP-EXPIRY-01, AT-RECOVERY-01, AT-READ-YOUR-WRITES-01, AT-SEQUENCE-RESTORE-01 |
-| F-04 | Knowledge | `contracts/KNOWLEDGE.md` | AT-DEL-01, AT-CONC-01, AT-ID-01, AT-MAP-01, AT-RECOVERY-01, AT-READ-YOUR-WRITES-01, AT-SEQUENCE-RESTORE-01 |
+| F-03 | Memory | `contracts/MEMORY.md` | AT-DEL-01, AT-CONC-01, AT-IDEMP-01, AT-IDEMP-EXPIRY-01, AT-RECOVERY-01, AT-READ-YOUR-WRITES-01, AT-SEQUENCE-RESTORE-01, AT-OP-ROUTING-01, AT-RESTORE-READY-01 |
+| F-04 | Knowledge | `contracts/KNOWLEDGE.md` | AT-DEL-01, AT-CONC-01, AT-ID-01, AT-MAP-01, AT-RECOVERY-01, AT-READ-YOUR-WRITES-01, AT-SEQUENCE-RESTORE-01, AT-OP-ROUTING-01, AT-RESTORE-READY-01 |
 | F-05 | Graph | `contracts/GRAPH.md` | AT-DELETE-GRAPH-01, AT-GRAPH-PATH-01, AT-RECOVERY-01 |
 | F-06 | Thompson | `contracts/THOMPSON.md` | AT-SCHEMA-01, AT-IDEMP-01, AT-LEARNING-01 |
 | F-07 | Learning | `contracts/LEARNING.md` | AT-SCHEMA-01, AT-IDEMP-01, AT-LEARNING-01 |
-| F-08 | Memory and Knowledge ingestion orchestration | `contracts/MEMORY.md`, `contracts/KNOWLEDGE.md` | AT-REST-ASYNC-01, AT-RECOVERY-01 |
-| F-09 | Index | `contracts/INDEX.md` | AT-DEL-01, AT-REBUILD-01, AT-REBUILD-02, AT-CUTOVER-SEAL-01, AT-GEN-02, AT-GEN-03, AT-PROFILE-01 |
-| F-10 | Chunking | `contracts/CHUNKING.md` | AT-TEXT-01, AT-REBUILD-01, AT-PROFILE-01 |
-| F-11 | Tokenization | `contracts/TOKENIZATION.md` | AT-TEXT-01, AT-TOKEN-BATCH-01, AT-PROFILE-01 |
+| F-08 | Memory and Knowledge ingestion orchestration | `contracts/MEMORY.md`, `contracts/KNOWLEDGE.md` | AT-REST-ASYNC-01, AT-RECOVERY-01, AT-SIZE-PREFLIGHT-01 |
+| F-09 | Index | `contracts/INDEX.md` | AT-DEL-01, AT-REBUILD-01, AT-REBUILD-02, AT-CUTOVER-SEAL-01, AT-GEN-02, AT-GEN-03, AT-PROFILE-01, AT-CUTOVER-FENCE-01, AT-PROFILE-CHANGE-01, AT-SIZE-PREFLIGHT-01, AT-INDEX-DIRECTION-01, AT-RESTORE-READY-01 |
+| F-10 | Chunking | `contracts/CHUNKING.md` | AT-TEXT-01, AT-REBUILD-01, AT-PROFILE-01, AT-PROFILE-CHANGE-01, AT-SIZE-PREFLIGHT-01 |
+| F-11 | Tokenization | `contracts/TOKENIZATION.md` | AT-TEXT-01, AT-TOKEN-BATCH-01, AT-PROFILE-01, AT-PROFILE-CHANGE-01 |
 | F-12 | Lexical Retrieval | `contracts/LEXICAL-RETRIEVAL.md` | AT-RANK-01, AT-VERIFY-01, AT-SCHEMA-01 |
-| F-13 | Embedding | `contracts/EMBEDDING.md` | AT-EMBED-01, AT-PROFILE-01 |
+| F-13 | Embedding | `contracts/EMBEDDING.md` | AT-EMBED-01, AT-PROFILE-01, AT-PROFILE-CHANGE-01 |
 | F-14 | Vector Retrieval | `contracts/VECTOR-RETRIEVAL.md` | AT-RANK-01, AT-VERIFY-01, AT-PROFILE-01 |
 | F-15 | Intent Classification | `contracts/INTENT-CLASSIFICATION.md` | AT-GW-01 |
 | F-16 | Entity and Identifier Extraction | `contracts/ENTITY-EXTRACTION.md` | AT-TEXT-01, AT-RRF-02 |
 | F-17 | Gateway query planning | `contracts/GATEWAY.md` | AT-GW-01, AT-RRF-02 |
-| F-18 | Ranking | `contracts/RANKING.md` | AT-RANK-01, AT-RRF-02 |
-| F-19 | Reranking | `contracts/RERANKING.md` | AT-PERF-01, AT-SCHEMA-01 |
+| F-18 | Ranking | `contracts/RANKING.md` | AT-RANK-01, AT-RRF-02, AT-EXACT-RERANK-01 |
+| F-19 | Reranking | `contracts/RERANKING.md` | AT-PERF-01, AT-SCHEMA-01, AT-EXACT-RERANK-01 |
 | F-20 | Scope partitioning and local access restrictions | `contracts/REST-CONTRACT.md`, owner contracts | AT-VERIFY-01, AT-ID-01, AT-MAP-01 |
 | F-21 | Gateway prompt-context assembly/compression | `contracts/GATEWAY.md` | AT-PERF-01, AT-GW-01 |
 | F-22 | Claude Code hook adapter | Gateway integration workflow | AT-PERF-01, AT-HOOK-01; executable hook integration test required before implementation approval |
