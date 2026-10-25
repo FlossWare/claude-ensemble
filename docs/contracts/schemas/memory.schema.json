@@ -737,7 +737,8 @@
         "revision_sequence",
         "status",
         "request_id",
-        "indexing_status"
+        "indexing_status",
+        "graph_status"
       ],
       "properties": {
         "operation_id": {
@@ -783,6 +784,14 @@
             "index_failed",
             "reconciliation_required"
           ]
+        },
+        "graph_status": {
+          "enum": [
+            "pending_graph",
+            "deleted",
+            "graph_failed",
+            "reconciliation_required"
+          ]
         }
       }
     },
@@ -794,7 +803,8 @@
         "status",
         "canonical_status",
         "indexing_status",
-        "request_id"
+        "request_id",
+        "graph_status"
       ],
       "properties": {
         "operation_id": {
@@ -835,6 +845,14 @@
           "type": "string",
           "minLength": 1,
           "maxLength": 128
+        },
+        "graph_status": {
+          "enum": [
+            "pending_graph",
+            "deleted",
+            "graph_failed",
+            "reconciliation_required"
+          ]
         }
       }
     },
