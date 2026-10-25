@@ -361,7 +361,8 @@
         "revision_sequence",
         "scope",
         "nodes",
-        "edges"
+        "edges",
+        "owner_projection_sequence"
       ],
       "properties": {
         "operation_id": {
@@ -405,6 +406,11 @@
           "type": "string",
           "minLength": 1,
           "maxLength": 128
+        },
+        "owner_projection_sequence": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
         }
       }
     },
@@ -416,7 +422,8 @@
         "source_id",
         "revision_sequence",
         "scope",
-        "delete_scope"
+        "delete_scope",
+        "owner_projection_sequence"
       ],
       "properties": {
         "operation_id": {
@@ -447,6 +454,11 @@
           "type": "string",
           "minLength": 1,
           "maxLength": 128
+        },
+        "owner_projection_sequence": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
         }
       }
     },
@@ -773,6 +785,82 @@
           "type": "string",
           "minLength": 1,
           "maxLength": 128
+        },
+        "owner_watermarks": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "maxProperties": 2
+        },
+        "ready": {
+          "type": "boolean"
+        }
+      }
+    },
+    "reconciliationCheckpointRequest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "owner",
+        "sealed_projection_sequence",
+        "request_id"
+      ],
+      "properties": {
+        "owner": {
+          "enum": [
+            "memory",
+            "knowledge"
+          ]
+        },
+        "sealed_projection_sequence": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "request_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      }
+    },
+    "reconciliationCheckpointResponse": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "owner",
+        "sealed_projection_sequence",
+        "applied_projection_sequence",
+        "ready",
+        "request_id"
+      ],
+      "properties": {
+        "owner": {
+          "enum": [
+            "memory",
+            "knowledge"
+          ]
+        },
+        "sealed_projection_sequence": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "applied_projection_sequence": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "ready": {
+          "type": "boolean"
+        },
+        "request_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
         }
       }
     }
@@ -855,6 +943,11 @@
         503,
         504
       ]
+    },
+    "POST /api/v1/graph/reconciliation/checkpoints": {
+      "request": "$defs/reconciliationCheckpointRequest",
+      "response": "$defs/reconciliationCheckpointResponse",
+      "success_status": 200
     }
   },
   "anyOf": [
@@ -878,6 +971,12 @@
     },
     {
       "$ref": "#/$defs/manifestResponse"
+    },
+    {
+      "$ref": "#/$defs/reconciliationCheckpointRequest"
+    },
+    {
+      "$ref": "#/$defs/reconciliationCheckpointResponse"
     },
     {
       "$ref": "#/$defs/errorResponse"
