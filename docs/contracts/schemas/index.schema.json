@@ -101,7 +101,7 @@
           "minItems": 2,
           "maxItems": 2,
           "items": {
-            "$ref": "#/$defs/ownerFence"
+            "$ref": "#/$defs/ownerFenceRef"
           },
           "allOf": [
             {
@@ -216,7 +216,8 @@
                 "maxLength": 1024
               }
             }
-          }
+          },
+          "description": "Diagnostic-only failures. Any exclusion makes cutover ineligible in v1; owners cannot approve exclusions."
         }
       }
     },
@@ -1725,6 +1726,39 @@
           "type": "string",
           "minLength": 1,
           "maxLength": 128
+        }
+      }
+    },
+    "ownerFenceRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "owner",
+        "fence_id",
+        "fence_token",
+        "sealed_change_sequence"
+      ],
+      "properties": {
+        "owner": {
+          "enum": [
+            "memory",
+            "knowledge"
+          ]
+        },
+        "fence_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "fence_token": {
+          "type": "string",
+          "minLength": 16,
+          "maxLength": 512
+        },
+        "sealed_change_sequence": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
         }
       }
     }
