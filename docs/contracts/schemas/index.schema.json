@@ -560,6 +560,7 @@
                 "vector_dimension_mismatch",
                 "tokenization_failed",
                 "invalid_scope",
+                "local_access_denied",
                 "not_ready",
                 "cutover_in_progress",
                 "fence_expired",
@@ -568,6 +569,9 @@
                 "operation_not_found",
                 "dependency_unavailable",
                 "service_unavailable",
+                "rate_limited",
+                "unsupported_media_type",
+                "upstream_failure",
                 "deadline_exceeded",
                 "context_assembly_failed",
                 "internal_error",
@@ -1574,85 +1578,233 @@
       "request": "$defs/upsertRequest",
       "response": "$defs/upsertResponse",
       "success_status": 202,
-      "error_response": "$defs/errorResponse"
+      "error_response": "$defs/errorResponse",
+      "error_statuses": [
+        400,
+        404,
+        409,
+        413,
+        422,
+        429,
+        500,
+        503,
+        504
+      ]
     },
     "POST /api/v1/index/operations/delete": {
       "request": "$defs/deleteRequest",
       "response": "$defs/deleteResponse",
       "success_status": 202,
-      "error_response": "$defs/errorResponse"
+      "error_response": "$defs/errorResponse",
+      "error_statuses": [
+        400,
+        404,
+        409,
+        413,
+        422,
+        429,
+        500,
+        503,
+        504
+      ]
     },
     "GET /api/v1/index/operations/{operation_id}": {
       "response": "$defs/operationStatusResponse",
       "success_status": 200,
-      "error_response": "$defs/errorResponse"
+      "error_response": "$defs/errorResponse",
+      "error_statuses": [
+        400,
+        404,
+        429,
+        500,
+        503,
+        504
+      ]
     },
     "GET /api/v1/index/sources/{source_id}/status": {
       "response": "$defs/sourceStatusResponse",
       "success_status": 200,
-      "error_response": "$defs/errorResponse"
+      "error_response": "$defs/errorResponse",
+      "error_statuses": [
+        400,
+        404,
+        429,
+        500,
+        503,
+        504
+      ]
     },
     "GET /api/v1/index/profiles/{profile_name}/current": {
       "response": "$defs/profileCurrentResponse",
       "success_status": 200,
-      "error_response": "$defs/errorResponse"
+      "error_response": "$defs/errorResponse",
+      "error_statuses": [
+        400,
+        404,
+        429,
+        500,
+        503,
+        504
+      ]
     },
     "POST /api/v1/index/generations": {
       "request": "$defs/generationCreateRequest",
       "response": "$defs/generationResponse",
       "success_status": 202,
-      "error_response": "$defs/errorResponse"
+      "error_response": "$defs/errorResponse",
+      "error_statuses": [
+        400,
+        404,
+        409,
+        413,
+        422,
+        429,
+        500,
+        503,
+        504
+      ]
     },
     "POST /api/v1/index/generations/{generation_id}/cutover": {
       "request": "$defs/cutoverRequest",
       "response": "$defs/generationResponse",
       "success_status": 200,
-      "error_response": "$defs/errorResponse"
+      "error_response": "$defs/errorResponse",
+      "error_statuses": [
+        400,
+        404,
+        409,
+        413,
+        422,
+        429,
+        500,
+        503,
+        504
+      ]
     },
     "PUT /api/v1/index/generations/{generation_id}/owner-fences/{owner}/{fence_id}": {
       "request": "$defs/ownerFenceRegistrationRequest",
       "success_status": 200,
       "response": "$defs/ownerFence",
-      "error_response": "$defs/errorResponse"
+      "error_response": "$defs/errorResponse",
+      "error_statuses": [
+        400,
+        404,
+        409,
+        413,
+        422,
+        429,
+        500,
+        503,
+        504
+      ]
     },
     "DELETE /api/v1/index/generations/{generation_id}/owner-fences/{owner}/{fence_id}": {
       "success_status": 200,
       "response": "$defs/ownerFenceReleaseResponse",
-      "error_response": "$defs/errorResponse"
+      "error_response": "$defs/errorResponse",
+      "error_statuses": [
+        400,
+        404,
+        409,
+        429,
+        500,
+        503,
+        504
+      ]
     },
     "POST /api/v1/index/generations/{generation_id}/owner-checkpoints": {
       "request": "$defs/ownerCheckpointRequest",
       "response": "$defs/ownerCheckpointResponse",
       "success_status": 200,
-      "error_response": "$defs/errorResponse"
+      "error_response": "$defs/errorResponse",
+      "error_statuses": [
+        400,
+        404,
+        409,
+        413,
+        422,
+        429,
+        500,
+        503,
+        504
+      ]
     },
     "GET /api/v1/index/profiles/{profile_name}/versions/{profile_version}": {
       "response": "$defs/profileCurrentResponse",
       "success_status": 200,
-      "error_response": "$defs/errorResponse"
+      "error_response": "$defs/errorResponse",
+      "error_statuses": [
+        400,
+        404,
+        429,
+        500,
+        503,
+        504
+      ]
     },
     "POST /api/v1/index/generations/{generation_id}/abandon": {
       "response": "$defs/generationResponse",
       "success_status": 200,
-      "error_response": "$defs/errorResponse"
+      "error_response": "$defs/errorResponse",
+      "error_statuses": [
+        400,
+        404,
+        409,
+        413,
+        422,
+        429,
+        500,
+        503,
+        504
+      ]
     },
     "POST /api/v1/index/lexical/lookup": {
       "request": "$defs/lexicalLookupRequest",
       "response": "$defs/lexicalLookupResponse",
       "success_status": 200,
-      "error_response": "$defs/errorResponse"
+      "error_response": "$defs/errorResponse",
+      "error_statuses": [
+        400,
+        404,
+        409,
+        413,
+        422,
+        429,
+        500,
+        503,
+        504
+      ]
     },
     "POST /api/v1/index/vector-neighbors": {
       "request": "$defs/vectorNeighborsRequest",
       "response": "$defs/vectorNeighborsResponse",
       "success_status": 200,
-      "error_response": "$defs/errorResponse"
+      "error_response": "$defs/errorResponse",
+      "error_statuses": [
+        400,
+        404,
+        409,
+        413,
+        422,
+        429,
+        500,
+        503,
+        504
+      ]
     },
     "GET /api/v1/index/sources/manifest": {
       "request": "$defs/sourceManifestRequest",
       "response": "$defs/sourceManifestResponse",
       "success_status": 200,
-      "error_response": "$defs/errorResponse"
+      "error_response": "$defs/errorResponse",
+      "error_statuses": [
+        400,
+        404,
+        429,
+        500,
+        503,
+        504
+      ]
     }
   },
   "anyOf": [
