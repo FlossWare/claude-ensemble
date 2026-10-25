@@ -16,8 +16,6 @@ Own graph nodes, edges, relationship types, identity, provenance, mutation lifec
 - GET /api/v1/graph/sources/manifest: bounded source revision/tombstone manifest for reconciliation.
 - POST /api/v1/graph/reconciliation: start or resume idempotent replay from Memory/Knowledge owner manifests and change cursors; return a durable operation ID.
 - GET /api/v1/graph/reconciliation/operations/{operation_id}: return status, applied owner cursors, per-source failures, and completeness state.
-- POST /api/v1/graph/reconciliation: owner-triggered replay from canonical Memory/Knowledge manifests into Graph; returns a durable operation ID.
-- GET /api/v1/graph/reconciliation/operations/{operation_id}: query replay status.
 - GET /api/v1/graph/health and GET /api/v1/graph/ready.
 
 Node/edge identity and support schemas below are normative. Memory and Knowledge are the source-projection writers for relationships derived from canonical records; they call Graph through REST after extraction/validation. Graph does not call either owner. V1 exposes source projection/deletion, bounded traversal, operation status, manifest, and health/readiness only; standalone node/edge CRUD is deferred.
