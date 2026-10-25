@@ -148,8 +148,9 @@
       "properties": {
         "list_id": {
           "type": "string",
-          "minLength": 1,
-          "maxLength": 256
+          "minLength": 16,
+          "maxLength": 512,
+          "pattern": "^rl1:(lexical|vector):original:[A-Za-z0-9_-]{1,342}$"
         },
         "retrieval_path": {
           "enum": [
@@ -158,9 +159,7 @@
           ]
         },
         "query_variant_id": {
-          "type": "string",
-          "minLength": 1,
-          "maxLength": 128
+          "const": "original"
         },
         "scope_partition_id": {
           "type": "string",
@@ -349,7 +348,16 @@
             "code": {
               "type": "string",
               "minLength": 1,
-              "maxLength": 128
+              "maxLength": 128,
+              "enum": [
+                "invalid_request",
+                "duplicate_list_id",
+                "duplicate_retrieval_rank",
+                "candidate_identity_conflict",
+                "unsupported_policy",
+                "deadline_exceeded",
+                "internal_error"
+              ]
             },
             "message": {
               "type": "string",
