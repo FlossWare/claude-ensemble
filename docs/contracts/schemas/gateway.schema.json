@@ -687,7 +687,8 @@
                           "source_id",
                           "source_revision",
                           "revision_sequence",
-                          "scope"
+                          "scope",
+                          "source_edge_id"
                         ],
                         "properties": {
                           "source_id": {
@@ -708,6 +709,11 @@
                           },
                           "provenance": {
                             "$ref": "#/$defs/provenance"
+                          },
+                          "source_edge_id": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 512
                           }
                         }
                       }
