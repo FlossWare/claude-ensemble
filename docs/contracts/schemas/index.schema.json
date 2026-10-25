@@ -745,7 +745,7 @@
           "pattern": "^[a-fA-F0-9]{64}$"
         },
         "bundle": {
-          "type": "object"
+          "$ref": "index-profile.schema.json"
         },
         "request_id": {
           "type": "string",
@@ -954,7 +954,6 @@
       "success_status": 200
     },
     "POST /api/v1/index/generations/{generation_id}/abandon": {
-      "request": "$defs/generationCreateRequest",
       "response": "$defs/generationResponse",
       "success_status": 200
     }
