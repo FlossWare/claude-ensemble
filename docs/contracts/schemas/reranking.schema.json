@@ -54,7 +54,8 @@
         "chunk_id",
         "chunker",
         "text",
-        "prior_rank"
+        "prior_rank",
+        "matched_exact_identifiers"
       ],
       "properties": {
         "source_id": {
@@ -92,12 +93,20 @@
           "maximum": 100
         },
         "prior_score": {
-          "type": "integer",
-          "minimum": 0
+          "type": "number"
         },
         "provenance": {
           "type": "object",
           "additionalProperties": true
+        },
+        "matched_exact_identifiers": {
+          "type": "array",
+          "maxItems": 32,
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 256
+          }
         }
       }
     },
@@ -130,6 +139,11 @@
           "items": {
             "$ref": "#/$defs/candidate"
           }
+        },
+        "limit": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 20
         }
       }
     },
@@ -144,7 +158,8 @@
         "chunker",
         "rerank",
         "score_semantics",
-        "text"
+        "text",
+        "matched_exact_identifiers"
       ],
       "properties": {
         "source_id": {
@@ -192,6 +207,23 @@
           "type": "string",
           "minLength": 1,
           "maxLength": 65536
+        },
+        "evidence": {
+          "type": "array",
+          "maxItems": 100,
+          "items": {
+            "type": "object",
+            "additionalProperties": true
+          }
+        },
+        "matched_exact_identifiers": {
+          "type": "array",
+          "maxItems": 32,
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 256
+          }
         }
       }
     },
@@ -234,7 +266,9 @@
           "additionalProperties": false,
           "required": [
             "code",
-            "message"
+            "message",
+            "retryable",
+            "details"
           ],
           "properties": {
             "code": {
@@ -249,6 +283,10 @@
             },
             "retryable": {
               "type": "boolean"
+            },
+            "details": {
+              "type": "object",
+              "additionalProperties": true
             }
           }
         },
@@ -270,5 +308,12 @@
     {
       "$ref": "#/$defs/errorResponse"
     }
-  ]
+  ],
+  "x-endpoints": {
+    "POST /api/v1/reranking/rerank": {
+      "request": "$defs/request",
+      "response": "$defs/response",
+      "success_status": 200
+    }
+  }
 }
