@@ -10,7 +10,7 @@ Own Thompson-sampling state and selection semantics: arm/option identity, contex
 
 - POST /api/v1/thompson/selections: select an option for a context.
 - POST /api/v1/thompson/updates: apply a validated reward/update event idempotently.
-- GET /api/v1/thompson/state/{context_id}: inspect a bounded state summary subject to required local access restrictions; encode `context_id` as one path segment.
+- GET /api/v1/thompson/state/{context_id}: inspect a bounded state summary `{context_id, state_version, arms, request_id}` subject to required local access restrictions; each arm includes `arm_id`, exposure count, reward count, and nullable mean reward. Encode `context_id` as one path segment.
 - GET /api/v1/thompson/health and GET /api/v1/thompson/ready.
 
 ## Semantics
