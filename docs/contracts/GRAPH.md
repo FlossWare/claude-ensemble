@@ -17,7 +17,7 @@ Own graph nodes, edges, relationship types, identity, provenance, mutation lifec
 - POST /api/v1/graph/reconciliation/checkpoints: owner-pushed checkpoint declaring the sealed graph-projection journal sequence after replay.
 - GET /api/v1/graph/health and GET /api/v1/graph/ready.
 
-Node/edge identity and support schemas below are normative. Memory and Knowledge are the source-projection writers for relationships derived from canonical records; they call Graph through REST after extraction/validation. Graph does not call either owner. V1 exposes source projection/deletion, bounded traversal, operation status, manifest, and health/readiness only; standalone node/edge CRUD is deferred.
+Node/edge identity and support schemas below are normative. Memory and Knowledge are the source-projection writers for relationships derived from canonical records; they call Graph through REST after extraction/validation. Graph does not call either owner. V1 exposes source projection/deletion, bounded traversal, operation status, manifest, owner reconciliation checkpoints, and health/readiness only; standalone node/edge CRUD is deferred.
 
 ## Source projection schemas
 
