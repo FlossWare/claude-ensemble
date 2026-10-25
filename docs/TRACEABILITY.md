@@ -35,6 +35,10 @@ Status: proposed architecture acceptance artifact. Rows map the functional inven
 | F-29 | Evaluation and acceptance | `docs/ARCHITECTURE-REVIEW-ACCEPTANCE.md` | AT-GW-01, AT-RANK-01, AT-RRF-02, AT-PARTIAL-01, AT-HOOK-01, AT-PERF-01, AT-RECOVERY-01; labeled domain-relevance evaluation remains a pre-release gate |
 | F-30 | Deployment/resource policy | `docs/RESTART.md`, common REST bounds | AT-PERF-01, AT-RECOVERY-01 |
 
+## Schema registry
+
+Each of the 16 logical service contracts has a corresponding JSON Schema under `docs/contracts/schemas/`; Index profile bundles additionally use `schemas/index-profile.schema.json`. The schema acceptance gate validates endpoint mappings, internal references, and example payloads. Schema presence does not imply runtime conformance; provider/consumer and integration tests remain implementation gates.
+
 ## Known acceptance gaps
 
 - The listed AT-* items are specifications, not executed tests.
