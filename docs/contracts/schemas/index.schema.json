@@ -962,7 +962,7 @@
           "$ref": "#/$defs/profile"
         },
         "lexical_profile": {
-          "$ref": "#/$defs/profile"
+          "$ref": "#/$defs/componentProfile"
         },
         "terms": {
           "type": "array",
@@ -1187,7 +1187,7 @@
           "$ref": "#/$defs/profile"
         },
         "embedding_profile": {
-          "$ref": "#/$defs/profile"
+          "$ref": "#/$defs/componentProfile"
         },
         "query_vector": {
           "type": "array",
@@ -1565,6 +1565,26 @@
           "maxLength": 128
         }
       }
+    },
+    "componentProfile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "version"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "version": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64
+        }
+      }
     }
   },
   "x-endpoints": {
@@ -1793,6 +1813,18 @@
       "error_response": "$defs/errorResponse",
       "error_statuses": [
         400,
+        404,
+        429,
+        500,
+        503,
+        504
+      ]
+    },
+    "GET /api/v1/index/generations/active": {
+      "response": "$defs/generationResponse",
+      "success_status": 200,
+      "error_response": "$defs/errorResponse",
+      "error_statuses": [
         404,
         429,
         500,
