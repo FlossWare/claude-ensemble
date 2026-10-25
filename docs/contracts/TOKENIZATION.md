@@ -24,8 +24,10 @@ Request:
 
 ```json
 {
+  "index_profile": {"name": "default", "version": "0.1", "digest": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"},
   "text": "Fix FooBarException in src/FooBar.java",
   "profile": "technical-default",
+  "profile_version": "0.1",
   "options": {
     "preserve_identifiers": true,
     "include_offsets": true,
@@ -34,7 +36,7 @@ Request:
 }
 ```
 
-The caller may omit `profile` only if the service has a configured default. The response always names the effective profile and version.
+For indexing workflows, callers supply the immutable Index-owned bundle identity `{name, version, digest}` and exact Tokenization component profile/version from that bundle. A default is not selected independently by Tokenization. The response echoes the effective profile/version and bundle digest.
 
 Response:
 
