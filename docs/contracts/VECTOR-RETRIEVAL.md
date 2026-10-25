@@ -25,12 +25,11 @@ This service does not own source records, embeddings as a durable source of trut
   "embedding_profile": {"name": "technical-default", "version": "0.1"},
   "query": {"text": "How are revisions published?"},
   "filters": {"source_ids": [], "source_revisions": []},
-  "limit": 20,
-  "page_token": null
+  "limit": 20
 }
 ~~~
 
-A caller may supply a query vector instead of text only when the vector profile, model/version, dimensions, and query/document mode are explicit and validated. Scope partition filters are enforced server-side; required local access restrictions are separate. Initial maximum is 100 candidates. Requests may include an opaque `page_token`; responses return `next_page_token` when more candidates remain. The caller supplies the pinned `index_generation` and immutable `index_profile` `{name, version, digest}` selected by Gateway. The service rejects a generation/profile mismatch and passes both to Index. The response echoes the same `index_generation` and component profile `{name, version}`. Pagination is stable for the same query, scope, profile, and pinned Index generation.
+A caller may supply a query vector instead of text only when the vector profile, model/version, dimensions, and query/document mode are explicit and validated. Scope partition filters are enforced server-side; required local access restrictions are separate. Initial maximum is 100 candidates. V1 has no pagination or refill; requests containing `page_token` are invalid and responses never contain `next_page_token`. The caller supplies the pinned `index_generation` and immutable `index_profile` `{name, version, digest}` selected by Gateway. The service rejects a generation/profile mismatch and passes both to Index. The response echoes the same `index_generation` and component profile `{name, version}`. Candidate order is stable for the same query, scope, profile, and pinned Index generation.
 
 ## Response
 
@@ -53,7 +52,6 @@ A caller may supply a query vector instead of text only when the vector profile,
     "provenance": {"embedding_model_version": "model-revision"}
   }],
   "truncated": false,
-  "next_page_token": null,
   "request_id": "correlation-id"
 }
 ~~~
