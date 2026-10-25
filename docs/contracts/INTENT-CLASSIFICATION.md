@@ -44,6 +44,10 @@ Classify a user request into bounded, versioned intent labels with confidence, e
 - Input size, output labels, processing time, and downstream model calls are bounded. Propagate deadlines/cancellation and use bounded retries for transient provider errors.
 - Avoid logging raw request text by default. Record profile/version, safe intent labels, latency, and error codes.
 
+## Machine-checkable schemas
+
+The normative request/response schema is [`schemas/intent-classification.schema.json`](schemas/intent-classification.schema.json). The initial intent vocabulary is the seven labels defined in this contract; result count and confidence bounds are schema-enforced.
+
 ## Errors
 
 Use the common error envelope. Distinguish invalid request/profile, unsupported label set, provider unavailable/rate-limited, deadline exceeded, and internal failure. Uncertain classification is a valid response, not an error.
