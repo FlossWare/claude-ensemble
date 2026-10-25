@@ -125,7 +125,7 @@ Gate Tokenization, Embedding, Index, and Graph downstream responses after the bo
 
 ### AT-RECOVERY-01: Crash/restart around canonical and derived writes
 
-Crash after canonical commit before Index submission, after Index acceptance before owner status update, mid-generation staging, and during cutover. After restart, retry/reconciliation is idempotent; operation status is truthful; the prior complete revision remains active until atomic publication; tombstones cannot be undone.
+Crash after canonical commit before Index submission, after Index acceptance before owner status update, mid-generation staging, during cutover, and after Graph loses its derived projection store. After restart, Memory/Knowledge replay their durable journals through Graph's existing projection/deletion endpoints without any Graph-to-owner calls; Graph stays not-ready until owner watermarks are reached. Retry/reconciliation is idempotent; operation status is truthful; the prior complete Index revision remains active until atomic publication; tombstones cannot be undone.
 
 ### AT-READ-YOUR-WRITES-01: Pending index state
 
