@@ -1601,10 +1601,10 @@
   },
   "x-endpoints": {
     "POST /api/v1/index/operations/upsert": {
-      "request": "$defs/upsertRequest",
-      "response": "$defs/upsertResponse",
+      "request": "#/$defs/upsertRequest",
+      "response": "#/$defs/upsertResponse",
       "success_status": 202,
-      "error_response": "$defs/errorResponse",
+      "error_response": "#/$defs/errorResponse",
       "error_statuses": [
         400,
         404,
@@ -1618,10 +1618,10 @@
       ]
     },
     "POST /api/v1/index/operations/delete": {
-      "request": "$defs/deleteRequest",
-      "response": "$defs/deleteResponse",
+      "request": "#/$defs/deleteRequest",
+      "response": "#/$defs/deleteResponse",
       "success_status": 202,
-      "error_response": "$defs/errorResponse",
+      "error_response": "#/$defs/errorResponse",
       "error_statuses": [
         400,
         404,
@@ -1635,9 +1635,9 @@
       ]
     },
     "GET /api/v1/index/operations/{operation_id}": {
-      "response": "$defs/operationStatusResponse",
+      "response": "#/$defs/operationStatusResponse",
       "success_status": 200,
-      "error_response": "$defs/errorResponse",
+      "error_response": "#/$defs/errorResponse",
       "error_statuses": [
         400,
         404,
@@ -1648,9 +1648,9 @@
       ]
     },
     "GET /api/v1/index/sources/{source_id}/status": {
-      "response": "$defs/sourceStatusResponse",
+      "response": "#/$defs/sourceStatusResponse",
       "success_status": 200,
-      "error_response": "$defs/errorResponse",
+      "error_response": "#/$defs/errorResponse",
       "error_statuses": [
         400,
         404,
@@ -1661,9 +1661,9 @@
       ]
     },
     "GET /api/v1/index/profiles/{profile_name}/current": {
-      "response": "$defs/profileCurrentResponse",
+      "response": "#/$defs/profileCurrentResponse",
       "success_status": 200,
-      "error_response": "$defs/errorResponse",
+      "error_response": "#/$defs/errorResponse",
       "error_statuses": [
         400,
         404,
@@ -1674,10 +1674,10 @@
       ]
     },
     "POST /api/v1/index/generations": {
-      "request": "$defs/generationCreateRequest",
-      "response": "$defs/generationResponse",
+      "request": "#/$defs/generationCreateRequest",
+      "response": "#/$defs/generationResponse",
       "success_status": 202,
-      "error_response": "$defs/errorResponse",
+      "error_response": "#/$defs/errorResponse",
       "error_statuses": [
         400,
         404,
@@ -1691,10 +1691,10 @@
       ]
     },
     "POST /api/v1/index/generations/{generation_id}/cutover": {
-      "request": "$defs/cutoverRequest",
-      "response": "$defs/generationResponse",
+      "request": "#/$defs/cutoverRequest",
+      "response": "#/$defs/generationResponse",
       "success_status": 200,
-      "error_response": "$defs/errorResponse",
+      "error_response": "#/$defs/errorResponse",
       "error_statuses": [
         400,
         404,
@@ -1708,10 +1708,10 @@
       ]
     },
     "PUT /api/v1/index/generations/{generation_id}/owner-fences/{owner}/{fence_id}": {
-      "request": "$defs/ownerFenceRegistrationRequest",
+      "request": "#/$defs/ownerFenceRegistrationRequest",
       "success_status": 200,
-      "response": "$defs/ownerFence",
-      "error_response": "$defs/errorResponse",
+      "response": "#/$defs/ownerFence",
+      "error_response": "#/$defs/errorResponse",
       "error_statuses": [
         400,
         404,
@@ -1726,8 +1726,8 @@
     },
     "DELETE /api/v1/index/generations/{generation_id}/owner-fences/{owner}/{fence_id}": {
       "success_status": 200,
-      "response": "$defs/ownerFenceReleaseResponse",
-      "error_response": "$defs/errorResponse",
+      "response": "#/$defs/ownerFenceReleaseResponse",
+      "error_response": "#/$defs/errorResponse",
       "error_statuses": [
         400,
         404,
@@ -1739,10 +1739,10 @@
       ]
     },
     "POST /api/v1/index/generations/{generation_id}/owner-checkpoints": {
-      "request": "$defs/ownerCheckpointRequest",
-      "response": "$defs/ownerCheckpointResponse",
+      "request": "#/$defs/ownerCheckpointRequest",
+      "response": "#/$defs/ownerCheckpointResponse",
       "success_status": 200,
-      "error_response": "$defs/errorResponse",
+      "error_response": "#/$defs/errorResponse",
       "error_statuses": [
         400,
         404,
@@ -1756,9 +1756,9 @@
       ]
     },
     "GET /api/v1/index/profiles/{profile_name}/versions/{profile_version}": {
-      "response": "$defs/profileCurrentResponse",
+      "response": "#/$defs/profileCurrentResponse",
       "success_status": 200,
-      "error_response": "$defs/errorResponse",
+      "error_response": "#/$defs/errorResponse",
       "error_statuses": [
         400,
         404,
@@ -1769,9 +1769,9 @@
       ]
     },
     "POST /api/v1/index/generations/{generation_id}/abandon": {
-      "response": "$defs/generationResponse",
+      "response": "#/$defs/generationResponse",
       "success_status": 200,
-      "error_response": "$defs/errorResponse",
+      "error_response": "#/$defs/errorResponse",
       "error_statuses": [
         400,
         404,
@@ -1785,10 +1785,10 @@
       ]
     },
     "POST /api/v1/index/lexical/lookup": {
-      "request": "$defs/lexicalLookupRequest",
-      "response": "$defs/lexicalLookupResponse",
+      "request": "#/$defs/lexicalLookupRequest",
+      "response": "#/$defs/lexicalLookupResponse",
       "success_status": 200,
-      "error_response": "$defs/errorResponse",
+      "error_response": "#/$defs/errorResponse",
       "error_statuses": [
         400,
         404,
@@ -1802,10 +1802,10 @@
       ]
     },
     "POST /api/v1/index/vector-neighbors": {
-      "request": "$defs/vectorNeighborsRequest",
-      "response": "$defs/vectorNeighborsResponse",
+      "request": "#/$defs/vectorNeighborsRequest",
+      "response": "#/$defs/vectorNeighborsResponse",
       "success_status": 200,
-      "error_response": "$defs/errorResponse",
+      "error_response": "#/$defs/errorResponse",
       "error_statuses": [
         400,
         404,
@@ -1819,10 +1819,10 @@
       ]
     },
     "GET /api/v1/index/sources/manifest": {
-      "request": "$defs/sourceManifestRequest",
-      "response": "$defs/sourceManifestResponse",
+      "request": "#/$defs/sourceManifestRequest",
+      "response": "#/$defs/sourceManifestResponse",
       "success_status": 200,
-      "error_response": "$defs/errorResponse",
+      "error_response": "#/$defs/errorResponse",
       "error_statuses": [
         400,
         404,
@@ -1833,9 +1833,9 @@
       ]
     },
     "GET /api/v1/index/generations/active": {
-      "response": "$defs/generationResponse",
+      "response": "#/$defs/generationResponse",
       "success_status": 200,
-      "error_response": "$defs/errorResponse",
+      "error_response": "#/$defs/errorResponse",
       "error_statuses": [
         404,
         429,
