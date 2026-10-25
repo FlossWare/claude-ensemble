@@ -19,7 +19,7 @@ Own Thompson-sampling state and selection semantics: arm/option identity, contex
 - Eligible arms are validated; the service cannot choose an arm excluded by caller policy. Caller policy is a selection constraint, not an identity assertion.
 - Update events have stable event IDs and idempotency. V1 accepts reward values only in `{0,1}` under `beta-bernoulli-v1`; reward 1 increments alpha by one and reward 0 increments beta by one. Duplicate delivery must not double-count reward or exposure. Updates referencing unknown arms/context are explicit failures.
 - Reward evidence records source/event identity, timestamp, validation status, and applicable policy version. The service stores decision state, not raw sensitive prompt content by default.
-- Every context has a monotonic integer `state_version`. A request with `expected_state_version` must match the current version or returns `409 revision_conflict`; successful state mutation increments it by exactly one. Same `event_id` and canonical payload returns the original result without incrementing again; same event ID with a different payload returns `409 idempotency_conflict`. Selection is reproducible for fixed eligible arms, policy version, and state version; the response records the state version used. Recovery preserves committed state.
+- Every context has a monotonic integer `state_version`. A request with `expected_state_version` must match the current version or returns `409 revision_conflict`; successful state mutation increments it by exactly one. Same `event_id` and canonical payload returns the original result without incrementing again; same event ID with a different payload returns `409 idempotency_conflict`. A selection is idempotent for the same `Idempotency-Key` and canonical payload: retries return the persisted selection and do not draw again. Different idempotency keys may produce different valid samples even with the same eligible arms and state version; v1 does not promise cross-implementation bit-for-bit sampling reproducibility. The response records the state version used and the policy version. Recovery preserves committed state.
 - Learning owns feedback validation/outcome interpretation; it calls Thompson through REST to apply approved updates. Thompson does not call Learning, preventing a cycle. Gateway may call Thompson through REST for selection.
 - Do not conflate Thompson scores/probabilities with retrieval relevance scores.
 
@@ -47,7 +47,7 @@ Use the common error envelope. Distinguish invalid context/policy, no eligible a
 
 ## Acceptance tests
 
-1. Same selection inputs and state/policy version have documented reproducibility semantics.
+1. Repeating the same selection payload and `Idempotency-Key` returns the same persisted choice; a new key is a new stochastic selection and cannot mutate state merely by selecting.
 2. Excluded arms are never selected.
 3. Duplicate update event does not double-count; conflicting reuse of event ID fails.
 4. Reward update provenance and state version are observable.
