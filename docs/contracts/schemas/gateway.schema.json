@@ -255,7 +255,8 @@
                 "unsupported_policy",
                 "unsupported_profile",
                 "upstream_failure",
-                "vector_dimension_mismatch"
+                "vector_dimension_mismatch",
+                "selection_outcome_conflict"
               ]
             },
             "message": {
