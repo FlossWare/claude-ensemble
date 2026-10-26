@@ -35,7 +35,7 @@ Learning is not a generic event bus, alerting system, or document-ranking servic
 - `POST /api/v1/learning/outcomes`: `202 Accepted` with operation identity after the outcome event is durably recorded; it does not wait for an unbounded downstream workflow.
 - `GET /api/v1/learning/operations/{operation_id}` returns `operation_id`, event ID when known, status, optional reason code/downstream Thompson operation ID, and request ID; unknown operation returns `404 not_found`.
 - `GET /api/v1/learning/state/{scope_id}` returns the opaque `scope_id`, bounded counts of accepted/rejected/pending/reconciliation-required events, and request ID; unknown scope returns `404 not_found`.
-- Invalid outcome/evidence: `400 invalid_request`; conflicting idempotency payload or expected state: `409 idempotency_conflict` or `409 revision_conflict`; deadline: `504 deadline_exceeded`; Thompson unavailable: `503 dependency_unavailable` with operation status marked `reconciliation_required` when the event is already committed.
+- Invalid outcome/evidence: `400 invalid_request`; conflicting idempotency payload or expected state: `409 idempotency_conflict`, `409 revision_conflict`, or `409 selection_outcome_conflict`; deadline: `504 deadline_exceeded`; Thompson unavailable: `503 dependency_unavailable` with operation status marked `reconciliation_required` when the event is already committed.
 
 ## Machine-checkable schemas
 
