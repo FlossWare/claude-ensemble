@@ -6,6 +6,7 @@ on:
       - "docs/**"
       - "scripts/**"
       - "tests/**"
+      - "runtime/**"
       - ".github/workflows/contract-validation.yml"
   push:
     branches:
@@ -15,6 +16,7 @@ on:
       - "docs/**"
       - "scripts/**"
       - "tests/**"
+      - "runtime/**"
       - ".github/workflows/contract-validation.yml"
 
 permissions:
