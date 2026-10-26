@@ -11,6 +11,10 @@ Gateway does not own Memory/Knowledge/Graph/Thompson/Learning/Index domain state
 ## Endpoints
 
 - POST /api/v1/requests: process a client request and return a bounded response with provenance.
+- POST /api/v1/gateway/memories: create a Memory record; GET the corresponding record path to read it; POST its `/revisions` path to update it; DELETE the record path to tombstone it.
+- POST /api/v1/gateway/knowledge/sources: create a Knowledge source; GET the corresponding source path to read it; POST its `/revisions` path to update it; DELETE the source path to tombstone it.
+- GET /api/v1/gateway/memories/operations/{operation_id} and GET /api/v1/gateway/knowledge/operations/{operation_id}: retrieve owner-qualified operation status.
+- POST /api/v1/gateway/index/rebuilds: start the owner-led Index rebuild workflow; GET the returned operation; POST the generation's `/cutover` or `/abandon` path for the terminal action.
 - POST /api/v1/selections: validate and request a Thompson selection through REST.
 - POST /api/v1/outcomes: submit outcome evidence to Learning through REST.
 - GET /api/v1/gateway/health: process liveness.
@@ -18,6 +22,11 @@ Gateway does not own Memory/Knowledge/Graph/Thompson/Learning/Index domain state
 
 The public request/response schemas below are normative for the initial contract. Optional `exact_identifiers` is bounded to 32 strings of at most 256 Unicode code points. Generalized authentication is deferred; only local access restrictions required by the single-instance deployment apply.
 
+## Public record and rebuild workflows
+
+Gateway is the sole client-facing CE API. Clients and the hook adapter MUST use the Gateway-prefixed record routes; the Memory, Knowledge, Index, and Graph endpoints remain internal logical-service REST APIs. Gateway validates request metadata and local deployment restrictions, propagates the canonical scope and deadline, and invokes the owner through REST. Record creation/update/deletion returns the owner's durable operation identity and pending-index state; it does not wait synchronously for Tokenization, Embedding, Index, or Graph projection completion. Reads return canonical owner content, not a derived Index copy. Operation status is routed only by the explicit `memory:op:` or `knowledge:op:` owner prefix.
+
+The operator-only rebuild workflow is ordered and durable: (1) Gateway creates the target Index generation; (2) Gateway requests Memory and Knowledge reconciliation independently; (3) each owner replays its own journal and submits its own sealed checkpoint; (4) each owner acquires its generation-bound write fence and registers it with Index; (5) Gateway checks the target generation, both owner fences/checkpoints, and the drained Index journal before requesting cutover; (6) Index atomically switches the active-generation pointer; (7) Gateway requests fence release and exposes the final operation status. Any failed/expired fence, missing checkpoint, owner outage, or undrained journal prevents cutover and leaves the active pointer unchanged. V1 rollback is unsupported. The workflow operation status distinguishes accepted, reconciling, ready-for-cutover, cutover, abandoned, failed, and reconciliation-required states.
 ## Decision selection and outcome workflows
 
 ### Selection and learning workflows
