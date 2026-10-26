@@ -17,7 +17,7 @@ from urllib.request import Request, urlopen
 from jsonschema import Draft202012Validator
 
 from runtime.chunking import DEFAULT_POLICY, MAX_CHUNKS, ChunkingError, Policy, chunk_document, chunk_spans
-from runtime.server import Handler
+from runtime.server import BoundedThreadingHTTPServer, Handler, _profile_digest
 
 ROOT = Path(__file__).resolve().parents[1]
 SCHEMA = json.loads((ROOT / "docs/contracts/schemas/chunking.schema.json").read_text())
@@ -199,6 +199,9 @@ class ChunkingAlgorithmTests(unittest.TestCase):
             ("\\n" * 19, 3, 2),
             ("\\n\\n\\n\\n\\n\\n\\n", 3, 2),
             ("a\\n\\nb\\n\\nc\\n", 3, 2),
+            ("\\n" * 19, 3, 2),
+            ("\\n\\n\\n\\n\\n\\n\\n", 3, 2),
+            ("a\\n\\nb\\n\\nc\\n", 3, 2),
             ("x" * 32, 3, 2),
         ]
         for text, max_units, overlap in cases:
@@ -242,6 +245,21 @@ class ChunkingAlgorithmTests(unittest.TestCase):
             with self.subTest(policy=policy), self.assertRaises(ChunkingError):
                 Policy.from_dict(policy)
 
+    def test_profile_digest_matches_independent_canonicalization_golden_vector(self):
+        bundle = {
+            "name": "café",
+            "version": "1",
+            "status": "active",
+            "chunking": {"profile": "plain", "version": "0.1", "max_units": 8},
+            "digest": "ignored",
+        }
+        # Fixed expected SHA-256 for sorted compact UTF-8 canonical bytes,
+        # independent of the test fixture's digest-refresh helper.
+        self.assertEqual(
+            _profile_digest(bundle),
+            "d1275710b5bcd4ccda890b8bda0c707b0a2e7bc9aa660777957552c3e7527f92",
+        )
+
     def test_fresh_process_determinism(self):
         script = ("import json; from runtime.chunking import *; "
                   "p=Policy('p','1',8,1); "
@@ -254,7 +272,7 @@ class ChunkingAlgorithmTests(unittest.TestCase):
 class ChunkingHttpTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.httpd = ThreadingHTTPServer(("127.0.0.1", 0), Handler)
+        cls.httpd = BoundedThreadingHTTPServer(("127.0.0.1", 0), Handler)
         cls.thread = threading.Thread(target=cls.httpd.serve_forever, daemon=True)
         cls.thread.start()
         cls.base = f"http://127.0.0.1:{cls.httpd.server_port}"
