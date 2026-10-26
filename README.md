@@ -31,5 +31,6 @@ The current proposal is under review in [PR #8: Resolve architecture and contrac
 - [Functional traceability matrix](docs/TRACEABILITY.md)
 - [Owner decision register](docs/OWNER-DECISIONS.md)
 - [Service call-graph validator](scripts/check_service_call_graph.py)
+- [Contract validation GitHub Actions workflow](.github/workflows/contract-validation.yml)
 
-The acceptance scenarios specify required behavior; they are not evidence that runtime tests have passed. The current PR description records which static checks and runtime tests remain outstanding. Owner decisions remain pending until explicitly confirmed.
+The contract-validation workflow runs the Draft 2020-12 schema/reference/endpoint-binding/JSON-example validator and the service call-graph validator. The latest observed workflow run passed both checks. These are static contract checks, not endpoint-fixture, runtime, crash/recovery, integration, or latency test evidence. Owner decisions remain pending until explicitly confirmed.
