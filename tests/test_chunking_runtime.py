@@ -453,11 +453,11 @@ class ChunkingHttpTests(unittest.TestCase):
     def test_client_disconnect_during_body_read_does_not_take_down_health(self):
         conn = socket.create_connection(("127.0.0.1", self.httpd.server_port), timeout=2)
         conn.sendall(
-            b"POST /api/v1/chunking/chunks HTTP/1.1\\r\\n"
-            b"Host: 127.0.0.1\\r\\n"
-            b"Content-Type: application/json\\r\\n"
-            b"Content-Length: 100\\r\\n"
-            b"Connection: close\\r\\n\\r\\n"
+            b"POST /api/v1/chunking/chunks HTTP/1.1\r\n"
+            b"Host: 127.0.0.1\r\n"
+            b"Content-Type: application/json\r\n"
+            b"Content-Length: 100\r\n"
+            b"Connection: close\r\n\r\n"
             b'{"partial":'
         )
         conn.close()
