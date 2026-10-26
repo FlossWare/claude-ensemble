@@ -107,12 +107,20 @@ def _heading_path(text: str, offset: int, deadline_check: Callable[[], None] | N
             deadline_check()
         line_end = position + len(raw_line)
         # A chunk boundary inside a heading line must never turn its prefix into
-        # fabricated provenance.
-        if line_end > offset:
-            break
+        # fabricated provenance. However, if the complete source line began before
+        # this chunk and is a heading, it still closes the prior section even when
+        # its label cannot be attached to this chunk as provenance.
         line = raw_line.rstrip("\r\n")
+        partial_line = line_end > offset
         stripped = line.lstrip(" ")
         indent = len(line) - len(stripped)
+        if partial_line:
+            if position < offset and fence_char is None and indent <= 3:
+                partial_heading = re.match(r"^ {0,3}(#{1,6})(?:[ \t]+|$)(.*?)\s*$", line)
+                if partial_heading:
+                    level = len(partial_heading.group(1))
+                    ancestry = [(depth, value) for depth, value in ancestry if depth < level]
+            break
         if indent <= 3 and stripped and stripped[0] in "`~":
             marker = stripped[0]
             run_length = len(stripped) - len(stripped.lstrip(marker))
