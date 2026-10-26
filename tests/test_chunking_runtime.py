@@ -326,6 +326,31 @@ class ChunkingHttpTests(unittest.TestCase):
         self.assertEqual(expired["error"]["code"], "deadline_exceeded")
         self.assert_error_schema(expired, headers)
 
+    def test_body_inactivity_timeout_matches_declared_contract(self):
+        original_timeout = Handler.timeout
+        Handler.timeout = 0.05
+        conn = socket.create_connection(("127.0.0.1", self.httpd.server_port), timeout=2)
+        try:
+            conn.sendall(
+                b"POST /api/v1/chunking/chunks HTTP/1.1\r\n"
+                b"Host: 127.0.0.1\r\n"
+                b"Content-Type: application/json\r\n"
+                b"Content-Length: 100\r\n"
+                b"Connection: close\r\n\r\n"
+            )
+            response = bytearray()
+            while True:
+                part = conn.recv(4096)
+                if not part:
+                    break
+                response.extend(part)
+            raw = bytes(response)
+            self.assertIn(b"408 Request Timeout", raw)
+            self.assertIn(b'"code":"request_timeout"', raw)
+        finally:
+            Handler.timeout = original_timeout
+            conn.close()
+
     def test_absolute_deadline_bounds_slow_body_receipt(self):
         deadline = (datetime.now(timezone.utc) + timedelta(milliseconds=250)).isoformat().replace("+00:00", "Z")
         body = json.dumps(request_body()).encode("utf-8")
