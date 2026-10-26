@@ -73,6 +73,8 @@ class Handler(BaseHTTPRequestHandler):
         self.send_header("Content-Type", "application/json; charset=utf-8")
         self.send_header("Content-Length", str(len(payload)))
         self.send_header("X-CE-Request-ID", request_id)
+        if self.close_connection:
+            self.send_header("Connection", "close")
         self.end_headers()
         try:
             self.wfile.write(payload)
@@ -141,6 +143,10 @@ class Handler(BaseHTTPRequestHandler):
             length = int(length_text)
             limit = MAX_REQUEST_BYTES if self.path.endswith("/chunks") else MAX_PROFILE_REQUEST_BYTES
             if length > limit:
+                # Do not drain an attacker-controlled body just to preserve keep-alive.
+                # Explicitly close after the bounded 413 response; unread bytes must not
+                # be interpreted as another request on this connection.
+                self.close_connection = True
                 raise ChunkingError("request_too_large", "request exceeds configured byte limit", status=413)
             raw = self.rfile.read(length)
             if len(raw) != length:
