@@ -93,10 +93,11 @@ class ChunkingAlgorithmTests(unittest.TestCase):
         self.assertTrue(all(c["start_line"] <= c["end_line"] for c in result))
 
     def test_heading_provenance_ignores_atx_lines_inside_fenced_code(self):
-        content = "# Real\n```python\n# not a heading\n```\nbody text"
-        result = chunk(content, policy=Policy("markdown-default", "0.1", 64, 0))["chunks"]
-        body = next(c for c in result if c["start_offset"] == content.index("body"))
-        self.assertEqual(body["heading_path"], ["Real"])
+        content = "# Real\n```python\n# not a heading\n```\n" + "body text " * 10
+        result = chunk(content, policy=Policy("markdown-default", "0.1", 16, 0))["chunks"]
+        body_chunks = [c for c in result if c["start_offset"] >= content.index("body")]
+        self.assertTrue(body_chunks)
+        self.assertTrue(all(c["heading_path"] == ["Real"] for c in body_chunks))
 
     def test_empty_and_oversized_content_rejected(self):
         with self.assertRaises(ChunkingError):
@@ -247,7 +248,7 @@ class ChunkingHttpTests(unittest.TestCase):
 
     def test_include_text_false_is_honored(self):
         body = request_body(options={"include_text": False})
-        status, _, result = self.post(body=body)
+        status, headers, result = self.post(body=body)
         self.assertEqual(status, 200)
         self.assertNotIn("text", result["chunks"][0])
         Draft202012Validator(SCHEMA["$defs"]["chunkResponse"]).validate(result)
@@ -258,21 +259,21 @@ class ChunkingHttpTests(unittest.TestCase):
         bad_missing = request_body()
         del bad_missing["source"]["content"]
         for body in (bad_unknown, bad_missing):
-            status, _, result = self.post(body=body)
+            status, headers, result = self.post(body=body)
             self.assertEqual(status, 400)
             self.assert_error_schema(result, headers)
 
     def test_bad_option_type_rejected(self):
-        status, _, result = self.post(body=request_body(options={"include_text": "false"}))
+        status, headers, result = self.post(body=request_body(options={"include_text": "false"}))
         self.assertEqual(status, 400)
         self.assertEqual(result["error"]["code"], "invalid_parameter")
         self.assert_error_schema(result, headers)
 
     def test_malformed_json_and_unsupported_media_type(self):
-        status, _, result = self.post(raw=b"{")
+        status, headers, result = self.post(raw=b"{")
         self.assertEqual(status, 400)
         self.assert_error_schema(result, headers)
-        status, _, result = self.post(body=request_body(), headers={"Content-Type": "text/plain"})
+        status, headers, result = self.post(body=request_body(), headers={"Content-Type": "text/plain"})
         self.assertEqual(status, 415)
         self.assertEqual(result["error"]["code"], "unsupported_media_type")
         self.assert_error_schema(result, headers)
@@ -285,11 +286,11 @@ class ChunkingHttpTests(unittest.TestCase):
         self.assert_error_schema(result, headers)
 
     def test_malformed_and_expired_deadlines_are_rejected(self):
-        status, _, malformed = self.post(body=request_body(), headers={"X-CE-Deadline": "tomorrow"})
+        status, headers, malformed = self.post(body=request_body(), headers={"X-CE-Deadline": "tomorrow"})
         self.assertEqual(status, 400)
         self.assertEqual(malformed["error"]["code"], "invalid_parameter")
         self.assert_error_schema(malformed, headers)
-        status, _, expired = self.post(body=request_body(), headers={"X-CE-Deadline": "2000-01-01T00:00:00Z"})
+        status, headers, expired = self.post(body=request_body(), headers={"X-CE-Deadline": "2000-01-01T00:00:00Z"})
         self.assertEqual(status, 504)
         self.assertEqual(expired["error"]["code"], "deadline_exceeded")
         self.assert_error_schema(expired, headers)
@@ -297,7 +298,7 @@ class ChunkingHttpTests(unittest.TestCase):
     def test_invalid_policy_returns_contract_error(self):
         body = request_body()
         body["policy"]["overlap_units"] = body["policy"]["max_units"]
-        status, _, result = self.post(body=body)
+        status, headers, result = self.post(body=body)
         self.assertEqual(status, 400)
         self.assertEqual(result["error"]["code"], "invalid_parameter")
         self.assert_error_schema(result, headers)
@@ -307,13 +308,13 @@ class ChunkingHttpTests(unittest.TestCase):
             body = request_body()
             body["policy"]["profile"] = profile
             body["policy"]["profile_version"] = version
-            status, _, result = self.post(body=body)
+            status, headers, result = self.post(body=body)
             self.assertEqual(status, 422)
             self.assertEqual(result["error"]["code"], "unsupported_profile")
             self.assert_error_schema(result, headers)
 
     def test_oversized_http_body_is_rejected_before_json_parsing(self):
-        status, _, result = self.post(raw=b"x" * 300_001)
+        status, headers, result = self.post(raw=b"x" * 300_001)
         self.assertEqual(status, 413)
         self.assertEqual(result["error"]["code"], "request_too_large")
         self.assert_error_schema(result, headers)
@@ -331,7 +332,7 @@ class ChunkingHttpTests(unittest.TestCase):
         self.assertEqual(result["request_id"], headers["X-CE-Request-ID"])
         Draft202012Validator(SCHEMA["$defs"]["preflightResponse"]).validate(result)
         body["chunking_profile"]["version"] = "99"
-        status, _, error = self.post("/api/v1/chunking/preflight", body)
+        status, headers, error = self.post("/api/v1/chunking/preflight", body)
         self.assertEqual(status, 409)
         self.assertEqual(error["error"]["code"], "profile_mismatch")
         self.assert_error_schema(error, headers)
@@ -344,14 +345,14 @@ class ChunkingHttpTests(unittest.TestCase):
                                      "max_units": 4, "overlap_units": 0},
                 "profile_bundle": bundle}
         bundle["chunking"]["max_units"] = 4
-        status, _, result = self.post("/api/v1/chunking/preflight", body)
+        status, headers, result = self.post("/api/v1/chunking/preflight", body)
         self.assertEqual(status, 200)
         self.assertFalse(result["fits_profile"])
         self.assertGreater(result["chunk_count"], bundle["limits"]["max_chunks"])
         Draft202012Validator(SCHEMA["$defs"]["preflightResponse"]).validate(result)
 
     def test_unknown_endpoint_uses_shared_error_envelope(self):
-        status, _, result = self.post("/api/v1/chunking/unknown", body={})
+        status, headers, result = self.post("/api/v1/chunking/unknown", body={})
         self.assertEqual(status, 404)
         self.assertEqual(result["error"]["code"], "endpoint_not_found")
         self.assert_error_schema(result, headers)
