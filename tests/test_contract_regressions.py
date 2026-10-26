@@ -90,6 +90,18 @@ class ContractGateTests(unittest.TestCase):
         self.assertEqual(referenced - defined, set(), "traceability contains undefined AT-* references")
         self.assertEqual(defined - referenced, set(), "acceptance scenarios missing from traceability")
 
+    def test_duplicate_method_path_route_fails(self):
+        tmp, base = self._temporary_contract_tree()
+        self.addCleanup(tmp.cleanup)
+        path = base / "docs" / "contracts" / "schemas" / "chunking.schema.json"
+        schema = json.loads(path.read_text(encoding="utf-8"))
+        original = next(iter(schema["x-endpoints"]))
+        schema["x-endpoints"]["GET /api/v1/gateway/health"] = schema["x-endpoints"].pop(original)
+        path.write_text(json.dumps(schema, indent=2) + "\\n", encoding="utf-8")
+        result = subprocess.run([sys.executable, str(base / "scripts" / VALIDATOR_PATH.name)], cwd=base, text=True, capture_output=True)
+        self.assertNotEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertIn("duplicate route", result.stderr)
+
     def test_rrf_integer_golden_vectors(self):
         def contribution(rank: int) -> int:
             return 1_000_000_000_000 // (60 + rank)
