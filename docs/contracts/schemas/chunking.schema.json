@@ -197,11 +197,11 @@
             "additionalProperties": false,
             "required": [
               "chunk_id",
-              "text",
               "start_offset",
               "end_offset",
               "ordinal"
             ],
+            "description": "The text field is present unless options.include_text is false on the request.",
             "properties": {
               "chunk_id": {
                 "type": "string",
