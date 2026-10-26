@@ -90,14 +90,10 @@
           ],
           "properties": {
             "profile": {
-              "type": "string",
-              "minLength": 1,
-              "maxLength": 128
+              "const": "markdown-default"
             },
             "profile_version": {
-              "type": "string",
-              "minLength": 1,
-              "maxLength": 64
+              "const": "0.1"
             },
             "max_units": {
               "type": "integer",
@@ -176,14 +172,10 @@
           ],
           "properties": {
             "profile": {
-              "type": "string",
-              "minLength": 1,
-              "maxLength": 128
+              "const": "markdown-default"
             },
             "version": {
-              "type": "string",
-              "minLength": 1,
-              "maxLength": 64
+              "const": "0.1"
             }
           }
         },
@@ -278,14 +270,10 @@
           ],
           "properties": {
             "profile": {
-              "type": "string",
-              "minLength": 1,
-              "maxLength": 128
+              "const": "markdown-default"
             },
             "version": {
-              "type": "string",
-              "minLength": 1,
-              "maxLength": 64
+              "const": "0.1"
             }
           }
         }
@@ -347,14 +335,10 @@
           ],
           "properties": {
             "profile": {
-              "type": "string",
-              "minLength": 1,
-              "maxLength": 128
+              "const": "markdown-default"
             },
             "version": {
-              "type": "string",
-              "minLength": 1,
-              "maxLength": 64
+              "const": "0.1"
             },
             "max_units": {
               "type": "integer",
