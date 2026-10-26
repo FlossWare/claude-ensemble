@@ -1926,6 +1926,22 @@
       "x-callers": [
         "operator"
       ]
+    },
+    "GET /api/v1/gateway/index/write-profile": {
+      "response": "index.schema.json#/$defs/profileCurrentResponse",
+      "success_status": 200,
+      "error_response": "#/$defs/errorResponse",
+      "error_statuses": [
+        404,
+        429,
+        500,
+        503,
+        504
+      ],
+      "x-callers": [
+        "client",
+        "hook-adapter"
+      ]
     }
   },
   "anyOf": [
