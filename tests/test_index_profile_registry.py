@@ -50,6 +50,12 @@ class IndexProfileRegistryUnitTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             IndexProfileRegistry([valid_bundle(), valid_bundle()], {})
 
+    def test_resolved_bundle_is_a_snapshot_not_mutable_registry_state(self):
+        registry = IndexProfileRegistry([valid_bundle()], {"default": "0.1"})
+        resolved = registry.resolve_current("default")
+        resolved["tokenization"]["profile"] = "mutated"
+        self.assertEqual(registry.resolve_current("default")["tokenization"]["profile"], "technical-default")
+
     def test_current_pointer_must_resolve_to_active_bundle(self):
         with self.assertRaises(ValueError):
             IndexProfileRegistry([valid_bundle(status="deprecated")], {"default": "0.1"})
