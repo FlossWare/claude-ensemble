@@ -236,6 +236,11 @@ class ChunkingAlgorithmTests(unittest.TestCase):
         result = chunk("# Heading\nbody words long enough", policy=Policy("markdown-default", "0.1", 12, 0))
         self.assertGreaterEqual(len(result["chunks"]), 2)
         self.assertEqual(result["chunks"][1]["heading_path"], ["Heading"])
+
+    def test_unknown_media_type_does_not_claim_heading_provenance(self):
+        result = chunk("# TODO buy milk\nsome longer note body that continues for a while",
+                       media_type="text/plain")
+        self.assertTrue(all(item["heading_path"] == [] for item in result["chunks"]))
     def test_invalid_policy_rejected(self):
         for policy in (
             {"profile": "p", "profile_version": "1", "max_units": True, "overlap_units": 0, "unit": "unicode_code_points"},
@@ -672,12 +677,38 @@ class ChunkingHttpTests(unittest.TestCase):
         body = request_body()
         body["policy"] = {"profile": "markdown-default", "profile_version": "0.1",
                           "max_units": 1, "overlap_units": 0, "unit": "unicode_code_points"}
+        body["profile_bundle"]["chunking"].update({"max_units": 1, "overlap_units": 0})
+        refresh_profile_digest(body["profile_bundle"])
         body["source"]["content"] = "x" * 257
         status, headers, result = self.post(body=body)
         self.assertEqual(status, 422)
         self.assertEqual(result["error"]["code"], "source_too_large")
         self.assertIn(status, SCHEMA["x-endpoints"]["POST /api/v1/chunking/chunks"]["error_statuses"])
         self.assert_error_schema(result, headers)
+
+    def test_chunks_rejects_policy_not_pinned_by_bundle(self):
+        body = request_body()
+        body["policy"]["overlap_units"] = 0
+        status, headers, result = self.post(body=body)
+        self.assertEqual(status, 409)
+        self.assertEqual(result["error"]["code"], "profile_mismatch")
+        self.assert_error_schema(result, headers)
+
+    def test_heading_provenance_is_media_type_specific_over_http(self):
+        body = request_body()
+        body["source"]["content"] = "# TODO buy milk\nsome longer note body that continues for a while"
+        body["source"]["media_type"] = "text/plain"
+        status, _, plain = self.post(body=body)
+        self.assertEqual(status, 200)
+        self.assertTrue(all(item["heading_path"] == [] for item in plain["chunks"]))
+        body["source"]["media_type"] = "text/markdown"
+        status, _, markdown = self.post(body=body)
+        self.assertEqual(status, 200)
+        self.assertTrue(any(item["heading_path"] == ["TODO buy milk"] for item in markdown["chunks"]))
+        body["source"].pop("media_type")
+        status, _, unknown = self.post(body=body)
+        self.assertEqual(status, 200)
+        self.assertTrue(all(item["heading_path"] == [] for item in unknown["chunks"]))
 
     def test_preflight_rejects_digest_tampering_and_invalid_nested_profile(self):
         for mutate in (
