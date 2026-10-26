@@ -77,6 +77,37 @@ class ChunkingAlgorithmTests(unittest.TestCase):
         self.assertEqual([c["chunk_id"] for c in chunk("same input")["chunks"]],
                          [c["chunk_id"] for c in chunk("same input")["chunks"]])
 
+    def test_chunk_spans_stops_when_deadline_check_expires(self):
+        calls = 0
+
+        def check_deadline():
+            nonlocal calls
+            calls += 1
+            if calls == 3:
+                raise ChunkingError("deadline_exceeded", "request deadline expired", status=504)
+
+        with self.assertRaises(ChunkingError) as raised:
+            chunk_spans("x" * 100, Policy("plain-text-default", "0.1", 10, 0),
+                        deadline_check=check_deadline)
+        self.assertEqual(raised.exception.code, "deadline_exceeded")
+        self.assertEqual(calls, 3)
+
+    def test_markdown_heading_scan_checks_deadline(self):
+        calls = 0
+
+        def check_deadline():
+            nonlocal calls
+            calls += 1
+            if calls == 2:
+                raise ChunkingError("deadline_exceeded", "request deadline expired", status=504)
+
+        with self.assertRaises(ChunkingError) as raised:
+            chunk("# Heading\\n" + "body\\n" * 100,
+                  policy=Policy("markdown-default", "0.1", 10000, 0),
+                  deadline_check=check_deadline)
+        self.assertEqual(raised.exception.code, "deadline_exceeded")
+        self.assertEqual(calls, 2)
+
     def test_revision_and_policy_change_identity(self):
         base = chunk()["chunks"][0]["chunk_id"]
         self.assertNotEqual(base, chunk(revision="r2")["chunks"][0]["chunk_id"])
