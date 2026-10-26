@@ -16,37 +16,7 @@ SERVICE_NAMES = {
 }
 # Each service-to-service edge must correspond to a documented v1 workflow.
 # Changes to this allowlist require a matching workflow/contract and acceptance test.
-WORKFLOW_EDGES = {
-    ("embedding", "index"),
-    ("gateway", "entity-extraction"),
-    ("gateway", "graph"),
-    ("gateway", "index"),
-    ("gateway", "intent-classification"),
-    ("gateway", "knowledge"),
-    ("gateway", "learning"),
-    ("gateway", "lexical-retrieval"),
-    ("gateway", "memory"),
-    ("gateway", "ranking"),
-    ("gateway", "reranking"),
-    ("gateway", "thompson"),
-    ("gateway", "vector-retrieval"),
-    ("knowledge", "chunking"),
-    ("knowledge", "embedding"),
-    ("knowledge", "graph"),
-    ("knowledge", "index"),
-    ("knowledge", "tokenization"),
-    ("learning", "thompson"),
-    ("lexical-retrieval", "index"),
-    ("lexical-retrieval", "tokenization"),
-    ("memory", "chunking"),
-    ("memory", "embedding"),
-    ("memory", "graph"),
-    ("memory", "index"),
-    ("memory", "tokenization"),
-    ("tokenization", "index"),
-    ("vector-retrieval", "embedding"),
-    ("vector-retrieval", "index"),
-}
+WORKFLOW_MANIFEST = SCHEMA_DIR.parent / "service-call-workflows.json"
 # Index is a sink: it must never initiate a call to another logical service.
 SINK_SERVICES = {"index"}
 
@@ -55,6 +25,31 @@ def main() -> int:
     errors: list[str] = []
     graph: dict[str, set[str]] = {name: set() for name in SERVICE_NAMES}
     declared_edges: set[tuple[str, str]] = set()
+    workflow_edges: set[tuple[str, str]] = set()
+    try:
+        manifest = json.loads(WORKFLOW_MANIFEST.read_text(encoding="utf-8"))
+        if manifest.get("version") != 1 or not isinstance(manifest.get("edges"), list):
+            raise ValueError("manifest must have version 1 and an edges array")
+        for index, item in enumerate(manifest["edges"], start=1):
+            if not isinstance(item, dict):
+                errors.append(f"workflow manifest edge {index}: must be an object")
+                continue
+            caller, callee = item.get("caller"), item.get("callee")
+            if caller not in SERVICE_NAMES or callee not in SERVICE_NAMES:
+                errors.append(f"workflow manifest edge {index}: unknown service edge {caller!r} -> {callee!r}")
+                continue
+            if not isinstance(item.get("workflow"), str) or not item["workflow"].strip():
+                errors.append(f"workflow manifest edge {index}: workflow rationale is required")
+            if not isinstance(item.get("contracts"), list) or not item["contracts"]:
+                errors.append(f"workflow manifest edge {index}: contract references are required")
+            if not isinstance(item.get("acceptance_test"), str) or not item["acceptance_test"].startswith("AT-"):
+                errors.append(f"workflow manifest edge {index}: acceptance_test must name an AT-* scenario")
+            edge = (caller, callee)
+            if edge in workflow_edges:
+                errors.append(f"workflow manifest: duplicate edge {caller} -> {callee}")
+            workflow_edges.add(edge)
+    except (OSError, json.JSONDecodeError, ValueError) as exc:
+        errors.append(f"cannot load workflow manifest {WORKFLOW_MANIFEST}: {exc}")
     schema_files = sorted(SCHEMA_DIR.glob("*.schema.json"))
     if len(schema_files) != 17:
         errors.append(f"expected 17 schemas, found {len(schema_files)}")
@@ -95,11 +90,11 @@ def main() -> int:
                     errors.append(f"{where}: sink service {caller!r} cannot call another logical service")
                 edge = (caller, service)
                 declared_edges.add(edge)
-                if edge not in WORKFLOW_EDGES:
+                if edge not in workflow_edges:
                     errors.append(f"{where}: undeclared workflow edge {caller} -> {service}")
                 graph[caller].add(service)
 
-    for edge in sorted(WORKFLOW_EDGES - declared_edges):
+    for edge in sorted(workflow_edges - declared_edges):
         errors.append(f"workflow allowlist edge {edge[0]} -> {edge[1]} is not represented by any endpoint x-callers")
 
     visiting: set[str] = set()
