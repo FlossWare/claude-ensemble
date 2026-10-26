@@ -36,3 +36,17 @@ The current proposal is under review in [PR #8: Resolve architecture and contrac
 - [Contract validation GitHub Actions workflow](.github/workflows/contract-validation.yml)
 
 The [contract-validation workflow](.github/workflows/contract-validation.yml) runs Draft 2020-12 schema/reference/endpoint-binding checks, duplicate-key-safe parsing of both backtick and tilde JSON fences, schema validation for explicitly annotated examples, the documented service-call workflow manifest, and regression tests for invalid examples/callers and RRF integer golden vectors. Unannotated examples are parse-checked only; the validator reports this distinction explicitly. See [workflow runs](https://github.com/FlossWare/claude-ensemble/actions/workflows/contract-validation.yml) for the current result. These are static/specification checks, not runtime, crash/recovery, integration, or latency test evidence. Owner confirmation is recorded for OD-01–OD-04 and OD-06–OD-12; OD-05 remains the binding v1 scope decision and is unchanged. The confirmation does not waive technical findings or authorize implementation; the implementation gate remains closed pending current-head technical review and verification.
+
+
+## Running the contract and runtime tests
+
+Use Python 3.12 or newer. Install the test dependencies and run the same suite used by CI:
+
+```sh
+python -m pip install -r requirements-test.txt
+python scripts/validate_contracts.py
+python scripts/check_service_call_graph.py
+python -m unittest discover -s tests -v
+```
+
+The test dependency list includes `jsonschema`, which validates the Draft 2020-12 contract schemas and runtime responses.
