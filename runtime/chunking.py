@@ -131,10 +131,13 @@ def _heading_path(text: str, offset: int, deadline_check: Callable[[], None] | N
                 level = len(match.group(1))
                 heading = match.group(2)
                 heading = re.sub(r"[ \t]+#+[ \t]*$", "", heading).strip()
-                # The schema caps heading provenance at 1024 characters. Ignore
-                # oversized headings rather than return a schema-invalid claim.
+                # A recognized heading always closes the previous section at
+                # its level, even when its label is empty or too long to expose as
+                # provenance. Otherwise later chunks inherit a stale, false heading.
+                ancestry = [(depth, value) for depth, value in ancestry if depth < level]
+                # The schema caps heading provenance at 1024 characters. Omit
+                # unsupported labels rather than returning a schema-invalid claim.
                 if heading and len(heading) <= 1024:
-                    ancestry = [(depth, value) for depth, value in ancestry if depth < level]
                     ancestry.append((level, heading))
         position = line_end
     return [heading for _, heading in ancestry[-64:]]
