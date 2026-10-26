@@ -2,7 +2,9 @@
 from __future__ import annotations
 
 import json
+import os
 import re
+from pathlib import Path
 import threading
 import time
 import uuid
@@ -115,6 +117,55 @@ def _validate_profile_bundle(bundle: Any) -> dict[str, Any]:
     if _profile_digest(bundle).lower() != digest.lower():
         raise ChunkingError("profile_digest_mismatch", "profile_bundle content does not match its digest", status=409)
     return bundle
+
+
+
+class IndexProfileRegistry:
+    """Immutable Index profile bundles loaded from deployment configuration."""
+
+    def __init__(self, profiles: list[dict[str, Any]] | None = None,
+                 current: dict[str, str] | None = None):
+        self._versions: dict[tuple[str, str], dict[str, Any]] = {}
+        self._current = dict(current or {})
+        for raw in profiles or []:
+            bundle = _validate_profile_bundle(raw)
+            key = (bundle["name"], bundle["version"])
+            if key in self._versions:
+                raise ValueError(f"duplicate Index profile version: {key[0]}@{key[1]}")
+            self._versions[key] = bundle
+        for name, version in self._current.items():
+            if not isinstance(name, str) or not isinstance(version, str):
+                raise ValueError("profile configuration current entries must map names to versions")
+            bundle = self._versions.get((name, version))
+            if bundle is None or bundle["status"] != "active":
+                raise ValueError(f"current Index profile must identify a configured active version: {name}@{version}")
+
+    @classmethod
+    def from_environment(cls) -> "IndexProfileRegistry":
+        configured_path = os.environ.get("CE_INDEX_PROFILES_FILE")
+        if not configured_path:
+            return cls()
+        try:
+            with Path(configured_path).open("r", encoding="utf-8") as source:
+                document = json.load(source, object_pairs_hook=_unique_json_object,
+                                     parse_constant=_reject_json_constant)
+        except (OSError, UnicodeDecodeError, json.JSONDecodeError, ValueError) as exc:
+            raise RuntimeError("CE_INDEX_PROFILES_FILE must name a valid UTF-8 JSON profile registry") from exc
+        if not isinstance(document, dict) or set(document) != {"profiles", "current"}:
+            raise RuntimeError("Index profile registry must contain exactly 'profiles' and 'current'")
+        if not isinstance(document["profiles"], list) or not isinstance(document["current"], dict):
+            raise RuntimeError("Index profile registry 'profiles' must be an array and 'current' an object")
+        try:
+            return cls(document["profiles"], document["current"])
+        except (ChunkingError, TypeError, ValueError) as exc:
+            raise RuntimeError("Index profile registry contains an invalid bundle or current pointer") from exc
+
+    def resolve_current(self, name: str) -> dict[str, Any] | None:
+        version = self._current.get(name)
+        return self._versions.get((name, version)) if version is not None else None
+
+    def resolve_version(self, name: str, version: str) -> dict[str, Any] | None:
+        return self._versions.get((name, version))
 
 
 def _error(code: str, message: str, retryable: bool = False,
@@ -324,8 +375,24 @@ class Handler(BaseHTTPRequestHandler):
                           {"name": "markdown-default@0.1", "status": "ok"},
                           {"name": "plain-text-default@0.1", "status": "ok"}],
             }, request_id)
+        elif (match := re.fullmatch(r"/api/v1/index/profiles/([^/]+)/current", self.path)):
+            self._send_profile(self.server.profile_registry.resolve_current(match.group(1)), request_id)
+        elif (match := re.fullmatch(r"/api/v1/index/profiles/([^/]+)/versions/([^/]+)", self.path)):
+            self._send_profile(self.server.profile_registry.resolve_version(match.group(1), match.group(2)),
+                               request_id, pinned=True)
         else:
             self._send(404, _error("endpoint_not_found", "endpoint not found"), request_id)
+
+    def _send_profile(self, bundle: dict[str, Any] | None, request_id: str,
+                      pinned: bool = False) -> None:
+        if bundle is None:
+            self._send(404, _error("profile_not_found", "Index profile version is not configured"), request_id)
+            return
+        if bundle["status"] == "retired":
+            self._send(409, _error("profile_retired", "retired Index profiles cannot be used for new writes"), request_id)
+            return
+        identity = {"name": bundle["name"], "version": bundle["version"], "digest": bundle["digest"]}
+        self._send(200, {**identity, "bundle": bundle}, request_id)
 
     def do_POST(self) -> None:
         request_id, invalid_id = self._request_id()
@@ -492,6 +559,7 @@ class BoundedThreadingHTTPServer(ThreadingHTTPServer):
     def __init__(self, server_address: Any, RequestHandlerClass: type[BaseHTTPRequestHandler],
                  bind_and_activate: bool = True):
         self._worker_slots = threading.BoundedSemaphore(self.max_workers)
+        self.profile_registry = IndexProfileRegistry.from_environment()
         super().__init__(server_address, RequestHandlerClass, bind_and_activate)
 
     def process_request(self, request: Any, client_address: Any) -> None:
