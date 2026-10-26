@@ -1,4 +1,5 @@
 """Contract, algorithm, and real-HTTP-boundary tests for Chunking."""
+import hashlib
 import json
 import subprocess
 import sys
@@ -42,8 +43,8 @@ def request_body(**overrides):
 
 
 def profile_bundle():
-    return {
-        "name": PROFILE["name"], "version": PROFILE["version"], "status": "active",
+    bundle = {
+        "name": "default", "version": "0.1", "status": "active",
         "chunking": {"profile": "plain-text-default", "version": "0.1", "max_units": 12},
         "tokenization": {"profile": "default", "version": "0.1"},
         "lexical": {"profile": "default", "version": "0.1", "statistics_policy": "scope_partition"},
@@ -54,8 +55,13 @@ def profile_bundle():
                    "max_request_bytes": 8192, "max_chunk_representation_bytes": 4096,
                    "max_envelope_bytes": 1024, "max_metadata_bytes": 0,
                    "max_lexical_terms_per_chunk": 10, "max_lexical_term_bytes": 32},
-        "digest": PROFILE["digest"],
+        "digest": "",
     }
+    covered = {key: value for key, value in bundle.items() if key not in {"digest", "status"}}
+    canonical = json.dumps(covered, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")
+    bundle["digest"] = hashlib.sha256(canonical).hexdigest()
+    PROFILE["digest"] = bundle["digest"]
+    return bundle
 
 
 class ChunkingAlgorithmTests(unittest.TestCase):
@@ -98,6 +104,24 @@ class ChunkingAlgorithmTests(unittest.TestCase):
         body_chunks = [c for c in result if c["start_offset"] >= content.index("body")]
         self.assertTrue(body_chunks)
         self.assertTrue(all(c["heading_path"] == ["Real"] for c in body_chunks))
+
+    def test_heading_provenance_uses_complete_ancestry(self):
+        cases = [
+            ("# Heading\nbody", 4, []),
+            ("# Real\n    # code\nbody", len("# Real\n    # code\n"), ["Real"]),
+            ("# Root\n### Deep\n#### Leaf\n### Peer\nbody", len("# Root\n### Deep\n#### Leaf\n### Peer\n"), ["Root", "Peer"]),
+            ("# Root\n~~~md\n# fenced\n~~~\nbody", len("# Root\n~~~md\n# fenced\n~~~\n"), ["Root"]),
+            ("# A literal #\nbody", len("# A literal #\n"), ["A literal #"]),
+        ]
+        from runtime.chunking import _heading_path
+        for source, offset, expected in cases:
+            with self.subTest(source=source):
+                self.assertEqual(_heading_path(source, offset), expected)
+
+    def test_overlong_heading_is_not_emitted_as_provenance(self):
+        from runtime.chunking import _heading_path
+        source = "# " + ("x" * 1100) + "\nbody"
+        self.assertEqual(_heading_path(source, len(source)), [])
 
     def test_empty_and_oversized_content_rejected(self):
         with self.assertRaises(ChunkingError):
@@ -336,6 +360,43 @@ class ChunkingHttpTests(unittest.TestCase):
         self.assertEqual(status, 409)
         self.assertEqual(error["error"]["code"], "profile_mismatch")
         self.assert_error_schema(error, headers)
+
+    def test_preflight_rejects_digest_tampering_and_invalid_nested_profile(self):
+        for mutate in (
+            lambda bundle: bundle.update({"digest": "f" * 64}),
+            lambda bundle: bundle.update({"embedding": None}),
+            lambda bundle: bundle["limits"].update({"unexpected": 1}),
+            lambda bundle: bundle["limits"].update({"max_chunk_representation_bytes": 256}),
+        ):
+            bundle = profile_bundle()
+            mutate(bundle)
+            body = {"index_profile": dict(PROFILE), "source_text": "hello world",
+                    "chunking_profile": {"profile": "plain-text-default", "version": "0.1",
+                                          "max_units": 12, "overlap_units": 2},
+                    "profile_bundle": bundle}
+            status, headers, result = self.post("/api/v1/chunking/preflight", body)
+            self.assertIn(status, (400, 409))
+            self.assert_error_schema(result, headers)
+
+    def test_preflight_unicode_over_chunk_byte_limit_returns_contract_error(self):
+        bundle = profile_bundle()
+        bundle["chunking"]["max_units"] = 20000
+        bundle["limits"]["max_chunk_text_bytes"] = 65536
+        bundle["limits"]["max_chunk_representation_bytes"] = 131072
+        bundle["limits"]["max_chunks"] = 1
+        bundle["limits"]["max_request_bytes"] = 262144
+        covered = {key: value for key, value in bundle.items() if key not in {"digest", "status"}}
+        bundle["digest"] = hashlib.sha256(json.dumps(
+            covered, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")).hexdigest()
+        PROFILE["digest"] = bundle["digest"]
+        body = {"index_profile": dict(PROFILE), "source_text": "🙂" * 20000,
+                "chunking_profile": {"profile": "plain-text-default", "version": "0.1",
+                                     "max_units": 20000, "overlap_units": 0},
+                "profile_bundle": bundle}
+        status, headers, result = self.post("/api/v1/chunking/preflight", body)
+        self.assertEqual(status, 422)
+        self.assertEqual(result["error"]["code"], "source_too_large")
+        self.assert_error_schema(result, headers)
 
     def test_preflight_reports_profile_limit_without_materializing_all_chunks(self):
         bundle = profile_bundle()
