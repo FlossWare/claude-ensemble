@@ -678,12 +678,25 @@ class ChunkingHttpTests(unittest.TestCase):
         self.assertIn(status, SCHEMA["x-endpoints"]["POST /api/v1/chunking/chunks"]["error_statuses"])
         self.assert_error_schema(result, headers)
 
+    def test_preflight_rejects_noncanonical_tokenization_profile(self):
+        bundle = profile_bundle()
+        bundle["tokenization"]["profile"] = "other-profile"
+        body = {"index_profile": {"name": bundle["name"], "version": bundle["version"],
+                                  "digest": bundle["digest"]},
+                "source_text": "hello world",
+                "chunking_profile": {"profile": "markdown-default", "version": "0.1",
+                                     "max_units": 12, "overlap_units": 2},
+                "profile_bundle": bundle}
+        status, headers, result = self.post("/api/v1/chunking/preflight", body)
+        self.assertEqual(status, 422)
+        self.assertEqual(result["error"]["code"], "unsupported_profile")
+        self.assert_error_schema(result, headers)
+
     def test_preflight_rejects_digest_tampering_and_invalid_nested_profile(self):
         for mutate in (
             lambda bundle: bundle.update({"digest": "f" * 64}),
             lambda bundle: bundle["chunking"].update({"max_units": 0}),
             lambda bundle: bundle["tokenization"].pop("version"),
-            lambda bundle: bundle["tokenization"].update({"profile": "other-profile"}),
             lambda bundle: bundle["lexical"].update({"statistics_policy": "unknown"}),
             lambda bundle: bundle.update({"embedding": None}),
             # A digest-covered content mutation with the original digest must fail.
