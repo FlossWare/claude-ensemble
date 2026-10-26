@@ -1266,7 +1266,6 @@
             "accepted",
             "reconciling",
             "ready_for_cutover",
-            "cutover",
             "abandoned",
             "failed",
             "reconciliation_required",
@@ -1335,7 +1334,8 @@
       "type": "object",
       "additionalProperties": false,
       "required": [
-        "name"
+        "name",
+        "version"
       ],
       "properties": {
         "name": {
