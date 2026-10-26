@@ -121,7 +121,7 @@ Offsets are zero-based, half-open Unicode code-point offsets into the exact subm
 - Chunk text must map to the source offsets. Any normalization that changes text must be explicit and must preserve a source mapping.
 - Overlap must be deterministic and bounded by policy. The response must not silently exceed the requested maximum unit size except where a documented indivisible unit requires it.
 - Heading/source-line provenance is preserved when available.
-- A policy/version change must be observable so the Index service can schedule re-chunking and re-indexing. Chunking does not itself mutate the canonical index.
+- Only `markdown-default@0.1` is supported. Any different profile or version requires an explicit contract, schema, runtime, and test change.
 - Repeated identical requests are safe and have no persistent side effects.
 - The service must define size limits and reject invalid policies rather than silently substituting values.
 
