@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import json
 import re
+import time
 import uuid
 from datetime import datetime, timezone
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
@@ -16,6 +17,7 @@ REQUEST_ID = re.compile(r"^[A-Za-z0-9._:-]{1,128}$")
 SOURCE_ID = re.compile(r"^(memory|knowledge):[A-Za-z0-9._~-]{1,128}$")
 MAX_REQUEST_BYTES = 300_000
 MAX_PROFILE_REQUEST_BYTES = 2_097_152
+DEFAULT_REQUEST_TIMEOUT_SECONDS = 30.0
 SUPPORTED_PROFILES = {"markdown-default": {"0.1"}, "plain-text-default": {"0.1"}}
 
 
@@ -175,20 +177,45 @@ class Handler(BaseHTTPRequestHandler):
         self._send(exc.status, _error(exc.code, str(exc), details=exc.details), request_id)
 
     def _deadline_error(self) -> ChunkingError | None:
-        supplied = self.headers.get("X-CE-Deadline")
-        if supplied is None:
-            return None
-        try:
-            if not supplied.endswith("Z"):
-                raise ValueError("deadline must be UTC and end in Z")
-            deadline = datetime.fromisoformat(supplied[:-1] + "+00:00")
-            if deadline.tzinfo != timezone.utc:
-                raise ValueError("deadline must be UTC")
-        except (ValueError, TypeError):
-            return ChunkingError("invalid_parameter", "X-CE-Deadline must be an RFC 3339 UTC timestamp ending in Z", status=400)
-        if deadline <= datetime.now(timezone.utc):
+        # Establish one monotonic absolute deadline per request. Caller deadlines
+        # may shorten, but never extend, the local default request budget.
+        if not hasattr(self, "_request_deadline_monotonic"):
+            supplied = self.headers.get("X-CE-Deadline")
+            now_mono = time.monotonic()
+            if supplied is None:
+                self._request_deadline_monotonic = now_mono + DEFAULT_REQUEST_TIMEOUT_SECONDS
+            else:
+                try:
+                    if not supplied.endswith("Z"):
+                        raise ValueError("deadline must be UTC and end in Z")
+                    deadline = datetime.fromisoformat(supplied[:-1] + "+00:00")
+                    if deadline.tzinfo != timezone.utc:
+                        raise ValueError("deadline must be UTC")
+                except (ValueError, TypeError):
+                    return ChunkingError("invalid_parameter", "X-CE-Deadline must be an RFC 3339 UTC timestamp ending in Z", status=400)
+                remaining = (deadline - datetime.now(timezone.utc)).total_seconds()
+                if remaining <= 0:
+                    return ChunkingError("deadline_exceeded", "request deadline has expired", status=504, details={"retry_after_deadline": False})
+                self._request_deadline_monotonic = now_mono + min(remaining, DEFAULT_REQUEST_TIMEOUT_SECONDS)
+        if time.monotonic() >= self._request_deadline_monotonic:
             return ChunkingError("deadline_exceeded", "request deadline has expired", status=504, details={"retry_after_deadline": False})
         return None
+
+    def _read_body(self, length: int) -> bytes:
+        """Read with a monotonic total deadline, even when the peer trickles bytes."""
+        body = bytearray()
+        while len(body) < length:
+            if (error := self._deadline_error()) is not None:
+                raise error
+            remaining = self._request_deadline_monotonic - time.monotonic()
+            self.connection.settimeout(max(0.001, remaining))
+            # read1 performs at most one underlying read, allowing us to refresh
+            # the remaining budget between trickled packets.
+            part = self.rfile.read1(min(8192, length - len(body)))
+            if not part:
+                raise ChunkingError("invalid_request", "request body ended before Content-Length bytes were read", status=400)
+            body.extend(part)
+        return bytes(body)
 
     def do_GET(self) -> None:
         request_id, invalid_id = self._request_id()
@@ -237,9 +264,7 @@ class Handler(BaseHTTPRequestHandler):
                 # be interpreted as another request on this connection.
                 self.close_connection = True
                 raise ChunkingError("request_too_large", "request exceeds configured byte limit", status=413)
-            raw = self.rfile.read(length)
-            if len(raw) != length:
-                raise ChunkingError("invalid_request", "request body ended before Content-Length bytes were read", status=400)
+            raw = self._read_body(length)
             try:
                 request = json.loads(raw.decode("utf-8"))
             except (UnicodeDecodeError, json.JSONDecodeError) as exc:
@@ -253,7 +278,11 @@ class Handler(BaseHTTPRequestHandler):
                 return
             self._send(200, response, request_id)
         except TimeoutError:
-            self._send(408, _error("request_timeout", "request body was not received before the socket timeout"), request_id)
+            deadline_error = self._deadline_error()
+            if deadline_error is not None:
+                self._fail(deadline_error, request_id)
+            else:
+                self._send(408, _error("request_timeout", "request body was not received before the socket timeout"), request_id)
         except ChunkingError as exc:
             self._fail(exc, request_id)
         except Exception:
