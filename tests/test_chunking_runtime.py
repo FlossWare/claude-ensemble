@@ -423,7 +423,12 @@ class ChunkingHttpTests(unittest.TestCase):
     def test_preflight_rejects_digest_tampering_and_invalid_nested_profile(self):
         for mutate in (
             lambda bundle: bundle.update({"digest": "f" * 64}),
+            lambda bundle: bundle["chunking"].update({"max_units": 0}),
+            lambda bundle: bundle["tokenization"].pop("version"),
+            lambda bundle: bundle["lexical"].update({"statistics_policy": "unknown"}),
             lambda bundle: bundle.update({"embedding": None}),
+            # A digest-covered content mutation with the original digest must fail.
+            lambda bundle: bundle["embedding"].update({"model": "tampered-model"}),
             lambda bundle: bundle["limits"].update({"unexpected": 1}),
             lambda bundle: bundle["limits"].update({"max_chunk_representation_bytes": 256}),
         ):
