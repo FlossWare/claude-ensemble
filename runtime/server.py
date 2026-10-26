@@ -266,6 +266,29 @@ class Handler(BaseHTTPRequestHandler):
         else:
             self._send(405, _error("method_not_allowed", "HTTP method is not supported"), request_id)
 
+    def __getattr__(self, name: str) -> Any:
+        # BaseHTTPRequestHandler otherwise emits its own uncorrelated 501 response
+        # for arbitrary verbs. Route unknown do_* methods through the shared error path.
+        if name.startswith("do_") and name[3:].isupper():
+            return self._method_not_allowed
+        raise AttributeError(f"{type(self).__name__!s} has no attribute {name!r}")
+
+    def do_HEAD(self) -> None:
+        # HEAD is bodyless by HTTP semantics. Return the same 405/error metadata
+        # and correlation headers as other unsupported methods, but suppress payload bytes.
+        request_id, invalid_id = self._request_id()
+        status = 400 if invalid_id else 405
+        body = (_error("invalid_parameter", "X-CE-Request-ID contains invalid characters or length")
+                if invalid_id else _error("method_not_allowed", "HTTP method is not supported"))
+        body["request_id"] = request_id
+        payload = json.dumps(body, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
+        self.close_connection = True
+        self.send_response(status)
+        self.send_header("Content-Type", "application/json; charset=utf-8")
+        self.send_header("Content-Length", str(len(payload)))
+        self.send_header("X-CE-Request-ID", request_id)
+        self.end_headers()
+
     def do_PUT(self) -> None:
         self._method_not_allowed()
 
