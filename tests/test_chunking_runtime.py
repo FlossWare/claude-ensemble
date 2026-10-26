@@ -102,7 +102,7 @@ class ChunkingAlgorithmTests(unittest.TestCase):
                 raise ChunkingError("deadline_exceeded", "request deadline expired", status=504)
 
         with self.assertRaises(ChunkingError) as raised:
-            chunk("# Heading\\n" + "body\\n" * 100,
+            chunk("# Heading\n" + "body\n" * 100,
                   policy=Policy("markdown-default", "0.1", 10000, 0),
                   deadline_check=check_deadline)
         self.assertEqual(raised.exception.code, "deadline_exceeded")
