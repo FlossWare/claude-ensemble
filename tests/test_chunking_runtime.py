@@ -118,7 +118,7 @@ class ChunkingAlgorithmTests(unittest.TestCase):
             ("# Real\n    # code\nbody", len("# Real\n    # code\n"), ["Real"]),
             ("# Root\n### Deep\n#### Leaf\n### Peer\nbody", len("# Root\n### Deep\n#### Leaf\n### Peer\n"), ["Root", "Peer"]),
             ("# Root\n~~~md\n# fenced\n~~~\nbody", len("# Root\n~~~md\n# fenced\n~~~\n"), ["Root"]),
-            ("# A literal #\nbody", len("# A literal #\n"), ["A literal #"]),
+            ("# A literal#\nbody", len("# A literal#\n"), ["A literal#"]),
         ]
         from runtime.chunking import _heading_path
         for source, offset, expected in cases:
