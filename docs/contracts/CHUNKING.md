@@ -27,6 +27,43 @@ Request:
     "media_type": "text/markdown",
     "content": "# Design\n..."
   },
+  "profile_bundle": {
+    "name": "default",
+    "version": "0.1",
+    "status": "active",
+    "chunking": {
+      "profile": "markdown-default",
+      "version": "0.1",
+      "max_units": 1200,
+      "overlap_units": 120
+    },
+    "tokenization": {"profile": "default", "version": "0.1"},
+    "lexical": {"profile": "default", "version": "0.1", "statistics_policy": "scope_partition"},
+    "embedding": {
+      "required": false,
+      "profile": "default",
+      "version": "0.1",
+      "model": "none",
+      "model_version": "none",
+      "input_types": ["document"],
+      "dimensions": 1,
+      "normalization": "none",
+      "metric": "cosine",
+      "max_input_tokens": 1000
+    },
+    "limits": {
+      "max_chunks": 256,
+      "max_source_bytes": 262144,
+      "max_chunk_text_bytes": 65536,
+      "max_request_bytes": 2097152,
+      "max_chunk_representation_bytes": 1048576,
+      "max_envelope_bytes": 131072,
+      "max_metadata_bytes": 8192,
+      "max_lexical_terms_per_chunk": 512,
+      "max_lexical_term_bytes": 128
+    },
+    "digest": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+  },
   "policy": {
     "profile": "markdown-default",
     "profile_version": "0.1",
