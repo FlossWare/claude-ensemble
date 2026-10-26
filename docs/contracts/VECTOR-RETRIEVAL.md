@@ -16,6 +16,7 @@ This service does not own source records, embeddings as a durable source of trut
 
 ## Request
 
+<!-- schema-example: docs/contracts/schemas/vector-retrieval.schema.json#/$defs/request -->
 ~~~json
 {
   "query_id": "request-query-id",
@@ -33,6 +34,7 @@ A caller may supply a query vector instead of text only when the vector profile,
 
 ## Response
 
+<!-- schema-example: docs/contracts/schemas/vector-retrieval.schema.json#/$defs/response -->
 ~~~json
 {
   "query_id": "request-query-id",
