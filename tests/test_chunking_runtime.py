@@ -228,7 +228,11 @@ class ChunkingHttpTests(unittest.TestCase):
                 self.assertEqual(status, 200)
                 self.assertEqual(header_id, f"parallel-{i}")
                 self.assertEqual(result["request_id"], f"parallel-{i}")
-                self.assertEqual(result["chunks"][0]["text"], f"concurrent payload {i}")
+                expected = f"concurrent payload {i}"
+                for item in result["chunks"]:
+                    self.assertEqual(item["text"], expected[item["start_offset"]:item["end_offset"]])
+                self.assertEqual(result["source_id"], "knowledge:source01")
+                self.assertEqual(result["chunks"][0]["text"], expected[:result["chunks"][0]["end_offset"]])
 
     def test_include_text_false_is_honored(self):
         body = request_body(options={"include_text": False})
