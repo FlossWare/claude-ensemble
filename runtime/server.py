@@ -207,8 +207,12 @@ class Handler(BaseHTTPRequestHandler):
             "max_chunk_representation_bytes", "max_envelope_bytes", "max_metadata_bytes",
             "max_lexical_terms_per_chunk", "max_lexical_term_bytes",
         }
-        if not limit_keys.issubset(limits) or any(type(limits[k]) is not int or limits[k] < 1 for k in limit_keys):
+        if (not limit_keys.issubset(limits)
+                or any(type(limits[k]) is not int or limits[k] < (0 if k == "max_metadata_bytes" else 1)
+                       for k in limit_keys)):
             raise ChunkingError("invalid_request", "profile_bundle.limits is incomplete or invalid", status=400)
+        if bundle.get("status") not in {"active", "deprecated", "retired"}:
+            raise ChunkingError("invalid_request", "profile_bundle.status is invalid", status=400)
         spans = chunk_spans(source_text, policy, max_chunks=MAX_CONTENT_BYTES)
         chunk_count = len(spans)
         max_text_bytes = max(len(source_text[start:end].encode("utf-8")) for start, end in spans)
