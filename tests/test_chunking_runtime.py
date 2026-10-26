@@ -46,7 +46,11 @@ def request_body(**overrides):
 
 
 def refresh_profile_digest(bundle):
-    return refresh_profile_digest(bundle)
+    covered = {key: value for key, value in bundle.items() if key not in {"digest", "status"}}
+    canonical = json.dumps(covered, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")
+    bundle["digest"] = hashlib.sha256(canonical).hexdigest()
+    PROFILE["digest"] = bundle["digest"]
+    return bundle
 
 
 def profile_bundle():
@@ -64,11 +68,7 @@ def profile_bundle():
                    "max_lexical_terms_per_chunk": 10, "max_lexical_term_bytes": 32},
         "digest": "",
     }
-    covered = {key: value for key, value in bundle.items() if key not in {"digest", "status"}}
-    canonical = json.dumps(covered, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")
-    bundle["digest"] = hashlib.sha256(canonical).hexdigest()
-    PROFILE["digest"] = bundle["digest"]
-    return bundle
+    return refresh_profile_digest(bundle)
 
 
 class ChunkingAlgorithmTests(unittest.TestCase):
