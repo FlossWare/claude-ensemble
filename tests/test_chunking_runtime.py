@@ -93,6 +93,7 @@ class ChunkingAlgorithmTests(unittest.TestCase):
         self.assertEqual(calls, 3)
 
     def test_markdown_heading_scan_checks_deadline(self):
+        from runtime.chunking import _heading_path
         calls = 0
 
         def check_deadline():
@@ -101,10 +102,9 @@ class ChunkingAlgorithmTests(unittest.TestCase):
             if calls == 2:
                 raise ChunkingError("deadline_exceeded", "request deadline expired", status=504)
 
+        source = "# Root\n" + ("ordinary text\n" * 130) + "# Tail\nbody"
         with self.assertRaises(ChunkingError) as raised:
-            chunk("# Heading\n" + "body\n" * 100,
-                  policy=Policy("markdown-default", "0.1", 10000, 0),
-                  deadline_check=check_deadline)
+            _heading_path(source, len(source), deadline_check=check_deadline)
         self.assertEqual(raised.exception.code, "deadline_exceeded")
         self.assertEqual(calls, 2)
 
@@ -175,7 +175,7 @@ class ChunkingAlgorithmTests(unittest.TestCase):
 
     def test_omitted_replacement_heading_provenance_through_chunking(self):
         source = "# Old\n## Old child\n# " + ("x" * 1100) + "\nbody"
-        result = chunk(source, policy=Policy("markdown-default", "0.1", 1200, 0))
+        result = chunk(source, policy=Policy("markdown-default", "0.1", 100, 0))
         self.assertEqual(result["chunks"][-1]["heading_path"], [])
 
     def test_empty_and_oversized_content_rejected(self):
@@ -403,6 +403,7 @@ class ChunkingHttpTests(unittest.TestCase):
         deadline = (datetime.now(timezone.utc) + timedelta(milliseconds=250)).isoformat().replace("+00:00", "Z")
         body = json.dumps(request_body()).encode("utf-8")
         conn = socket.create_connection(("127.0.0.1", self.httpd.server_port), timeout=2)
+        started = time.monotonic()
         try:
             headers = (
                 "POST /api/v1/chunking/chunks HTTP/1.1\r\n"
@@ -410,19 +411,30 @@ class ChunkingHttpTests(unittest.TestCase):
                 "Content-Type: application/json\r\n"
                 f"Content-Length: {len(body)}\r\n"
                 f"X-CE-Deadline: {deadline}\r\n"
+                "X-CE-Request-ID: slow-deadline-1\r\n"
                 "Connection: close\r\n\r\n"
             ).encode("ascii")
             conn.sendall(headers)
-            time.sleep(0.35)
             response = bytearray()
             while True:
                 part = conn.recv(4096)
                 if not part:
                     break
                 response.extend(part)
+            elapsed = time.monotonic() - started
             raw = bytes(response)
             self.assertIn(b"504 Gateway Timeout", raw)
-            self.assertIn(b'"code":"deadline_exceeded"', raw)
+            header_bytes, body_bytes = raw.split(b"\r\n\r\n", 1)
+            headers_out = {}
+            for line in header_bytes.split(b"\r\n")[1:]:
+                if b":" in line:
+                    key, value = line.split(b":", 1)
+                    headers_out[key.decode("ascii")] = value.strip().decode("ascii")
+            result = json.loads(body_bytes)
+            self.assertEqual(result["error"]["code"], "deadline_exceeded")
+            self.assertEqual(result["request_id"], "slow-deadline-1")
+            self.assertEqual(headers_out["X-CE-Request-ID"], "slow-deadline-1")
+            self.assertLess(elapsed, 1.5)
         finally:
             conn.close()
 
