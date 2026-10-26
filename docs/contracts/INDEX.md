@@ -27,6 +27,7 @@ Submit a set of representations derived from one source revision. The request is
 Request:
 
 <!-- schema-example: docs/contracts/schemas/index.schema.json#/$defs/upsertRequest -->
+<!-- schema-example: docs/contracts/schemas/index.schema.json#/$defs/upsertRequest -->
 ~~~json
 {
   "operation_id": "stable-operation-id",
@@ -70,6 +71,7 @@ The vector values above are illustrative only; the supplied vector length must e
 Response:
 
 <!-- schema-example: docs/contracts/schemas/index.schema.json#/$defs/upsertResponse -->
+<!-- schema-example: docs/contracts/schemas/index.schema.json#/$defs/upsertResponse -->
 ~~~json
 {
   "operation_id": "stable-operation-id",
@@ -90,6 +92,7 @@ Mark a source revision or source identity as deleted from retrieval eligibility.
 
 Request:
 
+<!-- schema-example: docs/contracts/schemas/index.schema.json#/$defs/deleteRequest -->
 <!-- schema-example: docs/contracts/schemas/index.schema.json#/$defs/deleteRequest -->
 ~~~json
 {
