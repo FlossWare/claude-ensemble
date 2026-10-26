@@ -174,8 +174,8 @@ def main() -> int:
                         errors.append(f"{where}: unknown caller {caller!r}; use a declared service or approved external actor")
                     if caller == service:
                         errors.append(f"{where}: service cannot call its own REST endpoint")
-                    if service in SINK_SERVICES and caller in SERVICE_NAMES:
-                        errors.append(f"{where}: sink service {service!r} cannot be called by another logical service")
+                    if caller in SINK_SERVICES:
+                        errors.append(f"{where}: sink service {caller!r} cannot call another logical service")
 
     example_count = 0
     annotated_count = 0
