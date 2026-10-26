@@ -204,8 +204,9 @@ class Handler(BaseHTTPRequestHandler):
         self.end_headers()
         try:
             self.wfile.write(payload)
-        except (BrokenPipeError, ConnectionResetError):
-            # Client disconnects are not application failures and cannot be retried here.
+        except OSError:
+            # Broken pipes, resets, and aborted connections are client disconnects,
+            # not application failures; there is no response to retry here.
             return
 
     def _fail(self, exc: ChunkingError, request_id: str) -> None:
