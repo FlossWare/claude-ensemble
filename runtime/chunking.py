@@ -57,6 +57,16 @@ class Policy:
         return policy
 
 
+# Explicit default used only when a caller omits the policy field.
+DEFAULT_POLICY = Policy(
+    profile="markdown-default",
+    profile_version="0.1",
+    max_units=1200,
+    overlap_units=120,
+    unit="unicode_code_points",
+)
+
+
 def validate_index_profile(value: Any) -> dict[str, str]:
     if not isinstance(value, dict) or set(value) != {"name", "version", "digest"}:
         raise ChunkingError("invalid_request", "index_profile must contain name, version, and digest", status=400)
