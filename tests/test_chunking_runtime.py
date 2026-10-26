@@ -432,6 +432,64 @@ class ChunkingHttpTests(unittest.TestCase):
             Handler.timeout = original_timeout
             conn.close()
 
+    def test_trickled_body_hits_absolute_deadline_while_health_stays_responsive(self):
+        deadline = (datetime.now(timezone.utc) + timedelta(milliseconds=900)).isoformat().replace("+00:00", "Z")
+        body = json.dumps(request_body()).encode("utf-8")
+        conn = socket.create_connection(("127.0.0.1", self.httpd.server_port), timeout=3)
+        try:
+            headers = (
+                "POST /api/v1/chunking/chunks HTTP/1.1\r\n"
+                "Host: 127.0.0.1\r\n"
+                "Content-Type: application/json\r\n"
+                f"Content-Length: {len(body)}\r\n"
+                f"X-CE-Deadline: {deadline}\r\n"
+                "X-CE-Request-ID: trickle-deadline-1\r\n"
+                "Connection: close\r\n\r\n"
+            ).encode("ascii")
+            conn.sendall(headers)
+            started = time.monotonic()
+
+            def trickle():
+                try:
+                    for byte in body:
+                        conn.sendall(bytes([byte]))
+                        time.sleep(0.02)
+                except OSError:
+                    return
+
+            sender = threading.Thread(target=trickle, daemon=True)
+            sender.start()
+            with urlopen(self.base + "/api/v1/chunking/health", timeout=1) as health:
+                health_payload = json.load(health)
+                health_elapsed = time.monotonic() - started
+                self.assertEqual(health.status, 200)
+                self.assertEqual(health_payload["status"], "alive")
+                self.assertLess(health_elapsed, 0.5)
+            response = bytearray()
+            while True:
+                part = conn.recv(4096)
+                if not part:
+                    break
+                response.extend(part)
+            elapsed = time.monotonic() - started
+            raw = bytes(response)
+            status_line = raw.split(b"\r\n", 1)[0]
+            self.assertRegex(status_line, rb"^HTTP/1\.[01] 504(?: |$)")
+            header_bytes, body_bytes = raw.split(b"\r\n\r\n", 1)
+            headers_out = {}
+            for line in header_bytes.split(b"\r\n")[1:]:
+                if b":" in line:
+                    key, value = line.split(b":", 1)
+                    headers_out[key.decode("ascii")] = value.strip().decode("ascii")
+            result = json.loads(body_bytes)
+            self.assertEqual(result["error"]["code"], "deadline_exceeded")
+            self.assertEqual(result["request_id"], "trickle-deadline-1")
+            self.assertEqual(headers_out["X-CE-Request-ID"], "trickle-deadline-1")
+            self.assertLess(elapsed, 2.0)
+            sender.join(timeout=0.2)
+        finally:
+            conn.close()
+
     def test_absolute_deadline_bounds_slow_body_receipt(self):
         deadline = (datetime.now(timezone.utc) + timedelta(milliseconds=250)).isoformat().replace("+00:00", "Z")
         body = json.dumps(request_body()).encode("utf-8")
