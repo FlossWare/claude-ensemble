@@ -94,6 +94,24 @@ def _heading_path(text: str, offset: int) -> list[str]:
     return path
 
 
+def chunk_spans(content: str, policy: Policy, *, max_chunks: int = MAX_CHUNKS) -> list[tuple[int, int]]:
+    """Compute bounded source spans without constructing chunk response objects."""
+    spans: list[tuple[int, int]] = []
+    start = 0
+    while start < len(content):
+        end = _choose_end(content, start, policy.max_units)
+        if end <= start:
+            raise ChunkingError("internal_error", "chunker failed to advance", status=500)
+        spans.append((start, end))
+        if len(spans) > max_chunks:
+            raise ChunkingError("source_too_large", f"source requires more than {max_chunks} chunks under the selected policy")
+        if end == len(content):
+            break
+        effective_overlap = min(policy.overlap_units, end - start - 1)
+        start = end - effective_overlap
+    return spans
+
+
 def chunk_document(*, source_id: str, revision: str, revision_sequence: int,
                    content: str, index_profile: dict[str, str], policy: Policy,
                    include_text: bool = True, include_line_spans: bool = True) -> dict[str, Any]:
@@ -114,19 +132,7 @@ def chunk_document(*, source_id: str, revision: str, revision_sequence: int,
     if type(include_text) is not bool or type(include_line_spans) is not bool:
         raise ChunkingError("invalid_parameter", "options.include_text and options.include_line_spans must be booleans", status=400)
 
-    spans: list[tuple[int, int]] = []
-    start = 0
-    while start < len(content):
-        end = _choose_end(content, start, policy.max_units)
-        if end <= start:
-            raise ChunkingError("internal_error", "chunker failed to advance", status=500)
-        spans.append((start, end))
-        if len(spans) > MAX_CHUNKS:
-            raise ChunkingError("source_too_large", "source requires more than 256 chunks under the selected policy")
-        if end == len(content):
-            break
-        effective_overlap = min(policy.overlap_units, end - start - 1)
-        start = end - effective_overlap
+    spans = chunk_spans(content, policy)
 
     chunks: list[dict[str, Any]] = []
     for ordinal, (start, end) in enumerate(spans):
