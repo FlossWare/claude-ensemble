@@ -66,6 +66,8 @@ def _validate_profile_bundle(bundle: Any) -> dict[str, Any]:
     tokenization = obj("tokenization", {"profile", "version"})
     string(tokenization["profile"], 128, "tokenization.profile")
     string(tokenization["version"], 64, "tokenization.version")
+    if tokenization["profile"] != "technical-default" or tokenization["version"] != "0.1":
+        raise ChunkingError("unsupported_profile", "profile_bundle tokenization profile/version is not supported")
     lexical = obj("lexical", {"profile", "version", "statistics_policy"})
     string(lexical["profile"], 128, "lexical.profile")
     string(lexical["version"], 64, "lexical.version")
