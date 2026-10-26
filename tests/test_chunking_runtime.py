@@ -774,10 +774,10 @@ class ChunkingHttpTests(unittest.TestCase):
 
         def raw_request(port, method, path, request_id):
             conn = socket.create_connection(("127.0.0.1", port), timeout=2)
-            conn.sendall((f"{method} {path} HTTP/1.1\\r\\n"
-                          "Host: 127.0.0.1\\r\\n"
-                          f"X-CE-Request-ID: {request_id}\\r\\n"
-                          "Connection: close\\r\\n\\r\\n").encode("ascii"))
+            conn.sendall((f"{method} {path} HTTP/1.1\r\n"
+                          "Host: 127.0.0.1\r\n"
+                          f"X-CE-Request-ID: {request_id}\r\n"
+                          "Connection: close\r\n\r\n").encode("ascii"))
             return conn
 
         server = SaturatedServer(("127.0.0.1", 0), CapacityTestHandler)
@@ -798,11 +798,11 @@ class ChunkingHttpTests(unittest.TestCase):
                     raw.extend(part)
             finally:
                 rejected.close()
-            status_line = bytes(raw).split(b"\\r\\n", 1)[0]
+            status_line = bytes(raw).split(b"\r\n", 1)[0]
             self.assertRegex(status_line, rb"^HTTP/1\\.[01] 503(?: |$)")
-            header_bytes, body_bytes = bytes(raw).split(b"\\r\\n\\r\\n", 1)
+            header_bytes, body_bytes = bytes(raw).split(b"\r\n\r\n", 1)
             headers = {}
-            for line in header_bytes.split(b"\\r\\n")[1:]:
+            for line in header_bytes.split(b"\r\n")[1:]:
                 if b":" in line:
                     key, value = line.split(b":", 1)
                     headers[key.decode("ascii")] = value.strip().decode("ascii")
@@ -821,7 +821,7 @@ class ChunkingHttpTests(unittest.TestCase):
                     if not part:
                         break
                     response.extend(part)
-                self.assertRegex(bytes(response).split(b"\\r\\n", 1)[0], rb"^HTTP/1\\.[01] 200(?: |$)")
+                self.assertRegex(bytes(response).split(b"\r\n", 1)[0], rb"^HTTP/1\\.[01] 200(?: |$)")
                 conn.close()
             gates = []
             with urlopen(f"http://127.0.0.1:{server.server_port}/api/v1/chunking/health", timeout=1) as health:
@@ -871,10 +871,10 @@ class ChunkingHttpTests(unittest.TestCase):
         conn = socket.create_connection(("127.0.0.1", self.httpd.server_port), timeout=2)
         try:
             conn.sendall(
-                b"HEAD /api/v1/chunking/health HTTP/1.1\\r\\n"
-                b"Host: 127.0.0.1\\r\\n"
-                b"X-CE-Request-ID: head-method-1\\r\\n"
-                b"Connection: close\\r\\n\\r\\n"
+                b"HEAD /api/v1/chunking/health HTTP/1.1\r\n"
+                b"Host: 127.0.0.1\r\n"
+                b"X-CE-Request-ID: head-method-1\r\n"
+                b"Connection: close\r\n\r\n"
             )
             raw = bytearray()
             while True:
@@ -882,11 +882,11 @@ class ChunkingHttpTests(unittest.TestCase):
                 if not part:
                     break
                 raw.extend(part)
-            header_bytes, body = bytes(raw).split(b"\\r\\n\\r\\n", 1)
-            self.assertRegex(header_bytes.split(b"\\r\\n", 1)[0], rb"^HTTP/1\\.[01] 405(?: |$)")
+            header_bytes, body = bytes(raw).split(b"\r\n\r\n", 1)
+            self.assertRegex(header_bytes.split(b"\r\n", 1)[0], rb"^HTTP/1\\.[01] 405(?: |$)")
             self.assertIn(b"X-CE-Request-ID: head-method-1", header_bytes)
             self.assertIn(b"Content-Type: application/json; charset=utf-8", header_bytes)
-            self.assertGreater(int(next(line.split(b":",1)[1] for line in header_bytes.split(b"\\r\\n") if line.lower().startswith(b"content-length:"))), 0)
+            self.assertGreater(int(next(line.split(b":",1)[1] for line in header_bytes.split(b"\r\n") if line.lower().startswith(b"content-length:"))), 0)
             self.assertEqual(body, b"")
         finally:
             conn.close()
@@ -895,10 +895,10 @@ class ChunkingHttpTests(unittest.TestCase):
         conn = socket.create_connection(("127.0.0.1", self.httpd.server_port), timeout=2)
         try:
             conn.sendall(
-                b"BREW /api/v1/chunking/health HTTP/1.1\\r\\n"
-                b"Host: 127.0.0.1\\r\\n"
-                b"X-CE-Request-ID: unknown-method-1\\r\\n"
-                b"Connection: close\\r\\n\\r\\n"
+                b"BREW /api/v1/chunking/health HTTP/1.1\r\n"
+                b"Host: 127.0.0.1\r\n"
+                b"X-CE-Request-ID: unknown-method-1\r\n"
+                b"Connection: close\r\n\r\n"
             )
             raw = bytearray()
             while True:
@@ -906,10 +906,10 @@ class ChunkingHttpTests(unittest.TestCase):
                 if not part:
                     break
                 raw.extend(part)
-            header_bytes, body = bytes(raw).split(b"\\r\\n\\r\\n", 1)
-            self.assertRegex(header_bytes.split(b"\\r\\n", 1)[0], rb"^HTTP/1\\.[01] 405(?: |$)")
+            header_bytes, body = bytes(raw).split(b"\r\n\r\n", 1)
+            self.assertRegex(header_bytes.split(b"\r\n", 1)[0], rb"^HTTP/1\\.[01] 405(?: |$)")
             headers = {}
-            for line in header_bytes.split(b"\\r\\n")[1:]:
+            for line in header_bytes.split(b"\r\n")[1:]:
                 if b":" in line:
                     key, value = line.split(b":", 1)
                     headers[key.decode("ascii").lower()] = value.strip().decode("ascii")
