@@ -9,7 +9,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from typing import Any
 
 from .chunking import (
-    MAX_CONTENT_BYTES, ChunkingError, Policy, chunk_document, chunk_spans, validate_index_profile,
+    MAX_CONTENT_BYTES, MAX_CHUNKS, DEFAULT_POLICY, ChunkingError, Policy, chunk_document, chunk_spans, validate_index_profile,
 )
 
 REQUEST_ID = re.compile(r"^[A-Za-z0-9._:-]{1,128}$")
@@ -167,7 +167,7 @@ class Handler(BaseHTTPRequestHandler):
             raise ChunkingError("invalid_parameter", "source.source_id is invalid", status=400)
         if "media_type" in source and (not isinstance(source["media_type"], str) or len(source["media_type"]) > 128):
             raise ChunkingError("invalid_parameter", "source.media_type is invalid", status=400)
-        policy = Policy.from_dict(request["policy"])
+        policy = Policy.from_dict(request["policy"]) if "policy" in request else DEFAULT_POLICY
         if policy.profile not in SUPPORTED_PROFILES or policy.profile_version not in SUPPORTED_PROFILES[policy.profile]:
             raise ChunkingError("unsupported_profile", "chunking profile or version is not configured")
         options = _require_object(request.get("options", {}), "options",
@@ -241,7 +241,7 @@ class Handler(BaseHTTPRequestHandler):
             raise ChunkingError("invalid_request", "profile_bundle.limits is incomplete or invalid", status=400)
         if bundle.get("status") not in {"active", "deprecated", "retired"}:
             raise ChunkingError("invalid_request", "profile_bundle.status is invalid", status=400)
-        spans = chunk_spans(source_text, policy, max_chunks=MAX_CONTENT_BYTES)
+        spans = chunk_spans(source_text, policy, max_chunks=MAX_CHUNKS)
         chunk_count = len(spans)
         max_text_bytes = max(len(source_text[start:end].encode("utf-8")) for start, end in spans)
         upper_bound = chunk_count * limits["max_chunk_representation_bytes"] + limits["max_envelope_bytes"]
