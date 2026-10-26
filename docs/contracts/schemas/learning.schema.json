@@ -303,7 +303,8 @@
         "selection_id": {
           "type": "string",
           "minLength": 1,
-          "maxLength": 256
+          "maxLength": 256,
+          "description": "Must identify the persisted Thompson selection whose context and chosen arm exactly match this outcome."
         },
         "context_id": {
           "type": "string",
