@@ -4,7 +4,7 @@ Status: contract baseline approved by merged PR #8; the initial runtime implemen
 
 ## Responsibility
 
-Produce deterministic, versioned chunks from source content for indexing and retrieval. The service owns chunk-boundary semantics and chunker profiles. It does not own canonical source records, corpus revisions, lexical indexes, embeddings, or vector storage; those belong to their respective owners.
+Produce deterministic, versioned chunks from source content for indexing and retrieval. The service owns chunk-boundary semantics and exposes one canonical chunker version. It does not own canonical source records, corpus revisions, lexical indexes, embeddings, or vector storage; those belong to their respective owners.
 
 ## HTTP API
 
@@ -100,7 +100,7 @@ Unsupported HTTP methods return `405 method_not_allowed` using the shared CE RES
 
 Expose `GET /api/v1/chunking/health` and `GET /api/v1/chunking/ready`. Readiness reports whether configured chunking profiles are available. Diagnostics include effective profile/version and duration, but do not log document content by default.
 
-The initial runtime configures `plain-text-default@0.1` and `markdown-default@0.1`; other profile names or versions are rejected as `unsupported_profile` until explicitly configured. If `policy` is omitted, the runtime uses the explicit `markdown-default@0.1` policy of 1200 Unicode code points per chunk and 120 code points of overlap. The plain-text profile does not infer Markdown heading provenance. The Markdown profile recognizes ATX headings only: Setext headings and headings inside fenced code blocks are not interpreted as structural headings in this initial implementation. `options.include_text=false` omits each chunk's `text` field; offsets and identifiers remain available.
+The runtime supports only `markdown-default@0.1`. Other profile names and versions are rejected as `unsupported_profile`; adding another profile requires a concrete use case and a contract change. If `policy` is omitted, the runtime uses the explicit `markdown-default@0.1` policy of 1200 Unicode code points per chunk and 120 code points of overlap. The canonical profile recognizes ATX headings only: Setext headings and headings inside fenced code blocks are not interpreted as structural headings in this initial implementation. `options.include_text=false` omits each chunk's `text` field; offsets and identifiers remain available.
 
 The local runtime uses a bounded threaded HTTP server with at most 32 active request handlers and a listen backlog of 64; when handler capacity is exhausted, excess connections receive a correlated `503 service_unavailable` error instead of spawning unbounded threads. This is a local guardrail, not a substitute for deployment-level admission control. `X-CE-Deadline` must use an RFC 3339 UTC timestamp ending in `Z`; non-standard JSON constants (`NaN`, `Infinity`, and `-Infinity`) and duplicate object keys are rejected. The normal chunks endpoint has a 300,000-byte HTTP request-body cap and independently enforces the 262,144-byte UTF-8 source-content cap. Preflight has a 2 MiB request-body cap because the resolved profile bundle accompanies the source. Callers must not treat the larger preflight envelope allowance as permission to submit source content larger than 262,144 UTF-8 bytes. Both endpoints enforce a 30-second absolute request budget by default; a valid `X-CE-Deadline` may shorten that budget. A body-receipt inactivity timeout returns `408 request_timeout`, while expiry of the absolute request deadline returns `504 deadline_exceeded`. A preflight result whose measured UTF-8 chunk text exceeds the response schema's 65,536-byte maximum is rejected as `422 source_too_large` rather than returning an invalid success response. Both normal chunking and preflight enforce the runtime's hard maximum of 256 chunks; preflight rejects sources exceeding that bound rather than allocating an unbounded span list.
 
@@ -112,8 +112,8 @@ The local runtime uses a bounded threaded HTTP server with at most 32 active req
 
 - Same input and policy produce byte-for-byte equivalent structured output across fresh processes.
 - Chunk IDs are stable for identical identity/revision/policy and change appropriately when source revision or chunk boundaries change.
-- Offsets, line spans, heading paths, overlap, ordering, and maximum size are verified for plain text, Markdown, Unicode, empty input, and boundary cases.
-- Unknown profiles and invalid policies return stable client errors.
+- Offsets, line spans, heading paths, overlap, ordering, and maximum size are verified for ordinary text, Markdown headings, Unicode, empty input, and boundary cases.
+- Non-canonical profile names/versions and invalid policies return stable client errors.
 - Policy upgrades are visible to Index and trigger a defined re-chunk/re-index path without silently mixing versions.
 - Failure and readiness behavior is distinguishable from a valid empty-document result.
 - Contract tests run without requiring a particular programming language or deployment topology.
