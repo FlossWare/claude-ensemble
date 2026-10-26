@@ -26,6 +26,7 @@ The companion Notion index is the [claude-ensemble documentation entry](https://
 The v1 contract baseline was merged in [PR #8: Resolve architecture and contract findings](https://github.com/FlossWare/claude-ensemble/pull/8). Runtime implementation is proceeding in small, reviewable slices. The initial Chunking runtime and REST tests are under review in [PR #9](https://github.com/FlossWare/claude-ensemble/pull/9); it is not merged yet.
 
 - [Service contracts](docs/contracts/)
+- [Index profile registry configuration](docs/INDEX-PROFILE-REGISTRY.md)
 - [JSON Schemas](docs/contracts/schemas/)
 - [Architecture review acceptance baseline](docs/ARCHITECTURE-REVIEW-ACCEPTANCE.md)
 - [Functional traceability matrix](docs/TRACEABILITY.md)
