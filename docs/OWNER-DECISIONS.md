@@ -2,6 +2,8 @@
 
 Status: proposed v1 decisions for explicit owner confirmation. These decisions are not accepted merely because they appear in the contract branch. The implementation gate remains closed until the owner confirms them and the human-readable Notion pages agree.
 
+Review correction: the public-workflow gap is addressed in the proposed contract by adding Gateway-prefixed Memory/Knowledge record routes and operator-only Gateway rebuild/status/cutover routes. This resolves the missing-entry-point contradiction at the specification level; it does not approve the remaining owner decisions or imply runtime implementation.
+
 | ID | Proposed v1 decision | Why this is the bounded choice | Status |
 |---|---|---|---|
 | OD-01 | Exact-identifier precedence applies only to candidates returned by retrieval and admitted to Gateway's 100-candidate aggregate pool. It does not promise corpus-wide exact-identifier recall. | The current Index candidate shortlist is bounded and ordered by term-frequency evidence before lexical BM25 ranking. A corpus-wide guarantee requires a separate identifier-aware retrieval path. | Pending owner confirmation |
