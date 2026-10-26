@@ -603,20 +603,21 @@ class ChunkingHttpTests(unittest.TestCase):
             conn.close()
 
     def test_unsupported_methods_use_declared_shared_error_envelope(self):
-        for method in ("PUT", "PATCH", "DELETE", "OPTIONS", "TRACE", "CONNECT"):
-            request = Request(self.base + "/api/v1/chunking/chunks", data=b"",
-                              headers={"X-CE-Request-ID": "method-test-1"}, method=method)
-            try:
-                with urlopen(request, timeout=3) as response:
-                    status, headers, payload = response.status, response.headers, json.load(response)
-            except HTTPError as exc:
-                status, headers, payload = exc.code, exc.headers, json.loads(exc.read())
-            with self.subTest(method=method):
-                self.assertEqual(status, 405)
-                self.assertEqual(payload["error"]["code"], "method_not_allowed")
-                self.assertEqual(payload["request_id"], headers["X-CE-Request-ID"])
-                self.assertIn(status, SCHEMA["x-endpoints"]["POST /api/v1/chunking/chunks"]["error_statuses"])
-                self.assert_error_schema(payload, headers)
+        for path in ("/api/v1/chunking/chunks", "/api/v1/chunking/preflight"):
+            for method in ("PUT", "PATCH", "DELETE", "OPTIONS", "TRACE", "CONNECT"):
+                request = Request(self.base + path, data=b"",
+                                  headers={"X-CE-Request-ID": "method-test-1"}, method=method)
+                try:
+                    with urlopen(request, timeout=3) as response:
+                        status, headers, payload = response.status, response.headers, json.load(response)
+                except HTTPError as exc:
+                    status, headers, payload = exc.code, exc.headers, json.loads(exc.read())
+                with self.subTest(path=path, method=method):
+                    self.assertEqual(status, 405)
+                    self.assertEqual(payload["error"]["code"], "method_not_allowed")
+                    self.assertEqual(payload["request_id"], headers["X-CE-Request-ID"])
+                    self.assertIn(status, SCHEMA["x-endpoints"]["POST " + path]["error_statuses"])
+                    self.assert_error_schema(payload, headers)
 
     def test_preflight_matches_schema_and_checks_profile_identity(self):
         bundle = profile_bundle()
