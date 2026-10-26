@@ -743,6 +743,7 @@ class ChunkingHttpTests(unittest.TestCase):
     def test_preflight_unicode_over_chunk_byte_limit_returns_contract_error(self):
         bundle = profile_bundle()
         bundle["chunking"]["max_units"] = 20000
+        bundle["chunking"]["overlap_units"] = 0
         bundle["limits"]["max_chunk_text_bytes"] = 65536
         bundle["limits"]["max_chunk_representation_bytes"] = 500000
         bundle["limits"]["max_chunks"] = 1
@@ -762,6 +763,7 @@ class ChunkingHttpTests(unittest.TestCase):
         bundle["limits"]["max_chunks"] = 2
         bundle["limits"]["max_request_bytes"] = 12288
         bundle["chunking"]["max_units"] = 4
+        bundle["chunking"]["overlap_units"] = 0
         refresh_profile_digest(bundle)
         body = {"index_profile": dict(PROFILE), "source_text": "abcdefghijklmnop",
                 "chunking_profile": {"profile": "markdown-default", "version": "0.1",
