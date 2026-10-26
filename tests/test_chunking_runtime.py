@@ -42,6 +42,10 @@ def request_body(**overrides):
     return body
 
 
+def refresh_profile_digest(bundle):
+    return refresh_profile_digest(bundle)
+
+
 def profile_bundle():
     bundle = {
         "name": "default", "version": "0.1", "status": "active",
@@ -382,13 +386,10 @@ class ChunkingHttpTests(unittest.TestCase):
         bundle = profile_bundle()
         bundle["chunking"]["max_units"] = 20000
         bundle["limits"]["max_chunk_text_bytes"] = 65536
-        bundle["limits"]["max_chunk_representation_bytes"] = 131072
+        bundle["limits"]["max_chunk_representation_bytes"] = 500000
         bundle["limits"]["max_chunks"] = 1
-        bundle["limits"]["max_request_bytes"] = 262144
-        covered = {key: value for key, value in bundle.items() if key not in {"digest", "status"}}
-        bundle["digest"] = hashlib.sha256(json.dumps(
-            covered, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")).hexdigest()
-        PROFILE["digest"] = bundle["digest"]
+        bundle["limits"]["max_request_bytes"] = 600000
+        refresh_profile_digest(bundle)
         body = {"index_profile": dict(PROFILE), "source_text": "🙂" * 20000,
                 "chunking_profile": {"profile": "plain-text-default", "version": "0.1",
                                      "max_units": 20000, "overlap_units": 0},
@@ -401,11 +402,12 @@ class ChunkingHttpTests(unittest.TestCase):
     def test_preflight_reports_profile_limit_without_materializing_all_chunks(self):
         bundle = profile_bundle()
         bundle["limits"]["max_chunks"] = 2
-        body = {"index_profile": PROFILE, "source_text": "abcdefghijklmnop",
+        bundle["chunking"]["max_units"] = 4
+        refresh_profile_digest(bundle)
+        body = {"index_profile": dict(PROFILE), "source_text": "abcdefghijklmnop",
                 "chunking_profile": {"profile": "plain-text-default", "version": "0.1",
                                      "max_units": 4, "overlap_units": 0},
                 "profile_bundle": bundle}
-        bundle["chunking"]["max_units"] = 4
         status, headers, result = self.post("/api/v1/chunking/preflight", body)
         self.assertEqual(status, 200)
         self.assertFalse(result["fits_profile"])
