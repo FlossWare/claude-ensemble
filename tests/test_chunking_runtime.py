@@ -203,6 +203,22 @@ class ChunkingHttpTests(unittest.TestCase):
         self.assertEqual(result["error"]["code"], "invalid_parameter")
         self.assert_error_schema(result)
 
+    def test_unknown_profile_and_version_are_rejected(self):
+        for profile, version in (("missing-profile", "0.1"), ("plain-text-default", "9.9")):
+            body = request_body()
+            body["policy"]["profile"] = profile
+            body["policy"]["profile_version"] = version
+            status, _, result = self.post(body=body)
+            self.assertEqual(status, 422)
+            self.assertEqual(result["error"]["code"], "unsupported_profile")
+            self.assert_error_schema(result)
+
+    def test_oversized_http_body_is_rejected_before_json_parsing(self):
+        status, _, result = self.post(raw=b"x" * 300_001)
+        self.assertEqual(status, 413)
+        self.assertEqual(result["error"]["code"], "request_too_large")
+        self.assert_error_schema(result)
+
     def test_preflight_matches_schema_and_checks_profile_identity(self):
         bundle = profile_bundle()
         body = {"index_profile": PROFILE, "source_text": "hello world",
