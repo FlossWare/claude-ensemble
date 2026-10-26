@@ -259,7 +259,7 @@ The original (64,98) versus (98,64) example is not a useful arithmetic discrimin
 
 ### AT-PUBLIC-API-01: Capture, update, delete, read, and recall through Gateway
 
-Using only documented Gateway-prefixed client routes, create a Memory record and a Knowledge source, read each canonical record, update each using its expected base revision sequence, and delete each. Poll the owner-qualified operation status through Gateway. Then recall through POST /api/v1/requests. Assert no client or hook-adapter request targets an internal Memory, Knowledge, or Index route directly; create/update/delete return a durable operation identity and pending-index status; stale base revisions return 409; deletion remains pending until both Index and Graph independently confirm retrieval-ineligibility.
+Using only documented Gateway-prefixed client routes, first fetch `GET /api/v1/gateway/index/write-profile`, then create a Memory record and a Knowledge source using the returned profile name/version, read each canonical record, update each using its expected base revision sequence, and delete each. Poll the owner-qualified operation status through Gateway. Assert the profile route resolves the explicitly configured write profile, exposes its immutable digest/bundle, and fails readiness rather than guessing when no write profile is configured. Then recall through POST /api/v1/requests. Assert no client or hook-adapter request targets an internal Memory, Knowledge, or Index route directly; create/update/delete return a durable operation identity and pending-index status; stale base revisions return 409; deletion remains pending until both Index and Graph independently confirm retrieval-ineligibility.
 
 ### AT-REBUILD-API-01: Operator-led generation rebuild workflow
 
