@@ -498,6 +498,7 @@
                 "profile_retired",
                 "rate_limited",
                 "reconciliation_required",
+                "request_timeout",
                 "request_too_large",
                 "revision_conflict",
                 "revision_sequence_regression",
@@ -629,8 +630,10 @@
       "error_statuses": [
         400,
         404,
+        408,
         409,
         413,
+        415,
         422,
         429,
         500,
