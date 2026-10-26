@@ -4,6 +4,7 @@ from __future__ import annotations
 import json
 import re
 import uuid
+from datetime import datetime, timezone
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from typing import Any
 
@@ -77,10 +78,29 @@ class Handler(BaseHTTPRequestHandler):
     def _fail(self, exc: ChunkingError, request_id: str) -> None:
         self._send(exc.status, _error(exc.code, str(exc), details=exc.details), request_id)
 
+    def _deadline_error(self) -> ChunkingError | None:
+        supplied = self.headers.get("X-CE-Deadline")
+        if supplied is None:
+            return None
+        try:
+            if not supplied.endswith("Z"):
+                raise ValueError("deadline must be UTC and end in Z")
+            deadline = datetime.fromisoformat(supplied[:-1] + "+00:00")
+            if deadline.tzinfo != timezone.utc:
+                raise ValueError("deadline must be UTC")
+        except (ValueError, TypeError):
+            return ChunkingError("invalid_parameter", "X-CE-Deadline must be an RFC 3339 UTC timestamp ending in Z", status=400)
+        if deadline <= datetime.now(timezone.utc):
+            return ChunkingError("deadline_exceeded", "request deadline has expired", status=504, details={"retry_after_deadline": False})
+        return None
+
     def do_GET(self) -> None:
         request_id, invalid_id = self._request_id()
         if invalid_id:
             self._send(400, _error("invalid_parameter", "X-CE-Request-ID contains invalid characters or length"), request_id)
+        elif self._deadline_error() is not None:
+            error = self._deadline_error()
+            self._fail(error, request_id)
         elif self.path == "/api/v1/chunking/health":
             self._send(200, {"service": "chunking", "status": "alive"}, request_id)
         elif self.path == "/api/v1/chunking/ready":
@@ -99,6 +119,10 @@ class Handler(BaseHTTPRequestHandler):
         request_id, invalid_id = self._request_id()
         if invalid_id:
             self._send(400, _error("invalid_parameter", "X-CE-Request-ID contains invalid characters or length"), request_id)
+            return
+        deadline_error = self._deadline_error()
+        if deadline_error is not None:
+            self._fail(deadline_error, request_id)
             return
         if self.path not in ("/api/v1/chunking/chunks", "/api/v1/chunking/preflight"):
             self._send(404, _error("endpoint_not_found", "endpoint not found"), request_id)
@@ -193,7 +217,7 @@ class Handler(BaseHTTPRequestHandler):
             {"profile", "version", "max_units", "overlap_units"},
             {"profile", "version", "max_units", "overlap_units"})
         if not isinstance(chunking, dict) or any(requested.get(k) != chunking.get(k) for k in ("profile", "version", "max_units")):
-            raise ChunkingError("profile_mismatch", "chunking_profile does not match the pinned Index profile bundle")
+            raise ChunkingError("profile_mismatch", "chunking_profile does not match the pinned Index profile bundle", status=409)
         policy = Policy.from_dict({
             "profile": requested["profile"],
             "profile_version": requested["version"],
