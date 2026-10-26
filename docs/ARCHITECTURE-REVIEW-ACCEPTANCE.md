@@ -253,3 +253,32 @@ This correction supersedes the non-discriminating tie example currently describe
 - Rank pairs (3,80), (80,3), (24,30), and (30,24): each totals 23,015,873,015. These candidates must be ordered by the canonical identity comparator alone, regardless of insertion order.
 
 The original (64,98) versus (98,64) example is not a useful arithmetic discriminator because both have the same terms in reversed order. Keep it only as a commutativity check, not as evidence that integer fixed-point behavior is implemented correctly.
+
+
+## Review correction: missing public workflows and state/recovery fixtures
+
+### AT-PUBLIC-API-01: Capture, update, delete, read, and recall through Gateway
+
+Using only documented Gateway-prefixed client routes, create a Memory record and a Knowledge source, read each canonical record, update each using its expected base revision sequence, and delete each. Poll the owner-qualified operation status through Gateway. Then recall through POST /api/v1/requests. Assert no client or hook-adapter request targets an internal Memory, Knowledge, or Index route directly; create/update/delete return a durable operation identity and pending-index status; stale base revisions return 409; deletion remains pending until both Index and Graph independently confirm retrieval-ineligibility.
+
+### AT-REBUILD-API-01: Operator-led generation rebuild workflow
+
+Using only the Gateway operator rebuild routes, create a target generation, poll rebuild status, and delay each owner replay/fence/checkpoint in turn. Assert the workflow order is generation creation, independent Memory and Knowledge reconciliation, sealed owner checkpoints, owner-held fences registered with Index, drained target journal, atomic cutover, then fence release. An expired/missing fence, missing checkpoint, owner outage, or undrained journal must reject cutover and leave the active-generation pointer unchanged. V1 rollback is unsupported.
+
+### AT-THOMPSON-SELECTION-BINDING-01: Feedback references the actual persisted selection
+
+Create a selection S for context C that chooses arm A. Submit an update using S/C/B where B differs from the chosen arm; assert 409 selection/context/arm conflict and no posterior mutation. Submit an unknown selection and assert a not-found error. Submit a valid outcome once, then retry the same event ID and assert idempotency; submit a different event ID for the same selection and assert selection_outcome_conflict with no second posterior update. Initialize a new context and introduce a new eligible arm; assert priors are Beta(1,1), posterior state_version remains 0 until a reward update, selection records are durable, and exposure counts increment exactly once per unique selection.
+
+### AT-GRAPH-SUPERSESSION-01: Obsolete events terminate contiguous recovery watermarks
+
+Accept owner projection sequence 10 for source S revision 4, then accept a tombstone at revision sequence 5 that makes the earlier projection obsolete before its application. Restart Graph between durable receipt and terminal disposition. Assert the stale projection is recorded as terminal superseded with no visible effect, its sequence is accounted for in contiguous terminal watermarks, the tombstone remains effective, and Graph eventually becomes ready after both owner checkpoints reach their sealed sequences. Reuse a sequence with a conflicting operation/payload and assert it is not treated as a safe supersession and readiness remains blocked pending reconciliation.
+
+### AT-GRAPH-NODE-SUPPORT-01: Multi-source labels and aliases
+
+Project node N from sources S1 and S2. S1 supports label L1 and alias X; S2 supports label L2 and alias Y. Assert both sources' attributes remain independently supported and resolution order is deterministic. Delete or supersede S1 and assert X is no longer resolvable while Y and S2's support remain. Replay S1's stale projection and assert X is not resurrected. Where sources disagree on node type/label, return supported alternatives in deterministic order rather than selecting by insertion order.
+
+### AT-GRAPH-ORDER-01: Deterministic directed traversal with multiple supports
+
+Create incoming and outgoing directed edges plus an undirected edge, with at least two supports per canonical edge and intentionally shuffled insertion order. Repeat traversal while removing one stale support at a time. Assert neighbor order uses the next visited node then canonical edge ID, path order uses hop count then node-ID sequence then canonical edge tuple, and supports sort by source ID ascending, revision sequence descending, then source-local edge ID. Output must be identical across insertion orders and stale-support filtering must occur before ordering.
+
+These scenarios are normative requirements, not evidence that runtime tests have run. Endpoint-specific positive/negative fixtures and the single-process REST integration suite remain required before implementation approval.
