@@ -912,7 +912,7 @@ class ChunkingHttpTests(unittest.TestCase):
             for line in header_bytes.split(b"\r\n")[1:]:
                 if b":" in line:
                     key, value = line.split(b":", 1)
-                    headers[key.decode("ascii").lower()] = value.strip().decode("ascii")
+                    headers[key.decode("ascii")] = value.strip().decode("ascii")
             payload = json.loads(body)
             self.assertEqual(payload["error"]["code"], "method_not_allowed")
             self.assertEqual(payload["request_id"], "unknown-method-1")
