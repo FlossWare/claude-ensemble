@@ -13,7 +13,6 @@ from jsonschema import Draft202012Validator
 
 ROOT = Path(__file__).resolve().parents[1]
 SCHEMA_DIR = ROOT / "docs" / "contracts" / "schemas"
-EXAMPLE_BINDINGS_PATH = ROOT / "docs" / "contracts" / "schema-example-bindings.json"
 FENCE = re.compile(r"^(?:`{3}|~{3})json\s*\n(.*?)^(?:`{3}|~{3})\s*$", re.MULTILINE | re.DOTALL)
 EXAMPLE_SCHEMA = re.compile(r"^\s*<!--\s*schema-example:\s*([^\s]+)\s*-->\s*$", re.MULTILINE)
 SERVICE_NAMES = {p.name.removesuffix(".schema.json") for p in SCHEMA_DIR.glob("*.schema.json")} - {"index-profile"}
@@ -85,22 +84,6 @@ def main() -> int:
             schemas[path] = parse_json(path.read_text(encoding="utf-8"))
         except (OSError, json.JSONDecodeError, ValueError) as exc:
             errors.append(f"{path.relative_to(ROOT)}: cannot parse schema JSON: {exc}")
-
-    example_bindings: dict[tuple[str, int], str] = {}
-    try:
-        binding_document = parse_json(EXAMPLE_BINDINGS_PATH.read_text(encoding="utf-8"))
-        if binding_document.get("version") != 1 or not isinstance(binding_document.get("bindings"), list):
-            raise ValueError("binding manifest must have version 1 and a bindings array")
-        for entry in binding_document["bindings"]:
-            if not isinstance(entry, dict) or not isinstance(entry.get("document"), str) or not isinstance(entry.get("example"), int) or not isinstance(entry.get("schema"), str):
-                errors.append("schema-example binding entries require document, integer example, and schema")
-                continue
-            key = (entry["document"], entry["example"])
-            if key in example_bindings:
-                errors.append(f"duplicate schema-example binding for {key[0]} example {key[1]}")
-            example_bindings[key] = entry["schema"]
-    except (OSError, json.JSONDecodeError, ValueError) as exc:
-        errors.append(f"cannot load schema-example bindings {EXAMPLE_BINDINGS_PATH}: {exc}")
 
     global_routes: dict[tuple[str, str], str] = {}
     for path, schema in schemas.items():
@@ -214,7 +197,7 @@ def main() -> int:
             annotation = annotations[-1] if annotations else None
             if annotation and content[annotation.end():match.start()].strip():
                 annotation = None
-            target = annotation.group(1) if annotation else example_bindings.get((str(path.relative_to(ROOT)), index))
+            target = annotation.group(1) if annotation else None
             if target:
                 annotated_count += 1
                 schema_file, sep, fragment = target.partition("#")
