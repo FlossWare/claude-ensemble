@@ -391,8 +391,6 @@ class Handler(BaseHTTPRequestHandler):
             include_line_spans=include_line_spans,
             deadline_check=self._check_deadline,
         )
-        if len(result["chunks"]) > 256:
-            raise ChunkingError("source_too_large", "source requires more than 256 chunks")
         return result
 
     def _preflight(self, value: Any) -> dict[str, Any]:
