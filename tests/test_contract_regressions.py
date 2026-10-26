@@ -81,6 +81,15 @@ class ContractGateTests(unittest.TestCase):
         self.assertNotEqual(result.returncode, 0, result.stdout + result.stderr)
         self.assertIn("sink service", result.stderr)
 
+    def test_traceability_acceptance_ids_are_complete(self):
+        acceptance = (ROOT / "docs" / "ARCHITECTURE-REVIEW-ACCEPTANCE.md").read_text(encoding="utf-8")
+        traceability = (ROOT / "docs" / "TRACEABILITY.md").read_text(encoding="utf-8")
+        defined = set(__import__("re").findall(r"^### (AT-[A-Z0-9-]+):", acceptance, __import__("re").MULTILINE))
+        referenced = set(__import__("re").findall(r"\\bAT-[A-Z0-9-]+\\b", traceability))
+        self.assertEqual(len(defined), 59, "update the expected scenario count when acceptance scenarios change")
+        self.assertEqual(referenced - defined, set(), "traceability contains undefined AT-* references")
+        self.assertEqual(defined - referenced, set(), "acceptance scenarios missing from traceability")
+
     def test_rrf_integer_golden_vectors(self):
         def contribution(rank: int) -> int:
             return 1_000_000_000_000 // (60 + rank)
