@@ -266,23 +266,23 @@ class ChunkingHttpTests(unittest.TestCase):
         status, _, result = self.post(body=request_body(options={"include_text": "false"}))
         self.assertEqual(status, 400)
         self.assertEqual(result["error"]["code"], "invalid_parameter")
-        self.assert_error_schema(result)
+        self.assert_error_schema(result, headers)
 
     def test_malformed_json_and_unsupported_media_type(self):
         status, _, result = self.post(raw=b"{")
         self.assertEqual(status, 400)
-        self.assert_error_schema(result)
+        self.assert_error_schema(result, headers)
         status, _, result = self.post(body=request_body(), headers={"Content-Type": "text/plain"})
         self.assertEqual(status, 415)
         self.assertEqual(result["error"]["code"], "unsupported_media_type")
-        self.assert_error_schema(result)
+        self.assert_error_schema(result, headers)
 
     def test_invalid_request_id_is_not_silently_accepted(self):
         status, headers, result = self.post(body=request_body(), headers={"X-CE-Request-ID": "bad id"})
         self.assertEqual(status, 400)
         self.assertNotEqual(headers["X-CE-Request-ID"], "bad id")
         self.assertEqual(result["request_id"], headers["X-CE-Request-ID"])
-        self.assert_error_schema(result)
+        self.assert_error_schema(result, headers)
 
     def test_malformed_and_expired_deadlines_are_rejected(self):
         status, _, malformed = self.post(body=request_body(), headers={"X-CE-Deadline": "tomorrow"})
@@ -300,7 +300,7 @@ class ChunkingHttpTests(unittest.TestCase):
         status, _, result = self.post(body=body)
         self.assertEqual(status, 400)
         self.assertEqual(result["error"]["code"], "invalid_parameter")
-        self.assert_error_schema(result)
+        self.assert_error_schema(result, headers)
 
     def test_unknown_profile_and_version_are_rejected(self):
         for profile, version in (("missing-profile", "0.1"), ("plain-text-default", "9.9")):
@@ -310,13 +310,13 @@ class ChunkingHttpTests(unittest.TestCase):
             status, _, result = self.post(body=body)
             self.assertEqual(status, 422)
             self.assertEqual(result["error"]["code"], "unsupported_profile")
-            self.assert_error_schema(result)
+            self.assert_error_schema(result, headers)
 
     def test_oversized_http_body_is_rejected_before_json_parsing(self):
         status, _, result = self.post(raw=b"x" * 300_001)
         self.assertEqual(status, 413)
         self.assertEqual(result["error"]["code"], "request_too_large")
-        self.assert_error_schema(result)
+        self.assert_error_schema(result, headers)
 
     def test_preflight_matches_schema_and_checks_profile_identity(self):
         bundle = profile_bundle()
@@ -354,7 +354,7 @@ class ChunkingHttpTests(unittest.TestCase):
         status, _, result = self.post("/api/v1/chunking/unknown", body={})
         self.assertEqual(status, 404)
         self.assertEqual(result["error"]["code"], "endpoint_not_found")
-        self.assert_error_schema(result)
+        self.assert_error_schema(result, headers)
 
 
 if __name__ == "__main__":
