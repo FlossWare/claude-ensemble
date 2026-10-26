@@ -221,6 +221,20 @@ class ChunkingHttpTests(unittest.TestCase):
         self.assertEqual(error["error"]["code"], "profile_mismatch")
         self.assert_error_schema(error)
 
+    def test_preflight_reports_profile_limit_without_materializing_all_chunks(self):
+        bundle = profile_bundle()
+        bundle["limits"]["max_chunks"] = 2
+        body = {"index_profile": PROFILE, "source_text": "abcdefghijklmnop",
+                "chunking_profile": {"profile": "plain-text-default", "version": "0.1",
+                                     "max_units": 4, "overlap_units": 0},
+                "profile_bundle": bundle}
+        bundle["chunking"]["max_units"] = 4
+        status, _, result = self.post("/api/v1/chunking/preflight", body)
+        self.assertEqual(status, 200)
+        self.assertFalse(result["fits_profile"])
+        self.assertGreater(result["chunk_count"], bundle["limits"]["max_chunks"])
+        Draft202012Validator(SCHEMA["$defs"]["preflightResponse"]).validate(result)
+
     def test_unknown_endpoint_uses_shared_error_envelope(self):
         status, _, result = self.post("/api/v1/chunking/unknown", body={})
         self.assertEqual(status, 404)
