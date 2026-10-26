@@ -55,7 +55,7 @@ class ContractGateTests(unittest.TestCase):
         path.write_text(text.replace('"metric": "cosine"', '"metric": "not-a-metric"', 1), encoding="utf-8")
         result = subprocess.run([sys.executable, str(base / "scripts" / VALIDATOR_PATH.name)], cwd=base, text=True, capture_output=True)
         self.assertNotEqual(result.returncode, 0, result.stdout + result.stderr)
-        self.assertIn("schema-example", result.stderr)
+        self.assertIn("not-a-metric", result.stderr)
 
     def test_unknown_caller_fails_call_graph_gate(self):
         tmp, base = self._temporary_contract_tree()
