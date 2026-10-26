@@ -114,7 +114,7 @@ class ContractGateTests(unittest.TestCase):
         prose = (ROOT / "docs" / "contracts" / "GATEWAY.md").read_text(encoding="utf-8")
         self.assertIn("durable orchestration journal", prose)
         self.assertIn("MUST NOT report cutover failure", prose)
-        self.assertIn("does not supply a digest that clients cannot reliably discover", prose)
+        self.assertIn("they do not supply a digest that clients cannot reliably discover", prose)
 
     def test_lexical_query_has_declared_tokenization_producer(self):
         lexical = json.loads((ROOT / "docs" / "contracts" / "schemas" / "lexical-retrieval.schema.json").read_text(encoding="utf-8"))
@@ -122,7 +122,7 @@ class ContractGateTests(unittest.TestCase):
         self.assertIn("query_text", request["required"])
         self.assertNotIn("terms", request["properties"])
         prose = (ROOT / "docs" / "contracts" / "LEXICAL-RETRIEVAL.md").read_text(encoding="utf-8")
-        self.assertIn("calls Tokenization over REST", prose)
+        self.assertIn("call Tokenization over REST", prose)
         manifest = json.loads((ROOT / "docs" / "contracts" / "service-call-workflows.json").read_text(encoding="utf-8"))
         self.assertTrue(any(edge["caller"] == "lexical-retrieval" and edge["callee"] == "tokenization" for edge in manifest["edges"]))
 
