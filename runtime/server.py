@@ -8,6 +8,7 @@ import threading
 import time
 import uuid
 from pathlib import Path
+from copy import deepcopy
 from datetime import datetime, timezone
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from typing import Any
@@ -131,7 +132,7 @@ class IndexProfileRegistry:
             key = (bundle["name"], bundle["version"])
             if key in self._versions:
                 raise ValueError(f"duplicate Index profile version: {key[0]}@{key[1]}")
-            self._versions[key] = bundle
+            self._versions[key] = deepcopy(bundle)
         for name, version in self._current.items():
             if not isinstance(name, str) or not isinstance(version, str):
                 raise ValueError("profile configuration current entries must map names to versions")
@@ -161,10 +162,12 @@ class IndexProfileRegistry:
 
     def resolve_current(self, name: str) -> dict[str, Any] | None:
         version = self._current.get(name)
-        return self._versions.get((name, version)) if version is not None else None
+        bundle = self._versions.get((name, version)) if version is not None else None
+        return deepcopy(bundle) if bundle is not None else None
 
     def resolve_version(self, name: str, version: str) -> dict[str, Any] | None:
-        return self._versions.get((name, version))
+        bundle = self._versions.get((name, version))
+        return deepcopy(bundle) if bundle is not None else None
 
 
 def _error(code: str, message: str, retryable: bool = False,
