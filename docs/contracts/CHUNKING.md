@@ -94,7 +94,7 @@ The normative chunk and preflight request/response schemas are in [`schemas/chun
 
 ## Errors
 
-Use the shared CE REST error envelope. At minimum distinguish malformed request, unsupported media type, unknown profile/version, invalid policy, content too large, and internal processing failure. Include a stable error code, safe message, retryability, and correlation ID. Client errors are not retryable without changing the request; transient internal failures may be retryable.
+Unsupported HTTP methods return `405 method_not_allowed` using the shared CE REST error envelope and request-ID header. Use the shared CE REST error envelope. At minimum distinguish malformed request, unsupported media type, unknown profile/version, invalid policy, content too large, and internal processing failure. Include a stable error code, safe message, retryability, and correlation ID. Client errors are not retryable without changing the request; transient internal failures may be retryable.
 
 ## Readiness and diagnostics
 
