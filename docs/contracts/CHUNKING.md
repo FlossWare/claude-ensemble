@@ -52,12 +52,12 @@ Request:
       "max_input_tokens": 1000
     },
     "limits": {
-      "max_chunks": 256,
+      "max_chunks": 1,
       "max_source_bytes": 262144,
       "max_chunk_text_bytes": 65536,
-      "max_request_bytes": 2097152,
-      "max_chunk_representation_bytes": 1048576,
-      "max_envelope_bytes": 131072,
+      "max_request_bytes": 1048576,
+      "max_chunk_representation_bytes": 900000,
+      "max_envelope_bytes": 65536,
       "max_metadata_bytes": 8192,
       "max_lexical_terms_per_chunk": 512,
       "max_lexical_term_bytes": 128
