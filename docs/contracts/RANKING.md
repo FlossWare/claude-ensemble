@@ -16,6 +16,7 @@ Lexical Retrieval and Vector Retrieval are candidate sources. Gateway chooses wh
 
 ## Request
 
+<!-- schema-example: docs/contracts/schemas/ranking.schema.json#/$defs/request -->
 ~~~json
 {
   "request_id": "correlation-id",
@@ -49,6 +50,7 @@ Gateway supplies only candidates allowed by the selected scope partition and any
 
 ## Response
 
+<!-- schema-example: docs/contracts/schemas/ranking.schema.json#/$defs/response -->
 ~~~json
 {
   "policy": {"name": "rrf-v1", "version": "1"},
