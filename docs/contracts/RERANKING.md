@@ -16,6 +16,7 @@ Gateway decides whether reranking is needed, selects the candidate set, applies 
 
 ## Request
 
+<!-- schema-example: docs/contracts/schemas/reranking.schema.json#/$defs/request -->
 ~~~json
 {
   "request_id": "correlation-id",
@@ -39,6 +40,7 @@ Gateway decides whether reranking is needed, selects the candidate set, applies 
 
 ## Response
 
+<!-- schema-example: docs/contracts/schemas/reranking.schema.json#/$defs/response -->
 ~~~json
 {
   "profile": {"name": "default-reranker", "version": "0.1"},
