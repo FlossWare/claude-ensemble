@@ -1,0 +1,296 @@
+{
+  "version": 1,
+  "description": "Explicit v1 logical-service REST edges. Every schema x-callers service edge must match one entry; changes require contract and acceptance updates.",
+  "edges": [
+    {
+      "caller": "embedding",
+      "callee": "index",
+      "workflow": "Embedding profile/vector publication",
+      "contracts": [
+        "EMBEDDING.md",
+        "INDEX.md"
+      ],
+      "acceptance_test": "AT-EMBED-01"
+    },
+    {
+      "caller": "gateway",
+      "callee": "entity-extraction",
+      "workflow": "Gateway extracts bounded identifiers and entity mentions",
+      "contracts": [
+        "GATEWAY.md",
+        "ENTITY-EXTRACTION.md"
+      ],
+      "acceptance_test": "AT-GW-01"
+    },
+    {
+      "caller": "gateway",
+      "callee": "graph",
+      "workflow": "Gateway relationship traversal and canonical support verification",
+      "contracts": [
+        "GATEWAY.md",
+        "GRAPH.md"
+      ],
+      "acceptance_test": "AT-GRAPH-PATH-01"
+    },
+    {
+      "caller": "gateway",
+      "callee": "index",
+      "workflow": "Gateway resolves active generation/profile and orchestrates rebuilds",
+      "contracts": [
+        "GATEWAY.md",
+        "INDEX.md"
+      ],
+      "acceptance_test": "AT-REBUILD-01"
+    },
+    {
+      "caller": "gateway",
+      "callee": "intent-classification",
+      "workflow": "Gateway query planning",
+      "contracts": [
+        "GATEWAY.md",
+        "INTENT-CLASSIFICATION.md"
+      ],
+      "acceptance_test": "AT-GW-01"
+    },
+    {
+      "caller": "gateway",
+      "callee": "knowledge",
+      "workflow": "Gateway canonical reads, mutations, status, freshness verification, and rebuild coordination",
+      "contracts": [
+        "GATEWAY.md",
+        "KNOWLEDGE.md"
+      ],
+      "acceptance_test": "AT-PUBLIC-API-01"
+    },
+    {
+      "caller": "gateway",
+      "callee": "learning",
+      "workflow": "Gateway submits feedback outcomes",
+      "contracts": [
+        "GATEWAY.md",
+        "LEARNING.md"
+      ],
+      "acceptance_test": "AT-LEARNING-01"
+    },
+    {
+      "caller": "gateway",
+      "callee": "lexical-retrieval",
+      "workflow": "Gateway bounded lexical retrieval branch",
+      "contracts": [
+        "GATEWAY.md",
+        "LEXICAL-RETRIEVAL.md"
+      ],
+      "acceptance_test": "AT-GW-01"
+    },
+    {
+      "caller": "gateway",
+      "callee": "memory",
+      "workflow": "Gateway canonical reads, mutations, status, freshness verification, and rebuild coordination",
+      "contracts": [
+        "GATEWAY.md",
+        "MEMORY.md"
+      ],
+      "acceptance_test": "AT-PUBLIC-API-01"
+    },
+    {
+      "caller": "gateway",
+      "callee": "ranking",
+      "workflow": "Gateway candidate fusion and deterministic bounded ranking",
+      "contracts": [
+        "GATEWAY.md",
+        "RANKING.md"
+      ],
+      "acceptance_test": "AT-RANK-01"
+    },
+    {
+      "caller": "gateway",
+      "callee": "reranking",
+      "workflow": "Gateway optional non-exact candidate reranking",
+      "contracts": [
+        "GATEWAY.md",
+        "RERANKING.md"
+      ],
+      "acceptance_test": "AT-EXACT-RERANK-01"
+    },
+    {
+      "caller": "gateway",
+      "callee": "thompson",
+      "workflow": "Gateway requests persisted decision selections",
+      "contracts": [
+        "GATEWAY.md",
+        "THOMPSON.md"
+      ],
+      "acceptance_test": "AT-LEARNING-01"
+    },
+    {
+      "caller": "gateway",
+      "callee": "vector-retrieval",
+      "workflow": "Gateway bounded vector retrieval branch",
+      "contracts": [
+        "GATEWAY.md",
+        "VECTOR-RETRIEVAL.md"
+      ],
+      "acceptance_test": "AT-GW-01"
+    },
+    {
+      "caller": "knowledge",
+      "callee": "chunking",
+      "workflow": "Knowledge preflight and derives source chunks",
+      "contracts": [
+        "KNOWLEDGE.md",
+        "CHUNKING.md"
+      ],
+      "acceptance_test": "AT-SIZE-PREFLIGHT-01"
+    },
+    {
+      "caller": "knowledge",
+      "callee": "embedding",
+      "workflow": "Knowledge creates derived document embeddings",
+      "contracts": [
+        "KNOWLEDGE.md",
+        "EMBEDDING.md"
+      ],
+      "acceptance_test": "AT-EMBED-01"
+    },
+    {
+      "caller": "knowledge",
+      "callee": "graph",
+      "workflow": "Knowledge projects and deletes source-derived graph facts",
+      "contracts": [
+        "KNOWLEDGE.md",
+        "GRAPH.md"
+      ],
+      "acceptance_test": "AT-GRAPH-IDENTITY-01"
+    },
+    {
+      "caller": "knowledge",
+      "callee": "index",
+      "workflow": "Knowledge publishes canonical revision representations and tombstones",
+      "contracts": [
+        "KNOWLEDGE.md",
+        "INDEX.md"
+      ],
+      "acceptance_test": "AT-RECOVERY-01"
+    },
+    {
+      "caller": "knowledge",
+      "callee": "tokenization",
+      "workflow": "Knowledge creates lexical terms for canonical revisions",
+      "contracts": [
+        "KNOWLEDGE.md",
+        "TOKENIZATION.md"
+      ],
+      "acceptance_test": "AT-TOKEN-BATCH-01"
+    },
+    {
+      "caller": "learning",
+      "callee": "thompson",
+      "workflow": "Learning validates selection-bound feedback and applies one idempotent reward update",
+      "contracts": [
+        "LEARNING.md",
+        "THOMPSON.md"
+      ],
+      "acceptance_test": "AT-THOMPSON-SELECTION-BINDING-01"
+    },
+    {
+      "caller": "lexical-retrieval",
+      "callee": "index",
+      "workflow": "Lexical Retrieval obtains bounded low-level lexical candidates",
+      "contracts": [
+        "LEXICAL-RETRIEVAL.md",
+        "INDEX.md"
+      ],
+      "acceptance_test": "AT-INDEX-LEXICAL-ORDER-01"
+    },
+    {
+      "caller": "lexical-retrieval",
+      "callee": "tokenization",
+      "workflow": "Lexical Retrieval normalizes the query under the pinned lexical profile",
+      "contracts": [
+        "LEXICAL-RETRIEVAL.md",
+        "TOKENIZATION.md"
+      ],
+      "acceptance_test": "AT-TOKEN-BATCH-01"
+    },
+    {
+      "caller": "memory",
+      "callee": "chunking",
+      "workflow": "Memory preflight and derives memory chunks",
+      "contracts": [
+        "MEMORY.md",
+        "CHUNKING.md"
+      ],
+      "acceptance_test": "AT-SIZE-PREFLIGHT-01"
+    },
+    {
+      "caller": "memory",
+      "callee": "embedding",
+      "workflow": "Memory creates derived document embeddings",
+      "contracts": [
+        "MEMORY.md",
+        "EMBEDDING.md"
+      ],
+      "acceptance_test": "AT-EMBED-01"
+    },
+    {
+      "caller": "memory",
+      "callee": "graph",
+      "workflow": "Memory projects and deletes source-derived graph facts",
+      "contracts": [
+        "MEMORY.md",
+        "GRAPH.md"
+      ],
+      "acceptance_test": "AT-GRAPH-IDENTITY-01"
+    },
+    {
+      "caller": "memory",
+      "callee": "index",
+      "workflow": "Memory publishes canonical revision representations and tombstones",
+      "contracts": [
+        "MEMORY.md",
+        "INDEX.md"
+      ],
+      "acceptance_test": "AT-RECOVERY-01"
+    },
+    {
+      "caller": "memory",
+      "callee": "tokenization",
+      "workflow": "Memory creates lexical terms for canonical revisions",
+      "contracts": [
+        "MEMORY.md",
+        "TOKENIZATION.md"
+      ],
+      "acceptance_test": "AT-TOKEN-BATCH-01"
+    },
+    {
+      "caller": "tokenization",
+      "callee": "index",
+      "workflow": "Tokenization resolves the immutable Index profile bundle",
+      "contracts": [
+        "TOKENIZATION.md",
+        "INDEX.md"
+      ],
+      "acceptance_test": "AT-PREFLIGHT-PROFILE-01"
+    },
+    {
+      "caller": "vector-retrieval",
+      "callee": "embedding",
+      "workflow": "Vector Retrieval obtains query embeddings",
+      "contracts": [
+        "VECTOR-RETRIEVAL.md",
+        "EMBEDDING.md"
+      ],
+      "acceptance_test": "AT-EMBED-01"
+    },
+    {
+      "caller": "vector-retrieval",
+      "callee": "index",
+      "workflow": "Vector Retrieval requests bounded vector neighbors",
+      "contracts": [
+        "VECTOR-RETRIEVAL.md",
+        "INDEX.md"
+      ],
+      "acceptance_test": "AT-VECTOR-ORDER-01"
+    }
+  ]
+}

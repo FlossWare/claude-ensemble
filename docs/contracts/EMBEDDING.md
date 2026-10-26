@@ -11,28 +11,32 @@ It does not own source records, chunking, lexical tokenization, index storage, r
 ## Endpoints
 
 - POST /api/v1/embeddings: embed one or more text inputs.
-- GET /api/v1/health: liveness.
-- GET /api/v1/ready: ability to accept requests under the configured profile/provider readiness policy.
+- GET /api/v1/embedding/health: liveness.
+- GET /api/v1/embedding/ready: ability to accept requests under the configured profile/provider readiness policy.
 
 ## Request
 
+<!-- schema-example: docs/contracts/schemas/embedding.schema.json#/$defs/request -->
 ~~~json
 {
+  "index_profile": {"name": "default", "version": "0.1", "digest": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"},
   "profile": "technical-default",
   "profile_version": "0.1",
   "inputs": [
-    {"input_id": "chunk-123", "text": "Example technical content"}
+    {"input_id": "chunk-123", "input_type": "document", "text": "Example technical content"}
   ],
   "normalize": "profile-default"
 }
 ~~~
 
-The profile resolves to a pinned provider/model identity, model revision where available, dimensions, input modality, normalization policy, and any required preprocessing. Callers may not silently override model identity or dimensions per request. Query and document embeddings must use compatible profiles. If a provider offers distinct query/document modes, the profile must specify which mode is being requested and compatibility rules.
+The profile is resolved through Index and each request carries the immutable `index_profile` `{name, version, digest}` plus the component `profile` and `profile_version` from that bundle. The service resolves a pinned provider/model identity, model revision where available, dimensions, input modality, normalization policy, and preprocessing from that exact bundle; it does not silently use a local default. The bundle digest and component version are echoed in the response and recorded by Index. Callers may not silently override model identity or dimensions per request. Query and document embeddings must use compatible profiles. If a provider offers distinct query/document modes, the profile must specify which mode is being requested and compatibility rules.
 
 ## Response
 
+<!-- schema-example: docs/contracts/schemas/embedding.schema.json#/$defs/response -->
 ~~~json
 {
+  "index_profile": {"name": "default", "version": "0.1", "digest": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"},
   "profile": "technical-default",
   "profile_version": "0.1",
   "model": {
@@ -45,9 +49,10 @@ The profile resolves to a pinned provider/model identity, model revision where a
   "results": [
     {
       "input_id": "chunk-123",
+      "input_type": "document",
       "status": "complete",
       "vector": [0.01, 0.02],
-      "dimensions": 768
+      "dimensions": 2
     }
   ],
   "request_id": "correlation-id"
@@ -58,10 +63,11 @@ Vector values above are illustrative; real responses must have exactly the decla
 
 ## Semantics
 
+- Each input explicitly declares `input_type` as `document` or `query`; provider-specific query/document modes are resolved from that value under the pinned profile. Incompatible modes are rejected rather than silently embedded as the wrong type.
 - Preserve input-to-result identity; result order alone is not a correlation mechanism.
 - A batch may report per-item success or failure only if partial success is explicitly represented. Never silently omit failed items.
 - Profile/model identity and dimensions are returned with results and recorded by Index alongside each representation.
-- The profile defines normalization behavior. The service must not normalize some results and leave others unnormalized under the same profile.
+- The immutable Index profile bundle includes `embedding.max_input_tokens`, the provider/model's per-input token ceiling, alongside model/version/dimensions/mode/normalization/metric. The service validates actual token count against this pinned limit before calling the provider and rejects oversized input without truncation. The profile digest covers this limit. The profile defines normalization behavior. The service must not normalize some results and leave others unnormalized under the same profile.
 - Embedding requests are bounded and deadline-aware. Retries are bounded and only retry transient provider failures; validation and profile errors are not retried.
 - If the caller times out, it must not assume the provider did no work. The embedding endpoint is computationally idempotent by input/profile, but providers may still charge for repeated calls.
 - Do not log raw input text, credentials, or provider response bodies by default. Logs use correlation IDs, profile/model identifiers, counts, latency, and safe error codes.
@@ -75,15 +81,19 @@ Vector values above are illustrative; real responses must have exactly the decla
 - The service returns per-item statuses and safe error codes; no unbounded provider payloads or raw exception strings.
 - Deployments document provider-specific rate limits, timeouts, maximum dimensions, and configured profile registry.
 
+## Machine-checkable schemas
+
+The normative request/response schema is [`schemas/embedding.schema.json`](schemas/embedding.schema.json). Each input declares `input_type` as `query` or `document`, and each result preserves the matching mode and effective profile/model identity.
+
 ## Errors
 
-Use the common REST error envelope. Distinguish invalid input, unknown/incompatible profile, input too large, unauthorized policy/profile, provider rate limit, provider unavailable, deadline exceeded, and internal failure. A valid empty input batch is rejected as invalid; a valid input that produces a zero vector or non-finite vector is a provider/profile failure, not a successful embedding.
+Use the common REST error envelope. Distinguish invalid input, unknown/incompatible profile, input too large, unsupported policy/profile, provider rate limit, provider unavailable, deadline exceeded, and internal failure. A valid empty input batch is rejected as invalid; a valid input that produces a zero vector or non-finite vector is a provider/profile failure, not a successful embedding.
 
 ## Acceptance tests
 
 1. Stable input IDs map results to the correct inputs regardless of provider response order.
 2. Result dimensions match the resolved profile exactly; non-finite values are rejected.
-3. Profile/version/model identity is explicit and compatible query/document modes are enforced.
+3. Profile/version/model identity is explicit; document and query input modes select the configured provider mode and incompatible modes are rejected.
 4. Batch limits and per-input provider limits are enforced without silent truncation.
 5. Partial batch failures are explicit and retryable only when the error is transient.
 6. Deadlines and cancellation are propagated; retry count and total time are bounded.

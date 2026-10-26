@@ -1,0 +1,735 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://flossware.dev/claude-ensemble/schemas/thompson.schema.json",
+  "title": "Claude Ensemble thompson Contract Schema",
+  "description": "Normative JSON request/response schemas. HTTP headers, status codes, deadlines, idempotency, and lifecycle invariants are specified in the linked service contract.",
+  "$defs": {
+    "scope": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "id",
+        "visibility"
+      ],
+      "properties": {
+        "type": {
+          "enum": [
+            "user",
+            "project",
+            "shared",
+            "global"
+          ]
+        },
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "visibility": {
+          "enum": [
+            "private",
+            "shared",
+            "global"
+          ]
+        }
+      }
+    },
+    "profile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "version"
+      ],
+      "properties": {
+        "name": {
+          "const": "beta-bernoulli-v1"
+        },
+        "version": {
+          "const": "1"
+        },
+        "digest": {
+          "type": "string",
+          "pattern": "^[a-fA-F0-9]{64}$"
+        }
+      }
+    },
+    "provenance": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "origin": {
+          "type": "string",
+          "maxLength": 2048
+        },
+        "created_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "source_uri": {
+          "type": "string",
+          "maxLength": 4096
+        },
+        "evidence_ids": {
+          "type": "array",
+          "maxItems": 100,
+          "items": {
+            "type": "string",
+            "maxLength": 512
+          }
+        }
+      }
+    },
+    "verificationItem": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "source_id",
+        "revision_sequence"
+      ],
+      "properties": {
+        "source_id": {
+          "$ref": "#/$defs/sourceId"
+        },
+        "revision_sequence": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        }
+      }
+    },
+    "verificationRequest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "items",
+        "request_id"
+      ],
+      "properties": {
+        "items": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 100,
+          "items": {
+            "$ref": "#/$defs/verificationItem"
+          }
+        },
+        "request_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      }
+    },
+    "verificationResponse": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "results",
+        "request_id"
+      ],
+      "properties": {
+        "results": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 100,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "source_id",
+              "requested_revision_sequence",
+              "status"
+            ],
+            "properties": {
+              "source_id": {
+                "type": "string",
+                "minLength": 8,
+                "maxLength": 138,
+                "pattern": "^(memory|knowledge):[A-Za-z0-9._~-]{1,128}$"
+              },
+              "requested_revision_sequence": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 9007199254740991
+              },
+              "status": {
+                "enum": [
+                  "current",
+                  "stale",
+                  "tombstoned",
+                  "not_found"
+                ]
+              },
+              "canonical_revision_sequence": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 9007199254740991
+              }
+            }
+          }
+        },
+        "request_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      }
+    },
+    "errorResponse": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "error",
+        "request_id"
+      ],
+      "properties": {
+        "error": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "code",
+            "message",
+            "retryable",
+            "details"
+          ],
+          "properties": {
+            "code": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128,
+              "enum": [
+                "active_generation_cannot_be_abandoned",
+                "candidate_identity_conflict",
+                "conflict",
+                "context_assembly_failed",
+                "cutover_in_progress",
+                "deadline_exceeded",
+                "dependency_unavailable",
+                "duplicate_list_id",
+                "duplicate_retrieval_rank",
+                "endpoint_not_found",
+                "fence_expired",
+                "fence_released",
+                "generation_not_caught_up",
+                "generation_not_found",
+                "graph_replay_incomplete",
+                "idempotency_conflict",
+                "idempotency_key_expired",
+                "incompatible_representation",
+                "internal_error",
+                "invalid_candidate",
+                "invalid_embedding_mode",
+                "invalid_fence",
+                "invalid_node",
+                "invalid_parameter",
+                "invalid_request",
+                "invalid_scope",
+                "local_access_denied",
+                "missing_endpoint_node",
+                "not_found",
+                "not_ready",
+                "operation_failed",
+                "operation_not_found",
+                "profile_digest_mismatch",
+                "profile_invalid",
+                "profile_mismatch",
+                "profile_not_found",
+                "profile_retired",
+                "rate_limited",
+                "reconciliation_required",
+                "request_too_large",
+                "revision_conflict",
+                "revision_sequence_regression",
+                "sequence_regression",
+                "service_unavailable",
+                "source_revision_mismatch",
+                "source_tombstoned",
+                "source_too_large",
+                "source_unavailable",
+                "tokenization_failed",
+                "traversal_limit_exceeded",
+                "unsupported_media_type",
+                "unsupported_policy",
+                "unsupported_profile",
+                "upstream_failure",
+                "vector_dimension_mismatch",
+                "no_eligible_arms",
+                "selection_outcome_conflict"
+              ]
+            },
+            "message": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024
+            },
+            "retryable": {
+              "type": "boolean"
+            },
+            "details": {
+              "type": "object"
+            }
+          }
+        },
+        "request_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      }
+    },
+    "arm": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "arm_id"
+      ],
+      "properties": {
+        "arm_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "features": {
+          "type": "object",
+          "maxProperties": 100
+        }
+      }
+    },
+    "selectionRequest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "context_id",
+        "policy",
+        "eligible_arms"
+      ],
+      "properties": {
+        "context_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "policy": {
+          "$ref": "#/$defs/profile"
+        },
+        "eligible_arms": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/arm"
+          },
+          "maxItems": 100,
+          "minItems": 1
+        },
+        "expected_state_version": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "request_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      }
+    },
+    "updateRequest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "event_id",
+        "context_id",
+        "arm_id",
+        "reward",
+        "evidence_ref",
+        "selection_id"
+      ],
+      "properties": {
+        "event_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "context_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "arm_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "reward": {
+          "type": "integer",
+          "enum": [
+            0,
+            1
+          ]
+        },
+        "reward_semantics": {
+          "const": "binary"
+        },
+        "evidence_ref": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1024
+        },
+        "expected_state_version": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "request_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "selection_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        }
+      }
+    },
+    "selectionResponse": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "selection_id",
+        "chosen_arm_id",
+        "policy",
+        "state_version",
+        "evidence",
+        "request_id"
+      ],
+      "properties": {
+        "selection_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "chosen_arm_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "policy": {
+          "$ref": "#/$defs/profile"
+        },
+        "state_version": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "evidence": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          },
+          "maxItems": 100,
+          "minItems": 0
+        },
+        "request_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      }
+    },
+    "updateResponse": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "event_id",
+        "operation_id",
+        "applied",
+        "state_version",
+        "request_id"
+      ],
+      "properties": {
+        "event_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "operation_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "applied": {
+          "type": "boolean"
+        },
+        "state_version": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "request_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      }
+    },
+    "sourceId": {
+      "type": "string",
+      "minLength": 8,
+      "maxLength": 138,
+      "pattern": "^(memory|knowledge):[A-Za-z0-9._~-]{1,128}$"
+    },
+    "healthResponse": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "service",
+        "status",
+        "request_id"
+      ],
+      "properties": {
+        "service": {
+          "const": "thompson"
+        },
+        "status": {
+          "const": "alive"
+        },
+        "request_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      }
+    },
+    "readinessResponse": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "service",
+        "status",
+        "ready",
+        "checks",
+        "request_id"
+      ],
+      "properties": {
+        "service": {
+          "const": "thompson"
+        },
+        "status": {
+          "enum": [
+            "ready",
+            "not_ready",
+            "degraded"
+          ]
+        },
+        "ready": {
+          "type": "boolean"
+        },
+        "checks": {
+          "type": "array",
+          "maxItems": 50,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "name",
+              "status"
+            ],
+            "properties": {
+              "name": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 128
+              },
+              "status": {
+                "enum": [
+                  "ok",
+                  "not_ready",
+                  "degraded"
+                ]
+              },
+              "code": {
+                "type": "string",
+                "maxLength": 128
+              }
+            }
+          }
+        },
+        "request_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      }
+    },
+    "stateResponse": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "context_id",
+        "state_version",
+        "arms",
+        "request_id"
+      ],
+      "properties": {
+        "context_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "state_version": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "arms": {
+          "type": "array",
+          "maxItems": 100,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "arm_id",
+              "exposures",
+              "reward_count"
+            ],
+            "properties": {
+              "arm_id": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 128
+              },
+              "exposures": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "reward_count": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "reward_mean": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              }
+            }
+          }
+        },
+        "request_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      }
+    }
+  },
+  "x-endpoints": {
+    "POST /api/v1/thompson/selections": {
+      "request": "#/$defs/selectionRequest",
+      "response": "#/$defs/selectionResponse",
+      "success_status": 200,
+      "error_response": "#/$defs/errorResponse",
+      "error_statuses": [
+        400,
+        404,
+        409,
+        413,
+        422,
+        429,
+        500,
+        503,
+        504
+      ],
+      "x-callers": [
+        "gateway"
+      ]
+    },
+    "POST /api/v1/thompson/updates": {
+      "request": "#/$defs/updateRequest",
+      "response": "#/$defs/updateResponse",
+      "success_status": 200,
+      "error_response": "#/$defs/errorResponse",
+      "error_statuses": [
+        400,
+        404,
+        409,
+        413,
+        422,
+        429,
+        500,
+        503,
+        504
+      ],
+      "x-callers": [
+        "learning"
+      ]
+    },
+    "GET /api/v1/thompson/health": {
+      "response": "#/$defs/healthResponse",
+      "success_status": 200,
+      "error_response": "#/$defs/errorResponse",
+      "error_statuses": [
+        429,
+        500,
+        503
+      ],
+      "x-callers": [
+        "health-probe"
+      ]
+    },
+    "GET /api/v1/thompson/ready": {
+      "response": "#/$defs/readinessResponse",
+      "success_status": 200,
+      "error_response": "#/$defs/errorResponse",
+      "error_statuses": [
+        429,
+        500,
+        503
+      ],
+      "x-callers": [
+        "health-probe"
+      ]
+    },
+    "GET /api/v1/thompson/state/{context_id}": {
+      "response": "#/$defs/stateResponse",
+      "success_status": 200,
+      "error_response": "#/$defs/errorResponse",
+      "error_statuses": [
+        400,
+        404,
+        429,
+        500,
+        503,
+        504
+      ],
+      "x-callers": [
+        "gateway",
+        "learning"
+      ]
+    }
+  },
+  "anyOf": [
+    {
+      "$ref": "#/$defs/selectionRequest"
+    },
+    {
+      "$ref": "#/$defs/selectionResponse"
+    },
+    {
+      "$ref": "#/$defs/updateRequest"
+    },
+    {
+      "$ref": "#/$defs/updateResponse"
+    },
+    {
+      "$ref": "#/$defs/healthResponse"
+    },
+    {
+      "$ref": "#/$defs/readinessResponse"
+    },
+    {
+      "$ref": "#/$defs/stateResponse"
+    },
+    {
+      "$ref": "#/$defs/errorResponse"
+    }
+  ]
+}

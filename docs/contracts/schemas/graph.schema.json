@@ -1,0 +1,1310 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://flossware.dev/claude-ensemble/schemas/graph.schema.json",
+  "title": "Claude Ensemble graph Contract Schema",
+  "description": "Normative JSON request/response schemas. HTTP headers, status codes, deadlines, idempotency, and lifecycle invariants are specified in the linked service contract.",
+  "$defs": {
+    "scope": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "id",
+        "visibility"
+      ],
+      "properties": {
+        "type": {
+          "enum": [
+            "user",
+            "project",
+            "shared",
+            "global"
+          ]
+        },
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "visibility": {
+          "enum": [
+            "private",
+            "shared",
+            "global"
+          ]
+        }
+      }
+    },
+    "profile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "version"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "version": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64
+        },
+        "digest": {
+          "type": "string",
+          "pattern": "^[a-fA-F0-9]{64}$"
+        }
+      }
+    },
+    "provenance": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "origin": {
+          "type": "string",
+          "maxLength": 2048
+        },
+        "created_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "source_uri": {
+          "type": "string",
+          "maxLength": 4096
+        },
+        "evidence_ids": {
+          "type": "array",
+          "maxItems": 100,
+          "items": {
+            "type": "string",
+            "maxLength": 512
+          }
+        }
+      }
+    },
+    "verificationItem": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "source_id",
+        "revision_sequence"
+      ],
+      "properties": {
+        "source_id": {
+          "$ref": "#/$defs/sourceId"
+        },
+        "revision_sequence": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        }
+      }
+    },
+    "verificationRequest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "items",
+        "request_id"
+      ],
+      "properties": {
+        "items": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 100,
+          "items": {
+            "$ref": "#/$defs/verificationItem"
+          }
+        },
+        "request_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      }
+    },
+    "verificationResponse": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "results",
+        "request_id"
+      ],
+      "properties": {
+        "results": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 100,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "source_id",
+              "requested_revision_sequence",
+              "status"
+            ],
+            "properties": {
+              "source_id": {
+                "type": "string",
+                "minLength": 8,
+                "maxLength": 138,
+                "pattern": "^(memory|knowledge):[A-Za-z0-9._~-]{1,128}$"
+              },
+              "requested_revision_sequence": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 9007199254740991
+              },
+              "status": {
+                "enum": [
+                  "current",
+                  "stale",
+                  "tombstoned",
+                  "not_found"
+                ]
+              },
+              "canonical_revision_sequence": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 9007199254740991
+              }
+            }
+          }
+        },
+        "request_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      }
+    },
+    "errorResponse": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "error",
+        "request_id"
+      ],
+      "properties": {
+        "error": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "code",
+            "message",
+            "retryable",
+            "details"
+          ],
+          "properties": {
+            "code": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128,
+              "enum": [
+                "active_generation_cannot_be_abandoned",
+                "candidate_identity_conflict",
+                "conflict",
+                "context_assembly_failed",
+                "cutover_in_progress",
+                "deadline_exceeded",
+                "dependency_unavailable",
+                "duplicate_list_id",
+                "duplicate_retrieval_rank",
+                "endpoint_not_found",
+                "fence_expired",
+                "fence_released",
+                "generation_not_caught_up",
+                "generation_not_found",
+                "graph_replay_incomplete",
+                "idempotency_conflict",
+                "idempotency_key_expired",
+                "incompatible_representation",
+                "internal_error",
+                "invalid_candidate",
+                "invalid_embedding_mode",
+                "invalid_fence",
+                "invalid_node",
+                "invalid_parameter",
+                "invalid_request",
+                "invalid_scope",
+                "local_access_denied",
+                "missing_endpoint_node",
+                "not_found",
+                "not_ready",
+                "operation_failed",
+                "operation_not_found",
+                "profile_digest_mismatch",
+                "profile_invalid",
+                "profile_mismatch",
+                "profile_not_found",
+                "profile_retired",
+                "rate_limited",
+                "reconciliation_required",
+                "request_too_large",
+                "revision_conflict",
+                "revision_sequence_regression",
+                "sequence_regression",
+                "service_unavailable",
+                "source_revision_mismatch",
+                "source_tombstoned",
+                "source_too_large",
+                "source_unavailable",
+                "tokenization_failed",
+                "traversal_limit_exceeded",
+                "unsupported_media_type",
+                "unsupported_policy",
+                "unsupported_profile",
+                "upstream_failure",
+                "vector_dimension_mismatch"
+              ]
+            },
+            "message": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024
+            },
+            "retryable": {
+              "type": "boolean"
+            },
+            "details": {
+              "type": "object"
+            }
+          }
+        },
+        "request_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      }
+    },
+    "node": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "node_id",
+        "node_type",
+        "label"
+      ],
+      "properties": {
+        "node_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512
+        },
+        "node_type": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "label": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1024
+        },
+        "properties": {
+          "type": "object",
+          "maxProperties": 100
+        },
+        "provenance": {
+          "$ref": "#/$defs/provenance"
+        },
+        "aliases": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 1024
+          },
+          "maxItems": 32,
+          "uniqueItems": true
+        }
+      }
+    },
+    "edge": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "edge_id",
+        "source_node_id",
+        "target_node_id",
+        "relationship_type",
+        "directed"
+      ],
+      "properties": {
+        "edge_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512,
+          "description": "Source-local edge identifier supplied by the owner. Graph preserves it as support.source_edge_id; Graph computes the canonical cross-source traversal edge_id from the normalized relationship identity tuple."
+        },
+        "source_node_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512
+        },
+        "target_node_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512
+        },
+        "relationship_type": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "directed": {
+          "type": "boolean"
+        },
+        "provenance": {
+          "$ref": "#/$defs/provenance"
+        }
+      }
+    },
+    "projectionRequest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "operation_id",
+        "source_id",
+        "source_revision",
+        "revision_sequence",
+        "scope",
+        "nodes",
+        "edges",
+        "owner_projection_sequence"
+      ],
+      "properties": {
+        "operation_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "source_id": {
+          "$ref": "#/$defs/sourceId"
+        },
+        "source_revision": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "revision_sequence": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        },
+        "scope": {
+          "$ref": "#/$defs/scope"
+        },
+        "nodes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/node"
+          },
+          "maxItems": 256,
+          "minItems": 0
+        },
+        "edges": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/edge"
+          },
+          "maxItems": 512,
+          "minItems": 0
+        },
+        "request_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "owner_projection_sequence": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        }
+      }
+    },
+    "deleteRequest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "operation_id",
+        "source_id",
+        "revision_sequence",
+        "scope",
+        "delete_scope",
+        "owner_projection_sequence"
+      ],
+      "properties": {
+        "operation_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "source_id": {
+          "$ref": "#/$defs/sourceId"
+        },
+        "revision_sequence": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        },
+        "scope": {
+          "$ref": "#/$defs/scope"
+        },
+        "delete_scope": {
+          "const": "source"
+        },
+        "source_revision": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "request_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "owner_projection_sequence": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        }
+      }
+    },
+    "traversalRequest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "scope"
+      ],
+      "properties": {
+        "scope": {
+          "$ref": "#/$defs/scope"
+        },
+        "start_node_ids": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512
+          },
+          "maxItems": 100,
+          "minItems": 1
+        },
+        "relationship_types": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
+          },
+          "maxItems": 100,
+          "minItems": 0
+        },
+        "max_depth": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 3,
+          "default": 3
+        },
+        "limit": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 10,
+          "default": 10,
+          "description": "Maximum returned paths (max_paths)."
+        },
+        "request_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "max_visited_nodes": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 500,
+          "default": 500
+        },
+        "entity_mentions": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 1024
+          },
+          "maxItems": 16,
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "direction": {
+          "enum": [
+            "outgoing",
+            "incoming",
+            "both"
+          ],
+          "default": "both",
+          "description": "Direction filter for directed edges; undirected edges are traversable both ways."
+        }
+      },
+      "oneOf": [
+        {
+          "required": [
+            "start_node_ids"
+          ]
+        },
+        {
+          "required": [
+            "entity_mentions"
+          ]
+        }
+      ]
+    },
+    "operationResponse": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "operation_id",
+        "status",
+        "request_id"
+      ],
+      "properties": {
+        "operation_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "source_id": {
+          "$ref": "#/$defs/sourceId"
+        },
+        "revision_sequence": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        },
+        "status": {
+          "enum": [
+            "accepted",
+            "pending",
+            "complete",
+            "failed",
+            "reconciliation_required",
+            "superseded"
+          ]
+        },
+        "request_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "owner": {
+          "enum": [
+            "memory",
+            "knowledge"
+          ]
+        },
+        "owner_projection_sequence": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        },
+        "terminal_disposition": {
+          "enum": [
+            "applied",
+            "superseded",
+            "rejected"
+          ]
+        }
+      }
+    },
+    "sourceId": {
+      "type": "string",
+      "minLength": 8,
+      "maxLength": 138,
+      "pattern": "^(memory|knowledge):[A-Za-z0-9._~-]{1,128}$"
+    },
+    "support": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "source_id",
+        "source_revision",
+        "revision_sequence",
+        "scope",
+        "source_edge_id"
+      ],
+      "properties": {
+        "source_id": {
+          "$ref": "#/$defs/sourceId"
+        },
+        "source_revision": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "revision_sequence": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        },
+        "scope": {
+          "$ref": "#/$defs/scope"
+        },
+        "provenance": {
+          "$ref": "#/$defs/provenance"
+        },
+        "source_edge_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512
+        }
+      }
+    },
+    "traversalEdge": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "edge_id",
+        "source_node_id",
+        "target_node_id",
+        "relationship_type",
+        "directed",
+        "supports"
+      ],
+      "properties": {
+        "edge_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512,
+          "description": "Stable canonical relationship ID derived from the normalized relationship identity tuple, not an arbitrary source-local edge ID."
+        },
+        "source_node_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512
+        },
+        "target_node_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512
+        },
+        "relationship_type": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "directed": {
+          "type": "boolean"
+        },
+        "supports": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 100,
+          "items": {
+            "$ref": "#/$defs/support"
+          }
+        }
+      }
+    },
+    "traversalPath": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "path_id",
+        "node_ids",
+        "edges"
+      ],
+      "properties": {
+        "path_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512
+        },
+        "node_ids": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 4,
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512
+          }
+        },
+        "edges": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 3,
+          "items": {
+            "$ref": "#/$defs/traversalEdge"
+          }
+        }
+      }
+    },
+    "traversalResponse": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "scope",
+        "paths",
+        "truncated",
+        "request_id",
+        "resolved_start_node_ids",
+        "unresolved_entity_mentions",
+        "resolution_evidence"
+      ],
+      "properties": {
+        "scope": {
+          "$ref": "#/$defs/scope"
+        },
+        "paths": {
+          "type": "array",
+          "maxItems": 10,
+          "items": {
+            "$ref": "#/$defs/traversalPath"
+          }
+        },
+        "truncated": {
+          "type": "boolean"
+        },
+        "request_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "resolved_start_node_ids": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512
+          },
+          "maxItems": 16
+        },
+        "unresolved_entity_mentions": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 1024
+          },
+          "maxItems": 16
+        },
+        "resolution_evidence": {
+          "type": "array",
+          "maxItems": 64,
+          "items": {
+            "$ref": "#/$defs/resolutionEvidence"
+          },
+          "description": "Source-supported label/alias evidence for each entity mention to node resolution. Empty when start_node_ids are supplied. Gateway verifies these source identities as well as edge supports before returning paths."
+        }
+      }
+    },
+    "manifestRequest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "limit",
+        "request_id"
+      ],
+      "properties": {
+        "cursor": {
+          "type": "string",
+          "maxLength": 512
+        },
+        "limit": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 100
+        },
+        "request_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      }
+    },
+    "manifestItem": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "source_id",
+        "revision_sequence",
+        "status"
+      ],
+      "properties": {
+        "source_id": {
+          "$ref": "#/$defs/sourceId"
+        },
+        "source_revision": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "revision_sequence": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        },
+        "status": {
+          "enum": [
+            "active",
+            "tombstoned",
+            "reconciliation_required"
+          ]
+        }
+      }
+    },
+    "manifestResponse": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "items",
+        "next_cursor",
+        "request_id"
+      ],
+      "properties": {
+        "items": {
+          "type": "array",
+          "maxItems": 100,
+          "items": {
+            "$ref": "#/$defs/manifestItem"
+          }
+        },
+        "next_cursor": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 512
+        },
+        "request_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "owner_watermarks": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "maxProperties": 2,
+          "description": "Per-owner contiguous terminal projection watermarks; includes safely superseded events, but not rejected/conflicting events."
+        },
+        "ready": {
+          "type": "boolean"
+        }
+      }
+    },
+    "reconciliationCheckpointRequest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "owner",
+        "sealed_projection_sequence",
+        "request_id"
+      ],
+      "properties": {
+        "owner": {
+          "enum": [
+            "memory",
+            "knowledge"
+          ]
+        },
+        "sealed_projection_sequence": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "request_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      }
+    },
+    "reconciliationCheckpointResponse": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "owner",
+        "sealed_projection_sequence",
+        "terminal_projection_sequence",
+        "ready",
+        "request_id"
+      ],
+      "properties": {
+        "owner": {
+          "enum": [
+            "memory",
+            "knowledge"
+          ]
+        },
+        "sealed_projection_sequence": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "ready": {
+          "type": "boolean"
+        },
+        "request_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "terminal_projection_sequence": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991,
+          "description": "Highest contiguous sequence with a durable applied or superseded terminal disposition."
+        }
+      }
+    },
+    "healthResponse": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "service",
+        "status",
+        "request_id"
+      ],
+      "properties": {
+        "service": {
+          "const": "graph"
+        },
+        "status": {
+          "const": "alive"
+        },
+        "request_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      }
+    },
+    "readinessResponse": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "service",
+        "status",
+        "ready",
+        "checks",
+        "request_id"
+      ],
+      "properties": {
+        "service": {
+          "const": "graph"
+        },
+        "status": {
+          "enum": [
+            "ready",
+            "not_ready",
+            "degraded"
+          ]
+        },
+        "ready": {
+          "type": "boolean"
+        },
+        "checks": {
+          "type": "array",
+          "maxItems": 50,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "name",
+              "status"
+            ],
+            "properties": {
+              "name": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 128
+              },
+              "status": {
+                "enum": [
+                  "ok",
+                  "not_ready",
+                  "degraded"
+                ]
+              },
+              "code": {
+                "type": "string",
+                "maxLength": 128
+              }
+            }
+          }
+        },
+        "request_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      }
+    },
+    "resolutionSupport": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "source_id",
+        "source_revision",
+        "revision_sequence",
+        "scope",
+        "attribute_kind",
+        "matched_value"
+      ],
+      "properties": {
+        "source_id": {
+          "$ref": "#/$defs/sourceId"
+        },
+        "source_revision": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "revision_sequence": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        },
+        "scope": {
+          "$ref": "#/$defs/scope"
+        },
+        "attribute_kind": {
+          "enum": [
+            "label",
+            "alias"
+          ]
+        },
+        "matched_value": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1024
+        },
+        "provenance": {
+          "$ref": "#/$defs/provenance"
+        }
+      }
+    },
+    "resolutionEvidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "entity_mention",
+        "node_id",
+        "supports"
+      ],
+      "properties": {
+        "entity_mention": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1024
+        },
+        "node_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512
+        },
+        "supports": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 100,
+          "items": {
+            "$ref": "#/$defs/resolutionSupport"
+          }
+        }
+      }
+    }
+  },
+  "x-endpoints": {
+    "POST /api/v1/graph/source-projections": {
+      "request": "#/$defs/projectionRequest",
+      "response": "#/$defs/operationResponse",
+      "success_status": 202,
+      "error_response": "#/$defs/errorResponse",
+      "error_statuses": [
+        400,
+        404,
+        409,
+        413,
+        422,
+        429,
+        500,
+        503,
+        504
+      ],
+      "x-callers": [
+        "memory",
+        "knowledge"
+      ]
+    },
+    "POST /api/v1/graph/source-deletions": {
+      "request": "#/$defs/deleteRequest",
+      "response": "#/$defs/operationResponse",
+      "success_status": 202,
+      "error_response": "#/$defs/errorResponse",
+      "error_statuses": [
+        400,
+        404,
+        409,
+        413,
+        422,
+        429,
+        500,
+        503,
+        504
+      ],
+      "x-callers": [
+        "memory",
+        "knowledge"
+      ]
+    },
+    "POST /api/v1/graph/traversals": {
+      "request": "#/$defs/traversalRequest",
+      "response": "#/$defs/traversalResponse",
+      "success_status": 200,
+      "error_response": "#/$defs/errorResponse",
+      "error_statuses": [
+        400,
+        404,
+        409,
+        413,
+        422,
+        429,
+        500,
+        503,
+        504
+      ],
+      "x-callers": [
+        "gateway"
+      ]
+    },
+    "GET /api/v1/graph/operations/{operation_id}": {
+      "response": "#/$defs/operationResponse",
+      "success_status": 200,
+      "error_response": "#/$defs/errorResponse",
+      "error_statuses": [
+        400,
+        404,
+        429,
+        500,
+        503,
+        504
+      ],
+      "x-callers": [
+        "gateway",
+        "memory",
+        "knowledge",
+        "operator"
+      ]
+    },
+    "GET /api/v1/graph/sources/manifest": {
+      "request": "#/$defs/manifestRequest",
+      "response": "#/$defs/manifestResponse",
+      "success_status": 200,
+      "error_response": "#/$defs/errorResponse",
+      "error_statuses": [
+        400,
+        404,
+        429,
+        500,
+        503,
+        504
+      ],
+      "x-callers": [
+        "gateway",
+        "memory",
+        "knowledge",
+        "operator"
+      ]
+    },
+    "POST /api/v1/graph/reconciliation/checkpoints": {
+      "request": "#/$defs/reconciliationCheckpointRequest",
+      "response": "#/$defs/reconciliationCheckpointResponse",
+      "success_status": 200,
+      "error_response": "#/$defs/errorResponse",
+      "error_statuses": [
+        400,
+        409,
+        429,
+        500,
+        503,
+        504
+      ],
+      "x-callers": [
+        "memory",
+        "knowledge"
+      ]
+    },
+    "GET /api/v1/graph/health": {
+      "response": "#/$defs/healthResponse",
+      "success_status": 200,
+      "error_response": "#/$defs/errorResponse",
+      "error_statuses": [
+        429,
+        500,
+        503
+      ],
+      "x-callers": [
+        "health-probe"
+      ]
+    },
+    "GET /api/v1/graph/ready": {
+      "response": "#/$defs/readinessResponse",
+      "success_status": 200,
+      "error_response": "#/$defs/errorResponse",
+      "error_statuses": [
+        429,
+        500,
+        503
+      ],
+      "x-callers": [
+        "health-probe"
+      ]
+    }
+  },
+  "anyOf": [
+    {
+      "$ref": "#/$defs/projectionRequest"
+    },
+    {
+      "$ref": "#/$defs/operationResponse"
+    },
+    {
+      "$ref": "#/$defs/deleteRequest"
+    },
+    {
+      "$ref": "#/$defs/traversalRequest"
+    },
+    {
+      "$ref": "#/$defs/traversalResponse"
+    },
+    {
+      "$ref": "#/$defs/manifestRequest"
+    },
+    {
+      "$ref": "#/$defs/manifestResponse"
+    },
+    {
+      "$ref": "#/$defs/reconciliationCheckpointRequest"
+    },
+    {
+      "$ref": "#/$defs/reconciliationCheckpointResponse"
+    },
+    {
+      "$ref": "#/$defs/healthResponse"
+    },
+    {
+      "$ref": "#/$defs/readinessResponse"
+    },
+    {
+      "$ref": "#/$defs/errorResponse"
+    }
+  ]
+}

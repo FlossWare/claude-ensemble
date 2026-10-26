@@ -1,0 +1,257 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://flossware.dev/claude-ensemble/schemas/index-profile.schema.json",
+  "title": "Claude Ensemble Index Profile Bundle",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "name",
+    "version",
+    "status",
+    "chunking",
+    "tokenization",
+    "lexical",
+    "embedding",
+    "limits",
+    "digest"
+  ],
+  "properties": {
+    "name": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128
+    },
+    "version": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 64
+    },
+    "status": {
+      "enum": [
+        "active",
+        "deprecated",
+        "retired"
+      ],
+      "description": "Registry lifecycle metadata; excluded from the immutable content digest."
+    },
+    "chunking": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "profile",
+        "version",
+        "max_units"
+      ],
+      "properties": {
+        "profile": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "version": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64
+        },
+        "max_units": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 65536
+        }
+      }
+    },
+    "tokenization": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "profile",
+        "version"
+      ],
+      "properties": {
+        "profile": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "version": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64
+        }
+      }
+    },
+    "lexical": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "profile",
+        "version",
+        "statistics_policy"
+      ],
+      "properties": {
+        "profile": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "version": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64
+        },
+        "statistics_policy": {
+          "enum": [
+            "scope_partition",
+            "isolated_corpus"
+          ]
+        }
+      }
+    },
+    "embedding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "required",
+        "profile",
+        "version",
+        "model",
+        "model_version",
+        "input_types",
+        "dimensions",
+        "normalization",
+        "metric",
+        "max_input_tokens"
+      ],
+      "properties": {
+        "required": {
+          "type": "boolean"
+        },
+        "profile": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "version": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64
+        },
+        "model": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "model_version": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "input_types": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 2,
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "query",
+              "document"
+            ]
+          }
+        },
+        "dimensions": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 4096
+        },
+        "normalization": {
+          "enum": [
+            "none",
+            "l2"
+          ]
+        },
+        "metric": {
+          "enum": [
+            "cosine",
+            "dot_product",
+            "euclidean"
+          ],
+          "description": "cosine and dot_product are higher-is-better similarities; euclidean is lower-is-better distance. Metric and direction are immutable and covered by the profile digest."
+        },
+        "max_input_tokens": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 1000000,
+          "description": "Maximum model input tokens for each embedded chunk/query as declared by the configured provider/model. Included in the profile digest; exceeding it is a representability failure, not a transient provider outage."
+        }
+      }
+    },
+    "limits": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "max_chunks",
+        "max_source_bytes",
+        "max_chunk_text_bytes",
+        "max_request_bytes",
+        "max_chunk_representation_bytes",
+        "max_envelope_bytes",
+        "max_metadata_bytes",
+        "max_lexical_terms_per_chunk",
+        "max_lexical_term_bytes"
+      ],
+      "properties": {
+        "max_chunks": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 256
+        },
+        "max_source_bytes": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 262144
+        },
+        "max_chunk_text_bytes": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 65536
+        },
+        "max_request_bytes": {
+          "type": "integer",
+          "minimum": 1024,
+          "maximum": 2097152
+        },
+        "max_chunk_representation_bytes": {
+          "type": "integer",
+          "minimum": 256,
+          "maximum": 1048576
+        },
+        "max_envelope_bytes": {
+          "type": "integer",
+          "minimum": 1024,
+          "maximum": 131072
+        },
+        "max_metadata_bytes": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 8192
+        },
+        "max_lexical_terms_per_chunk": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 512
+        },
+        "max_lexical_term_bytes": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 128
+        }
+      },
+      "description": "Profile validity is checked by Index before activation: max_chunks * max_chunk_representation_bytes + max_envelope_bytes <= max_request_bytes; max_chunk_representation_bytes must be at least 6 * max_chunk_text_bytes + 2 + (embedding.required ? 25 * embedding.dimensions + 2 : 0) + max_lexical_terms_per_chunk * (6 * max_lexical_term_bytes + 4) + max_metadata_bytes + 1024. This uses a conservative sixfold JSON-string escaping bound for text/terms, RFC 8785 canonical JSON, and at most 24 bytes per finite IEEE-754 vector value. Every component rejects any serialized chunk representation larger than max_chunk_representation_bytes, lexical terms/counts above their profile bounds, or metadata above max_metadata_bytes."
+    },
+    "digest": {
+      "type": "string",
+      "pattern": "^[a-fA-F0-9]{64}$",
+      "description": "SHA-256 over RFC 8785 JSON Canonicalization Scheme output for the bundle with both `digest` and registry lifecycle `status` omitted. Component identities, dimensions, metric, and representation limits are digest-covered."
+    }
+  }
+}

@@ -1,0 +1,580 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://flossware.dev/claude-ensemble/schemas/ranking.schema.json",
+  "title": "Claude Ensemble Ranking Contract Schema",
+  "description": "Normative Ranking request/response schemas. RRF v1 arithmetic and ordering invariants are specified in RANKING.md.",
+  "$defs": {
+    "policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "version"
+      ],
+      "properties": {
+        "name": {
+          "const": "rrf-v1"
+        },
+        "version": {
+          "const": "1"
+        }
+      }
+    },
+    "chunker": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "profile",
+        "version"
+      ],
+      "properties": {
+        "profile": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "version": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64
+        }
+      }
+    },
+    "provenance": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "origin": {
+          "type": "string",
+          "maxLength": 2048
+        },
+        "evidence_ids": {
+          "type": "array",
+          "maxItems": 100,
+          "items": {
+            "type": "string",
+            "maxLength": 512
+          }
+        }
+      }
+    },
+    "candidate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "source_id",
+        "source_revision",
+        "revision_sequence",
+        "chunk_id",
+        "chunker",
+        "retrieval_rank",
+        "text",
+        "score_semantics",
+        "matched_exact_identifiers",
+        "provenance"
+      ],
+      "properties": {
+        "source_id": {
+          "type": "string",
+          "minLength": 8,
+          "maxLength": 138,
+          "pattern": "^(memory|knowledge):[A-Za-z0-9._~-]{1,128}$"
+        },
+        "source_revision": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "revision_sequence": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        },
+        "chunk_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512
+        },
+        "chunker": {
+          "$ref": "#/$defs/chunker"
+        },
+        "retrieval_source": {
+          "enum": [
+            "lexical",
+            "vector"
+          ]
+        },
+        "retrieval_rank": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 100
+        },
+        "source_score": {
+          "type": "number"
+        },
+        "score_semantics": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "text": {
+          "type": "string",
+          "maxLength": 65536
+        },
+        "matched_exact_identifiers": {
+          "type": "array",
+          "maxItems": 32,
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 256
+          }
+        },
+        "provenance": {
+          "$ref": "#/$defs/provenance"
+        }
+      }
+    },
+    "rankedList": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "list_id",
+        "retrieval_path",
+        "query_variant_id",
+        "scope_partition_id",
+        "candidates"
+      ],
+      "properties": {
+        "list_id": {
+          "type": "string",
+          "minLength": 16,
+          "maxLength": 1400,
+          "pattern": "^rl1:(lexical|vector):original:[A-Za-z0-9_-]{1,1366}$"
+        },
+        "retrieval_path": {
+          "enum": [
+            "lexical",
+            "vector"
+          ]
+        },
+        "query_variant_id": {
+          "const": "original"
+        },
+        "scope_partition_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "candidates": {
+          "type": "array",
+          "maxItems": 100,
+          "items": {
+            "$ref": "#/$defs/candidate"
+          }
+        }
+      }
+    },
+    "request": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "request_id",
+        "policy",
+        "lists",
+        "limit"
+      ],
+      "properties": {
+        "request_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "policy": {
+          "$ref": "#/$defs/policy"
+        },
+        "exact_identifiers": {
+          "type": "array",
+          "maxItems": 32,
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 256
+          }
+        },
+        "lists": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 20,
+          "items": {
+            "$ref": "#/$defs/rankedList"
+          }
+        },
+        "limit": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 100
+        }
+      }
+    },
+    "rankedCandidate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "source_id",
+        "source_revision",
+        "revision_sequence",
+        "chunk_id",
+        "chunker",
+        "rank",
+        "score",
+        "score_semantics",
+        "evidence",
+        "provenance",
+        "text",
+        "matched_exact_identifiers"
+      ],
+      "properties": {
+        "source_id": {
+          "type": "string",
+          "minLength": 8,
+          "maxLength": 138,
+          "pattern": "^(memory|knowledge):[A-Za-z0-9._~-]{1,128}$"
+        },
+        "source_revision": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "revision_sequence": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        },
+        "chunk_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512
+        },
+        "chunker": {
+          "$ref": "#/$defs/chunker"
+        },
+        "rank": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 100
+        },
+        "score": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "score_semantics": {
+          "const": "rrf-v1-fixed-point-1e12"
+        },
+        "evidence": {
+          "type": "array",
+          "maxItems": 100,
+          "items": {
+            "type": "object",
+            "additionalProperties": true
+          }
+        },
+        "provenance": {
+          "$ref": "#/$defs/provenance"
+        },
+        "text": {
+          "type": "string",
+          "maxLength": 65536
+        },
+        "matched_exact_identifiers": {
+          "type": "array",
+          "maxItems": 32,
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 256
+          }
+        }
+      }
+    },
+    "response": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "policy",
+        "score_scale",
+        "candidates",
+        "request_id"
+      ],
+      "properties": {
+        "policy": {
+          "$ref": "#/$defs/policy"
+        },
+        "score_scale": {
+          "const": 1000000000000
+        },
+        "candidates": {
+          "type": "array",
+          "maxItems": 100,
+          "items": {
+            "$ref": "#/$defs/rankedCandidate"
+          }
+        },
+        "request_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      }
+    },
+    "errorResponse": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "error",
+        "request_id"
+      ],
+      "properties": {
+        "error": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "code",
+            "message",
+            "retryable",
+            "details"
+          ],
+          "properties": {
+            "code": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128,
+              "enum": [
+                "active_generation_cannot_be_abandoned",
+                "candidate_identity_conflict",
+                "conflict",
+                "context_assembly_failed",
+                "cutover_in_progress",
+                "deadline_exceeded",
+                "dependency_unavailable",
+                "duplicate_list_id",
+                "duplicate_retrieval_rank",
+                "endpoint_not_found",
+                "fence_expired",
+                "fence_released",
+                "generation_not_caught_up",
+                "generation_not_found",
+                "graph_replay_incomplete",
+                "idempotency_conflict",
+                "idempotency_key_expired",
+                "incompatible_representation",
+                "internal_error",
+                "invalid_candidate",
+                "invalid_embedding_mode",
+                "invalid_fence",
+                "invalid_node",
+                "invalid_parameter",
+                "invalid_request",
+                "invalid_scope",
+                "local_access_denied",
+                "missing_endpoint_node",
+                "not_found",
+                "not_ready",
+                "operation_failed",
+                "operation_not_found",
+                "profile_digest_mismatch",
+                "profile_invalid",
+                "profile_mismatch",
+                "profile_not_found",
+                "profile_retired",
+                "rate_limited",
+                "reconciliation_required",
+                "request_too_large",
+                "revision_conflict",
+                "revision_sequence_regression",
+                "sequence_regression",
+                "service_unavailable",
+                "source_revision_mismatch",
+                "source_tombstoned",
+                "source_too_large",
+                "source_unavailable",
+                "tokenization_failed",
+                "traversal_limit_exceeded",
+                "unsupported_media_type",
+                "unsupported_policy",
+                "unsupported_profile",
+                "upstream_failure",
+                "vector_dimension_mismatch"
+              ]
+            },
+            "message": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024
+            },
+            "retryable": {
+              "type": "boolean"
+            },
+            "details": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          }
+        },
+        "request_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      }
+    },
+    "healthResponse": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "service",
+        "status",
+        "request_id"
+      ],
+      "properties": {
+        "service": {
+          "const": "ranking"
+        },
+        "status": {
+          "const": "alive"
+        },
+        "request_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      }
+    },
+    "readinessResponse": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "service",
+        "status",
+        "ready",
+        "checks",
+        "request_id"
+      ],
+      "properties": {
+        "service": {
+          "const": "ranking"
+        },
+        "status": {
+          "enum": [
+            "ready",
+            "not_ready",
+            "degraded"
+          ]
+        },
+        "ready": {
+          "type": "boolean"
+        },
+        "checks": {
+          "type": "array",
+          "maxItems": 50,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "name",
+              "status"
+            ],
+            "properties": {
+              "name": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 128
+              },
+              "status": {
+                "enum": [
+                  "ok",
+                  "not_ready",
+                  "degraded"
+                ]
+              },
+              "code": {
+                "type": "string",
+                "maxLength": 128
+              }
+            }
+          }
+        },
+        "request_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      }
+    }
+  },
+  "x-endpoints": {
+    "POST /api/v1/ranking/rank": {
+      "request": "#/$defs/request",
+      "response": "#/$defs/response",
+      "success_status": 200,
+      "error_response": "#/$defs/errorResponse",
+      "error_statuses": [
+        400,
+        404,
+        409,
+        413,
+        422,
+        429,
+        500,
+        503,
+        504
+      ],
+      "x-callers": [
+        "gateway"
+      ]
+    },
+    "GET /api/v1/ranking/health": {
+      "response": "#/$defs/healthResponse",
+      "success_status": 200,
+      "error_response": "#/$defs/errorResponse",
+      "error_statuses": [
+        429,
+        500,
+        503
+      ],
+      "x-callers": [
+        "health-probe"
+      ]
+    },
+    "GET /api/v1/ranking/ready": {
+      "response": "#/$defs/readinessResponse",
+      "success_status": 200,
+      "error_response": "#/$defs/errorResponse",
+      "error_statuses": [
+        429,
+        500,
+        503
+      ],
+      "x-callers": [
+        "health-probe"
+      ]
+    }
+  },
+  "anyOf": [
+    {
+      "$ref": "#/$defs/request"
+    },
+    {
+      "$ref": "#/$defs/response"
+    },
+    {
+      "$ref": "#/$defs/healthResponse"
+    },
+    {
+      "$ref": "#/$defs/readinessResponse"
+    },
+    {
+      "$ref": "#/$defs/errorResponse"
+    }
+  ]
+}

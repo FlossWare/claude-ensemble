@@ -12,14 +12,16 @@ Base path: `/api/v1`
 
 ### `POST /chunking/chunks`
 
-Transform one source document into chunks. The operation is deterministic for the same content, source identity/revision, and effective policy.
+Transform one source document into chunks. The operation is deterministic for the same content, source identity/revision, and effective policy. Every request carries the immutable Index-owned bundle identity `{name, version, digest}` and the exact Chunking component profile/version from that bundle; Chunking never resolves a local default when an index profile is supplied.
 
 Request:
 
+<!-- schema-example: docs/contracts/schemas/chunking.schema.json#/$defs/chunkRequest -->
 ```json
 {
+  "index_profile": {"name": "default", "version": "0.1", "digest": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"},
   "source": {
-    "source_id": "knowledge:project:docs/design.md",
+    "source_id": "knowledge:kn_01J7M6P4V9Q2R8T6W3X5Y0ZABC",
     "revision": "rev-17",
     "revision_sequence": 17,
     "media_type": "text/markdown",
@@ -27,6 +29,7 @@ Request:
   },
   "policy": {
     "profile": "markdown-default",
+    "profile_version": "0.1",
     "max_units": 1200,
     "overlap_units": 120,
     "unit": "unicode_code_points"
@@ -42,15 +45,18 @@ The caller may omit `policy` to use the explicitly configured default profile. T
 
 Response:
 
+<!-- schema-example: docs/contracts/schemas/chunking.schema.json#/$defs/chunkResponse -->
 ```json
 {
-  "source_id": "knowledge:project:docs/design.md",
+  "index_profile": {"name": "default", "version": "0.1", "digest": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"},
+  "source_id": "knowledge:kn_01J7M6P4V9Q2R8T6W3X5Y0ZABC",
   "source_revision": "rev-17",
   "revision_sequence": 17,
   "chunker": {
     "profile": "markdown-default",
     "version": "0.1"
   },
+  "chunking_profile": {"profile": "markdown-default", "version": "0.1"},
   "chunks": [
     {
       "chunk_id": "opaque-stable-id",
@@ -63,7 +69,8 @@ Response:
       "heading_path": ["Design"],
       "metadata": {}
     }
-  ]
+  ],
+  "request_id": "correlation-id"
 }
 ```
 
@@ -81,13 +88,21 @@ Offsets are zero-based, half-open Unicode code-point offsets into the exact subm
 - Repeated identical requests are safe and have no persistent side effects.
 - The service must define size limits and reject invalid policies rather than silently substituting values.
 
+## Machine-checkable schemas
+
+The normative chunk and preflight request/response schemas are in [`schemas/chunking.schema.json`](schemas/chunking.schema.json). The preflight schema includes the profile identity and conservative representation-size bound used before canonical commit.
+
 ## Errors
 
 Use the shared CE REST error envelope. At minimum distinguish malformed request, unsupported media type, unknown profile/version, invalid policy, content too large, and internal processing failure. Include a stable error code, safe message, retryability, and correlation ID. Client errors are not retryable without changing the request; transient internal failures may be retryable.
 
 ## Readiness and diagnostics
 
-Expose `GET /api/v1/health` and `GET /api/v1/ready`. Readiness reports whether configured chunking profiles are available. Diagnostics include effective profile/version and duration, but do not log document content by default.
+Expose `GET /api/v1/chunking/health` and `GET /api/v1/chunking/ready`. Readiness reports whether configured chunking profiles are available. Diagnostics include effective profile/version and duration, but do not log document content by default.
+
+## Bounded ingestion preflight
+
+`POST /api/v1/chunking/preflight` accepts source text, the immutable `index_profile` identity, the complete resolved `profile_bundle` returned by Index, and the exact `chunking_profile` from that bundle. It verifies that name/version/digest agree between identity and bundle, then runs the same deterministic chunking algorithm as normal ingestion. The complete bundle supplies the component versions and representation limits; Chunking does not guess defaults and does not call Index, Tokenization, Embedding, or Graph. The response includes `chunk_count`, `max_chunk_text_bytes`, `estimated_representation_bytes_upper_bound`, `max_request_bytes`, `fits_profile`, `chunking_profile`, and `request_id`. Preflight guarantees only source byte, chunk count, chunk text, serialized representation, metadata, lexical term/count, and complete Index request-size bounds expressible from the pinned bundle. It does not guarantee provider availability or model-side runtime success. Embedding validates actual provider token limits against `embedding.max_input_tokens`; a provider outage or asynchronous model failure is recorded as an ingestion failure/reconciliation state and never publishes a partial representation. The upper bound is `chunk_count * max_chunk_representation_bytes + max_envelope_bytes` from the Index-owned profile. A profile is invalid if `max_chunks * max_chunk_representation_bytes + max_envelope_bytes > max_request_bytes`. Every downstream component must enforce the per-chunk serialized representation cap. If the upper bound exceeds the request cap, Memory/Knowledge reject with `422 source_too_large` before canonical commit.
 
 ## Acceptance tests
 

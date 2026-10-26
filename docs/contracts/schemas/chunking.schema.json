@@ -1,0 +1,717 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://flossware.dev/claude-ensemble/schemas/chunking.schema.json",
+  "title": "Chunking REST Contract Schema",
+  "$defs": {
+    "chunkRequest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "index_profile",
+        "source",
+        "policy"
+      ],
+      "properties": {
+        "request_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "index_profile": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "name",
+            "version",
+            "digest"
+          ],
+          "properties": {
+            "name": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            },
+            "version": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 64
+            },
+            "digest": {
+              "type": "string",
+              "pattern": "^[a-fA-F0-9]{64}$"
+            }
+          }
+        },
+        "source": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "source_id",
+            "revision",
+            "revision_sequence",
+            "content"
+          ],
+          "properties": {
+            "source_id": {
+              "type": "string",
+              "minLength": 8,
+              "maxLength": 138,
+              "pattern": "^(memory|knowledge):[A-Za-z0-9._~-]{1,128}$"
+            },
+            "revision": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            },
+            "revision_sequence": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 9007199254740991
+            },
+            "media_type": {
+              "type": "string",
+              "maxLength": 128
+            },
+            "content": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 262144
+            }
+          }
+        },
+        "policy": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "profile",
+            "profile_version",
+            "max_units",
+            "overlap_units",
+            "unit"
+          ],
+          "properties": {
+            "profile": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            },
+            "profile_version": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 64
+            },
+            "max_units": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 65536
+            },
+            "overlap_units": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 8192
+            },
+            "unit": {
+              "const": "unicode_code_points"
+            }
+          }
+        },
+        "options": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "include_text": {
+              "type": "boolean"
+            },
+            "include_line_spans": {
+              "type": "boolean"
+            }
+          }
+        }
+      }
+    },
+    "chunkResponse": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "index_profile",
+        "chunking_profile",
+        "chunks",
+        "request_id",
+        "source_id",
+        "source_revision",
+        "revision_sequence",
+        "chunker"
+      ],
+      "properties": {
+        "index_profile": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "name",
+            "version",
+            "digest"
+          ],
+          "properties": {
+            "name": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            },
+            "version": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 64
+            },
+            "digest": {
+              "type": "string",
+              "pattern": "^[a-fA-F0-9]{64}$"
+            }
+          }
+        },
+        "chunking_profile": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "profile",
+            "version"
+          ],
+          "properties": {
+            "profile": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            },
+            "version": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 64
+            }
+          }
+        },
+        "chunks": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 256,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "chunk_id",
+              "text",
+              "start_offset",
+              "end_offset",
+              "ordinal"
+            ],
+            "properties": {
+              "chunk_id": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 512
+              },
+              "text": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 65536
+              },
+              "start_offset": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "end_offset": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "metadata": {
+                "type": "object",
+                "maxProperties": 100
+              },
+              "ordinal": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 255
+              },
+              "start_line": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "end_line": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "heading_path": {
+                "type": "array",
+                "maxItems": 64,
+                "items": {
+                  "type": "string",
+                  "maxLength": 1024
+                }
+              }
+            }
+          }
+        },
+        "request_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "source_id": {
+          "type": "string",
+          "minLength": 8,
+          "maxLength": 138,
+          "pattern": "^(memory|knowledge):[A-Za-z0-9._~-]{1,128}$"
+        },
+        "source_revision": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "revision_sequence": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        },
+        "chunker": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "profile",
+            "version"
+          ],
+          "properties": {
+            "profile": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            },
+            "version": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 64
+            }
+          }
+        }
+      }
+    },
+    "preflightRequest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "index_profile",
+        "source_text",
+        "chunking_profile",
+        "profile_bundle"
+      ],
+      "properties": {
+        "request_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "index_profile": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "name",
+            "version",
+            "digest"
+          ],
+          "properties": {
+            "name": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            },
+            "version": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 64
+            },
+            "digest": {
+              "type": "string",
+              "pattern": "^[a-fA-F0-9]{64}$"
+            }
+          }
+        },
+        "source_text": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 262144
+        },
+        "chunking_profile": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "profile",
+            "version",
+            "max_units",
+            "overlap_units"
+          ],
+          "properties": {
+            "profile": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            },
+            "version": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 64
+            },
+            "max_units": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 65536
+            },
+            "overlap_units": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 8192
+            }
+          }
+        },
+        "profile_bundle": {
+          "$ref": "index-profile.schema.json"
+        }
+      }
+    },
+    "preflightResponse": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "chunk_count",
+        "max_chunk_text_bytes",
+        "estimated_representation_bytes_upper_bound",
+        "max_request_bytes",
+        "fits_profile",
+        "chunking_profile",
+        "request_id"
+      ],
+      "properties": {
+        "chunk_count": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 262144
+        },
+        "max_chunk_text_bytes": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 65536
+        },
+        "estimated_representation_bytes_upper_bound": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        },
+        "max_request_bytes": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 2097152
+        },
+        "fits_profile": {
+          "type": "boolean"
+        },
+        "chunking_profile": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "profile",
+            "version"
+          ],
+          "properties": {
+            "profile": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            },
+            "version": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 64
+            }
+          }
+        },
+        "request_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      }
+    },
+    "errorResponse": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "error",
+        "request_id"
+      ],
+      "properties": {
+        "error": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "code",
+            "message",
+            "retryable",
+            "details"
+          ],
+          "properties": {
+            "code": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128,
+              "enum": [
+                "active_generation_cannot_be_abandoned",
+                "candidate_identity_conflict",
+                "conflict",
+                "context_assembly_failed",
+                "cutover_in_progress",
+                "deadline_exceeded",
+                "dependency_unavailable",
+                "duplicate_list_id",
+                "duplicate_retrieval_rank",
+                "endpoint_not_found",
+                "fence_expired",
+                "fence_released",
+                "generation_not_caught_up",
+                "generation_not_found",
+                "graph_replay_incomplete",
+                "idempotency_conflict",
+                "idempotency_key_expired",
+                "incompatible_representation",
+                "internal_error",
+                "invalid_candidate",
+                "invalid_embedding_mode",
+                "invalid_fence",
+                "invalid_node",
+                "invalid_parameter",
+                "invalid_request",
+                "invalid_scope",
+                "local_access_denied",
+                "missing_endpoint_node",
+                "not_found",
+                "not_ready",
+                "operation_failed",
+                "operation_not_found",
+                "profile_digest_mismatch",
+                "profile_invalid",
+                "profile_mismatch",
+                "profile_not_found",
+                "profile_retired",
+                "rate_limited",
+                "reconciliation_required",
+                "request_too_large",
+                "revision_conflict",
+                "revision_sequence_regression",
+                "sequence_regression",
+                "service_unavailable",
+                "source_revision_mismatch",
+                "source_tombstoned",
+                "source_too_large",
+                "source_unavailable",
+                "tokenization_failed",
+                "traversal_limit_exceeded",
+                "unsupported_media_type",
+                "unsupported_policy",
+                "unsupported_profile",
+                "upstream_failure",
+                "vector_dimension_mismatch"
+              ]
+            },
+            "message": {
+              "type": "string",
+              "maxLength": 1024
+            },
+            "retryable": {
+              "type": "boolean"
+            },
+            "details": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          }
+        },
+        "request_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      }
+    },
+    "healthResponse": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "service",
+        "status",
+        "request_id"
+      ],
+      "properties": {
+        "service": {
+          "const": "chunking"
+        },
+        "status": {
+          "const": "alive"
+        },
+        "request_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      }
+    },
+    "readinessResponse": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "service",
+        "status",
+        "ready",
+        "checks",
+        "request_id"
+      ],
+      "properties": {
+        "service": {
+          "const": "chunking"
+        },
+        "status": {
+          "enum": [
+            "ready",
+            "not_ready",
+            "degraded"
+          ]
+        },
+        "ready": {
+          "type": "boolean"
+        },
+        "checks": {
+          "type": "array",
+          "maxItems": 50,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "name",
+              "status"
+            ],
+            "properties": {
+              "name": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 128
+              },
+              "status": {
+                "enum": [
+                  "ok",
+                  "not_ready",
+                  "degraded"
+                ]
+              },
+              "code": {
+                "type": "string",
+                "maxLength": 128
+              }
+            }
+          }
+        },
+        "request_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      }
+    }
+  },
+  "x-endpoints": {
+    "POST /api/v1/chunking/chunks": {
+      "request": "#/$defs/chunkRequest",
+      "response": "#/$defs/chunkResponse",
+      "success_status": 200,
+      "error_response": "#/$defs/errorResponse",
+      "error_statuses": [
+        400,
+        404,
+        409,
+        413,
+        422,
+        429,
+        500,
+        503,
+        504
+      ],
+      "x-callers": [
+        "memory",
+        "knowledge"
+      ]
+    },
+    "POST /api/v1/chunking/preflight": {
+      "request": "#/$defs/preflightRequest",
+      "response": "#/$defs/preflightResponse",
+      "success_status": 200,
+      "error_response": "#/$defs/errorResponse",
+      "error_statuses": [
+        400,
+        404,
+        409,
+        413,
+        422,
+        429,
+        500,
+        503,
+        504
+      ],
+      "x-callers": [
+        "memory",
+        "knowledge"
+      ]
+    },
+    "GET /api/v1/chunking/health": {
+      "response": "#/$defs/healthResponse",
+      "success_status": 200,
+      "error_response": "#/$defs/errorResponse",
+      "error_statuses": [
+        429,
+        500,
+        503
+      ],
+      "x-callers": [
+        "health-probe"
+      ]
+    },
+    "GET /api/v1/chunking/ready": {
+      "response": "#/$defs/readinessResponse",
+      "success_status": 200,
+      "error_response": "#/$defs/errorResponse",
+      "error_statuses": [
+        429,
+        500,
+        503
+      ],
+      "x-callers": [
+        "health-probe"
+      ]
+    }
+  },
+  "anyOf": [
+    {
+      "$ref": "#/$defs/chunkRequest"
+    },
+    {
+      "$ref": "#/$defs/chunkResponse"
+    },
+    {
+      "$ref": "#/$defs/preflightRequest"
+    },
+    {
+      "$ref": "#/$defs/preflightResponse"
+    },
+    {
+      "$ref": "#/$defs/healthResponse"
+    },
+    {
+      "$ref": "#/$defs/readinessResponse"
+    },
+    {
+      "$ref": "#/$defs/errorResponse"
+    }
+  ]
+}

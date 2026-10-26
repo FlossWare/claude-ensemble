@@ -14,14 +14,21 @@ Base path: `/api/v1`
 
 ### `POST /tokenization/lexical`
 
-Tokenize and normalize text using an explicit profile.
+Tokenize and normalize one text input using an explicit profile. Requests carry the pinned Index profile identity and component tokenizer profile/version. Tokenization resolves that immutable bundle through Index's versioned profile REST endpoint, verifies the digest and component identity, and never silently falls back to a local or current profile.
+
+### `POST /tokenization/lexical/batch`
+
+Apply the same profile and options to 1–64 inputs, with a maximum 512 KiB encoded request body. Each input has a unique `input_id` and `text`; each result carries that `input_id` and either tokens or a stable per-item error. Results must not be correlated by array order alone. Batch and single-item calls have equivalent per-item semantics.
 
 Request:
 
+<!-- schema-example: docs/contracts/schemas/tokenization.schema.json#/$defs/request -->
 ```json
 {
+  "index_profile": {"name": "default", "version": "0.1", "digest": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"},
   "text": "Fix FooBarException in src/FooBar.java",
   "profile": "technical-default",
+  "profile_version": "0.1",
   "options": {
     "preserve_identifiers": true,
     "include_offsets": true,
@@ -30,15 +37,17 @@ Request:
 }
 ```
 
-The caller may omit `profile` only if the service has a configured default. The response always names the effective profile and version.
+For indexing workflows, callers supply the immutable Index-owned bundle identity `{name, version, digest}` and exact Tokenization component profile/version from that bundle. A default is not selected independently by Tokenization. The response echoes the effective profile/version and bundle digest.
 
 Response:
 
+<!-- schema-example: docs/contracts/schemas/tokenization.schema.json#/$defs/response -->
 ```json
 {
   "profile": "technical-default",
   "version": "0.1",
   "normalization_version": "0.1",
+  "index_profile": {"name": "default", "version": "0.1", "digest": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"},
   "tokens": [
     {
       "term": "fix",
@@ -72,13 +81,17 @@ Offsets are zero-based, half-open Unicode code-point offsets into the exact subm
 - Profile/version changes that affect terms must be visible to Index so it can reindex or reject incompatible query behavior.
 - No request content is logged by default.
 
+## Machine-checkable schemas
+
+The normative request/response schemas for single and batch lexical tokenization are in [`schemas/tokenization.schema.json`](schemas/tokenization.schema.json). The batch request is limited to 1–64 inputs and 512 KiB encoded body; each result is keyed by `input_id`, never array position.
+
 ## Errors
 
 Use the shared CE REST error envelope. At minimum distinguish malformed request, unknown profile/version, unsupported language/profile, text too large, and internal processing failure. Include a stable error code, safe message, retryability, and correlation ID.
 
 ## Readiness and diagnostics
 
-Expose `GET /api/v1/health` and `GET /api/v1/ready`. Readiness reports whether configured profiles are available. Diagnostics include profile/version and duration, but not submitted text or emitted terms by default.
+Expose `GET /api/v1/tokenization/health` and `GET /api/v1/tokenization/ready`. Readiness reports whether configured profiles are available. Diagnostics include profile/version and duration, but not submitted text or emitted terms by default.
 
 ## Acceptance tests
 

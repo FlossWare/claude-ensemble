@@ -9,11 +9,12 @@ Extract exact entities, technical identifiers, paths, names, version strings, sy
 ## Endpoints
 
 - POST /api/v1/entity-extraction/extract
-- GET /api/v1/health
-- GET /api/v1/ready
+- GET /api/v1/entity-extraction/health
+- GET /api/v1/entity-extraction/ready
 
 ## Request
 
+<!-- schema-example: docs/contracts/schemas/entity-extraction.schema.json#/$defs/request -->
 ~~~json
 {
   "request_id": "correlation-id",
@@ -24,19 +25,19 @@ Extract exact entities, technical identifiers, paths, names, version strings, sy
 
 ## Response
 
+<!-- schema-example: docs/contracts/schemas/entity-extraction.schema.json#/$defs/response -->
 ~~~json
 {
   "request_id": "correlation-id",
   "profile": {"name": "technical-default", "version": "0.1"},
   "entities": [
-    {"kind": "file_path", "text": "docs/contracts/INDEX.md", "normalized": "docs/contracts/INDEX.md", "start": 7, "end": 30, "confidence": 1.0, "exact": true},
-    {"kind": "issue_identifier", "text": "#1", "normalized": "1", "start": 42, "end": 44, "confidence": 1.0, "exact": true}
-  ],
-  "request_id": "correlation-id"
+    {"kind": "file_path", "text": "docs/contracts/INDEX.md", "normalized": "docs/contracts/INDEX.md", "start_offset": 7, "end_offset": 30, "confidence": 1.0, "exact": true},
+    {"kind": "issue_identifier", "text": "#1", "normalized": "1", "start_offset": 41, "end_offset": 43, "confidence": 1.0, "exact": true}
+  ]
 }
 ~~~
 
-Span offsets use the documented contract convention (UTF-8 byte offsets or Unicode code-point offsets); the convention must be fixed consistently before implementation. Start is inclusive and end is exclusive.
+Span offsets are zero-based, half-open Unicode code-point offsets into the exact submitted Unicode text. UTF-8 byte offsets are not permitted. `start_offset` is inclusive and `end_offset` is exclusive. Offsets refer to the original `text` field, not a normalized representation.
 
 ## Semantics
 
@@ -47,6 +48,10 @@ Span offsets use the documented contract convention (UTF-8 byte offsets or Unico
 - Bound input length, entity count, execution time, and provider calls. Propagate request correlation, deadline, and cancellation.
 - Avoid logging raw input text by default.
 
+## Machine-checkable schemas
+
+The normative request/response schema is [`schemas/entity-extraction.schema.json`](schemas/entity-extraction.schema.json). Entity spans use zero-based, half-open Unicode code-point offsets and the field names `start_offset` and `end_offset`.
+
 ## Errors
 
 Use the common error envelope. Distinguish invalid input/profile, unsupported text size, deadline exceeded, provider unavailable, and internal failure. No entities found is a valid response.
@@ -54,10 +59,10 @@ Use the common error envelope. Distinguish invalid input/profile, unsupported te
 ## Acceptance tests
 
 1. Exact file paths, URLs, issue/PR IDs, version strings, symbols, and technical names preserve source spans and surface form.
-2. Unicode offsets follow one explicit convention and are tested with non-ASCII text.
+2. Unicode code-point offsets align exactly with Chunking and Tokenization for emoji, combining characters, and non-Latin scripts.
 3. Exact extraction is distinguishable from inferred entities.
 4. No-match differs from service failure.
-5. No lookup, authorization, or mutation side effects occur.
+5. No lookup, access-control, or mutation side effects occur.
 6. Limits/deadlines/cancellation and privacy-safe logging are enforced.
 7. Profiles and normalization versions are explicit.
 

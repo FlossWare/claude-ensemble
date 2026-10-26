@@ -13,18 +13,33 @@ Learning is not a generic event bus, alerting system, or document-ranking servic
 - POST /api/v1/learning/outcomes
 - GET /api/v1/learning/operations/{operation_id}
 - GET /api/v1/learning/state/{scope_id}
-- GET /api/v1/health and GET /api/v1/ready
+- GET /api/v1/learning/health and GET /api/v1/learning/ready
 
 ## Contract rules
 
 - Each feedback event has a stable event ID, relevant selection/context reference, evidence provenance, timestamp, and policy version.
-- Validation distinguishes accepted, rejected, and pending evidence. Invalid or conflicting duplicate events do not update Thompson state.
-- Processing is idempotent. Same event ID and payload returns prior outcome; conflicting payload returns conflict. Retry after timeout cannot apply the update twice.
+- Validation distinguishes accepted, rejected, and pending evidence. The v1 `binary-reward-v1` mapping requires `outcome.result` to be `success` or `failure`, maps success to reward `1` and failure to reward `0`, and rejects unknown result values. V1 accepts explicit feedback evidence only: each item has `kind:"explicit_user_feedback"`, an opaque stable `reference`, `asserted_result` (`success` or `failure`), and an `observed_at` timestamp. At least one evidence item is required; every item's `asserted_result` must equal `outcome.result`, otherwise the event is rejected with `400 invalid_request`. Learning validates evidence shape, reference presence, timestamp, and consistency; it does not claim to independently prove the real-world truth of a user's feedback. Other evidence kinds require a separately versioned policy and acceptance fixtures. Other reward mappings require a new named/versioned policy and acceptance fixtures.
+- Processing is idempotent. Same event ID and payload returns prior outcome; conflicting payload returns conflict. Retry after timeout cannot apply the update twice. A different event ID for a selection that already has a terminal outcome is rejected as `selection_outcome_conflict`; it must not increment the posterior a second time.
 - After validation, Learning calls Thompson through REST with a stable update-event ID and explicit update semantics. It records downstream operation identity/status for restart reconciliation.
 - Learning never calls Thompson implementation directly and Thompson never calls Learning. This is a one-way dependency.
 - Store minimum feedback needed for audit and learning. Avoid raw prompt/response content by default; enforce retention and deletion policy.
 - Record input event, validation decision/reason, policy version, downstream operation, and final status.
 - Bound event size, processing time, retries, and stored evidence. Propagate request ID, deadline, and cancellation where meaningful.
+
+## Normative outcome schema
+
+`POST /api/v1/learning/outcomes` requires `Idempotency-Key` and fields `event_id`, `selection_id`, `context_id`, `arm_id`, `outcome` (`{result:"success"|"failure"}`), `evidence`, `occurred_at`, and `policy_version` (v1 value `binary-reward-v1`). Response returns `event_id`, `operation_id`, `status` (`accepted`, `rejected`, `pending`, `complete`, or `failed`), a stable `reason_code` when rejected/failed, the downstream Thompson operation identity when applicable, and `request_id`. An event is not complete until Thompson confirms the idempotent update or the operation is marked reconciliation-required.
+
+## Endpoint status codes
+
+- `POST /api/v1/learning/outcomes`: `202 Accepted` with operation identity after the outcome event is durably recorded; it does not wait for an unbounded downstream workflow.
+- `GET /api/v1/learning/operations/{operation_id}` returns `operation_id`, event ID when known, status, optional reason code/downstream Thompson operation ID, and request ID; unknown operation returns `404 not_found`.
+- `GET /api/v1/learning/state/{scope_id}` returns the opaque `scope_id`, bounded counts of accepted/rejected/pending/reconciliation-required events, and request ID; unknown scope returns `404 not_found`.
+- Invalid outcome/evidence: `400 invalid_request`; conflicting idempotency payload or expected state: `409 idempotency_conflict`, `409 revision_conflict`, or `409 selection_outcome_conflict`; deadline: `504 deadline_exceeded`; Thompson unavailable: `503 dependency_unavailable` with operation status marked `reconciliation_required` when the event is already committed.
+
+## Machine-checkable schemas
+
+The normative Learning request/response JSON Schema is in [`schemas/learning.schema.json`](schemas/learning.schema.json). It defines outcome event fields, bounded evidence, timestamps, status values, and error envelopes.
 
 ## Errors
 
@@ -37,7 +52,7 @@ Use the common error envelope. Distinguish invalid event, missing selection/cont
 3. Rejected evidence does not mutate Thompson state.
 4. Thompson updates use REST only, are one-way/idempotent, and recover after restart.
 5. Partial downstream failure is visible and reconciled safely.
-6. Retention/privacy and authorization are enforced.
+6. Retention/privacy and required local access restrictions are enforced.
 7. Event size, deadlines, retries, and status are bounded.
 8. Learning does not perform retrieval ranking or generic messaging.
 
