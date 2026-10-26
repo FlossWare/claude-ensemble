@@ -22,7 +22,7 @@ from runtime.server import BoundedThreadingHTTPServer, Handler, _profile_digest
 ROOT = Path(__file__).resolve().parents[1]
 SCHEMA = json.loads((ROOT / "docs/contracts/schemas/chunking.schema.json").read_text())
 PROFILE = {"name": "default", "version": "0.1", "digest": "0123456789abcdef" * 4}
-POLICY_DICT = {"profile": "plain-text-default", "profile_version": "0.1", "max_units": 12,
+POLICY_DICT = {"profile": "markdown-default", "profile_version": "0.1", "max_units": 12,
                "overlap_units": 2, "unit": "unicode_code_points"}
 POLICY = Policy.from_dict(POLICY_DICT)
 
@@ -56,7 +56,7 @@ def refresh_profile_digest(bundle):
 def profile_bundle():
     bundle = {
         "name": "default", "version": "0.1", "status": "active",
-        "chunking": {"profile": "plain-text-default", "version": "0.1", "max_units": 12},
+        "chunking": {"profile": "markdown-default", "version": "0.1", "max_units": 12},
         "tokenization": {"profile": "default", "version": "0.1"},
         "lexical": {"profile": "default", "version": "0.1", "statistics_policy": "scope_partition"},
         "embedding": {"required": False, "profile": "default", "version": "0.1", "model": "none",
@@ -87,7 +87,7 @@ class ChunkingAlgorithmTests(unittest.TestCase):
                 raise ChunkingError("deadline_exceeded", "request deadline expired", status=504)
 
         with self.assertRaises(ChunkingError) as raised:
-            chunk_spans("x" * 100, Policy("plain-text-default", "0.1", 10, 0),
+            chunk_spans("x" * 100, Policy("markdown-default", "0.1", 10, 0),
                         deadline_check=check_deadline)
         self.assertEqual(raised.exception.code, "deadline_exceeded")
         self.assertEqual(calls, 3)
@@ -186,7 +186,7 @@ class ChunkingAlgorithmTests(unittest.TestCase):
 
     def test_chunk_count_is_bounded(self):
         with self.assertRaises(ChunkingError) as caught:
-            chunk("x" * 257, policy=Policy("plain-text-default", "0.1", 1, 0))
+            chunk("x" * 257, policy=Policy("markdown-default", "0.1", 1, 0))
         self.assertEqual(caught.exception.code, "source_too_large")
 
     def test_adversarial_short_residual_fragments_preserve_bounds_and_coverage(self):
@@ -206,7 +206,7 @@ class ChunkingAlgorithmTests(unittest.TestCase):
         ]
         for text, max_units, overlap in cases:
             with self.subTest(text=repr(text), max_units=max_units, overlap=overlap):
-                spans = chunk_spans(text, Policy("plain-text-default", "0.1", max_units, overlap))
+                spans = chunk_spans(text, Policy("markdown-default", "0.1", max_units, overlap))
                 self.assertEqual(spans[0][0], 0)
                 self.assertEqual(spans[-1][1], len(text))
                 for start, end in spans:
@@ -222,7 +222,7 @@ class ChunkingAlgorithmTests(unittest.TestCase):
                 self.assertEqual(reconstructed, set(range(len(text))))
 
     def test_preflight_hard_limit_is_global_chunk_limit(self):
-        policy = Policy("plain-text-default", "0.1", 1, 0)
+        policy = Policy("markdown-default", "0.1", 1, 0)
         with self.assertRaises(ChunkingError):
             chunk_spans("x" * (MAX_CHUNKS + 1), policy, max_chunks=MAX_CHUNKS)
 
@@ -232,7 +232,7 @@ class ChunkingAlgorithmTests(unittest.TestCase):
         self.assertGreater(DEFAULT_POLICY.max_units, DEFAULT_POLICY.overlap_units)
 
     def test_plain_text_does_not_claim_markdown_heading_context(self):
-        result = chunk("# Not a parsed heading\\nbody", policy=Policy("plain-text-default", "0.1", 64, 0))
+        result = chunk("# Not a parsed heading\\nbody", policy=Policy("markdown-default", "0.1", 64, 0))
         self.assertEqual(result["chunks"][0]["heading_path"], [])
 
     def test_invalid_policy_rejected(self):
@@ -575,7 +575,7 @@ class ChunkingHttpTests(unittest.TestCase):
         self.assert_error_schema(result, headers)
 
     def test_unknown_profile_and_version_are_rejected(self):
-        for profile, version in (("missing-profile", "0.1"), ("plain-text-default", "9.9")):
+        for profile, version in (("missing-profile", "0.1"), ("markdown-default", "9.9")):
             body = request_body()
             body["policy"]["profile"] = profile
             body["policy"]["profile_version"] = version
@@ -639,7 +639,7 @@ class ChunkingHttpTests(unittest.TestCase):
     def test_preflight_matches_schema_and_checks_profile_identity(self):
         bundle = profile_bundle()
         body = {"index_profile": PROFILE, "source_text": "hello world",
-                "chunking_profile": {"profile": "plain-text-default", "version": "0.1",
+                "chunking_profile": {"profile": "markdown-default", "version": "0.1",
                                      "max_units": 12, "overlap_units": 2},
                 "profile_bundle": bundle}
         status, headers, result = self.post("/api/v1/chunking/preflight", body,
@@ -658,7 +658,7 @@ class ChunkingHttpTests(unittest.TestCase):
         bundle = profile_bundle()
         bundle["status"] = "retired"
         body = {"index_profile": dict(PROFILE), "source_text": "hello world",
-                "chunking_profile": {"profile": "plain-text-default", "version": "0.1",
+                "chunking_profile": {"profile": "markdown-default", "version": "0.1",
                                      "max_units": 12, "overlap_units": 2},
                 "profile_bundle": bundle}
         status, headers, result = self.post("/api/v1/chunking/preflight", body)
@@ -669,7 +669,7 @@ class ChunkingHttpTests(unittest.TestCase):
 
     def test_chunk_count_limit_is_enforced_over_http(self):
         body = request_body()
-        body["policy"] = {"profile": "plain-text-default", "profile_version": "0.1",
+        body["policy"] = {"profile": "markdown-default", "profile_version": "0.1",
                           "max_units": 1, "overlap_units": 0, "unit": "unicode_code_points"}
         body["source"]["content"] = "x" * 257
         status, headers, result = self.post(body=body)
@@ -693,7 +693,7 @@ class ChunkingHttpTests(unittest.TestCase):
             bundle = profile_bundle()
             mutate(bundle)
             body = {"index_profile": dict(PROFILE), "source_text": "hello world",
-                    "chunking_profile": {"profile": "plain-text-default", "version": "0.1",
+                    "chunking_profile": {"profile": "markdown-default", "version": "0.1",
                                           "max_units": 12, "overlap_units": 2},
                     "profile_bundle": bundle}
             status, headers, result = self.post("/api/v1/chunking/preflight", body)
@@ -709,7 +709,7 @@ class ChunkingHttpTests(unittest.TestCase):
         bundle["limits"]["max_request_bytes"] = 600000
         refresh_profile_digest(bundle)
         body = {"index_profile": dict(PROFILE), "source_text": "🙂" * 20000,
-                "chunking_profile": {"profile": "plain-text-default", "version": "0.1",
+                "chunking_profile": {"profile": "markdown-default", "version": "0.1",
                                      "max_units": 20000, "overlap_units": 0},
                 "profile_bundle": bundle}
         status, headers, result = self.post("/api/v1/chunking/preflight", body)
@@ -724,7 +724,7 @@ class ChunkingHttpTests(unittest.TestCase):
         bundle["chunking"]["max_units"] = 4
         refresh_profile_digest(bundle)
         body = {"index_profile": dict(PROFILE), "source_text": "abcdefghijklmnop",
-                "chunking_profile": {"profile": "plain-text-default", "version": "0.1",
+                "chunking_profile": {"profile": "markdown-default", "version": "0.1",
                                      "max_units": 4, "overlap_units": 0},
                 "profile_bundle": bundle}
         status, headers, result = self.post("/api/v1/chunking/preflight", body)
