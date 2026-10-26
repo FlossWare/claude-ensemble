@@ -73,6 +73,8 @@ def profile_bundle():
 
 
 class ChunkingAlgorithmTests(unittest.TestCase):
+    """Pure algorithm tests may use synthetic policies; HTTP tests enforce supported profiles."""
+
     def test_repeatability_and_stable_ids(self):
         self.assertEqual(chunk("same input"), chunk("same input"))
         self.assertEqual([c["chunk_id"] for c in chunk("same input")["chunks"]],
@@ -258,14 +260,14 @@ class ChunkingAlgorithmTests(unittest.TestCase):
             "name": "café",
             "version": "1",
             "status": "active",
-            "chunking": {"profile": "plain", "version": "0.1", "max_units": 8},
+            "chunking": {"profile": "markdown-default", "version": "0.1", "max_units": 8},
             "digest": "ignored",
         }
         # Fixed expected SHA-256 for sorted compact UTF-8 canonical bytes,
         # independent of the test fixture's digest-refresh helper.
         self.assertEqual(
             _profile_digest(bundle),
-            "d1275710b5bcd4ccda890b8bda0c707b0a2e7bc9aa660777957552c3e7527f92",
+            "82d7b013189b1617ecec8abfe28c36e2ce2364bfa43d64d69ecb6a24abb5c905",
         )
 
     def test_fresh_process_determinism(self):
@@ -717,11 +719,16 @@ class ChunkingHttpTests(unittest.TestCase):
         status, _, unknown = self.post(body=body)
         self.assertEqual(status, 200)
         self.assertTrue(all(item["heading_path"] == [] for item in unknown["chunks"]))
+        body["source"]["media_type"] = "application/json"
+        status, _, unsupported = self.post(body=body)
+        self.assertEqual(status, 200)
+        self.assertTrue(all(item["heading_path"] == [] for item in unsupported["chunks"]))
 
     def test_preflight_rejects_digest_tampering_and_invalid_nested_profile(self):
         for mutate in (
             lambda bundle: bundle.update({"digest": "f" * 64}),
             lambda bundle: bundle["chunking"].update({"max_units": 0}),
+            lambda bundle: bundle["chunking"].update({"overlap_units": 0}),
             lambda bundle: bundle["tokenization"].pop("version"),
             lambda bundle: bundle["lexical"].update({"statistics_policy": "unknown"}),
             lambda bundle: bundle.update({"embedding": None}),
