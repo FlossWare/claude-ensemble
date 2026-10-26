@@ -575,7 +575,7 @@ class ChunkingHttpTests(unittest.TestCase):
         self.assert_error_schema(result, headers)
 
     def test_unknown_profile_and_version_are_rejected(self):
-        for profile, version in (("missing-profile", "0.1"), ("markdown-default", "9.9")):
+        for profile, version in (("missing-profile", "0.1"), ("plain-text-default", "0.1"), ("markdown-default", "9.9")):
             body = request_body()
             body["policy"]["profile"] = profile
             body["policy"]["profile_version"] = version
