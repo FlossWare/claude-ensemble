@@ -232,7 +232,7 @@ class ChunkingAlgorithmTests(unittest.TestCase):
         self.assertGreater(DEFAULT_POLICY.max_units, DEFAULT_POLICY.overlap_units)
 
     def test_canonical_markdown_profile_reports_heading_context(self):
-        result = chunk("# Heading\\nbody", policy=Policy("markdown-default", "0.1", 64, 0))
+        result = chunk("# Heading\nbody", policy=Policy("markdown-default", "0.1", 64, 0))
         self.assertEqual(result["chunks"][0]["heading_path"], ["Heading"])
 
     def test_invalid_policy_rejected(self):
