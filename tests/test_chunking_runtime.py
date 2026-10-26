@@ -733,59 +733,185 @@ class ChunkingHttpTests(unittest.TestCase):
         self.assertGreater(result["chunk_count"], bundle["limits"]["max_chunks"])
         Draft202012Validator(SCHEMA["$defs"]["preflightResponse"]).validate(result)
 
-    def test_capacity_limit_rejects_excess_handler_with_correlated_503(self):
+    def test_capacity_saturation_rejects_excess_and_recovers_after_completion_and_exception(self):
+        gate_started = threading.Barrier(2)
+        gate_release = threading.Event()
+        raise_started = threading.Event()
+
+        class CapacityTestHandler(Handler):
+            def do_GET(self):
+                if self.path == "/test/gate":
+                    gate_started.wait(timeout=2)
+                    if not gate_release.wait(timeout=3):
+                        self._send(500, {"error": {"code": "test_gate_timeout"}}, "gate-timeout")
+                        return
+                    self._send(200, {"service": "test", "status": "released"}, self._request_id()[0])
+                elif self.path == "/test/raise":
+                    raise_started.set()
+                    raise RuntimeError("injected handler failure")
+                else:
+                    super().do_GET()
+
+        class SaturatedServer(BoundedThreadingHTTPServer):
+            max_workers = 2
+
         class SingleWorkerServer(BoundedThreadingHTTPServer):
             max_workers = 1
 
-        original_timeout = Handler.timeout
-        Handler.timeout = 1.0
-        server = SingleWorkerServer(("127.0.0.1", 0), Handler)
+        class QuietSingleWorkerServer(SingleWorkerServer):
+            def handle_error(self, request, client_address):
+                # The injected exception is intentional; keep test output deterministic.
+                return
+
+        def raw_request(port, method, path, request_id):
+            conn = socket.create_connection(("127.0.0.1", port), timeout=2)
+            conn.sendall((f"{method} {path} HTTP/1.1\\r\\n"
+                          "Host: 127.0.0.1\\r\\n"
+                          f"X-CE-Request-ID: {request_id}\\r\\n"
+                          "Connection: close\\r\\n\\r\\n").encode("ascii"))
+            return conn
+
+        server = SaturatedServer(("127.0.0.1", 0), CapacityTestHandler)
         thread = threading.Thread(target=server.serve_forever, daemon=True)
         thread.start()
-        stalled = socket.create_connection(("127.0.0.1", server.server_port), timeout=2)
+        gates = []
         try:
-            stalled.sendall(
-                b"POST /api/v1/chunking/chunks HTTP/1.1\r\n"
-                b"Host: 127.0.0.1\r\n"
-                b"Content-Type: application/json\r\n"
-                b"Content-Length: 100\r\n"
-                b"Connection: close\r\n\r\n"
-            )
-            rejected = socket.create_connection(("127.0.0.1", server.server_port), timeout=2)
+            gates = [raw_request(server.server_port, "GET", "/test/gate", f"gate-{i}") for i in range(2)]
+            # The barrier proves both worker slots are occupied by live handlers.
+            gate_started.wait(timeout=2)
+            rejected = raw_request(server.server_port, "GET", "/api/v1/chunking/health", "capacity-full")
             try:
-                rejected.sendall(
-                    b"GET /api/v1/chunking/health HTTP/1.1\r\n"
-                    b"Host: 127.0.0.1\r\n"
-                    b"Connection: close\r\n\r\n"
-                )
-                response = bytearray()
+                raw = bytearray()
                 while True:
                     part = rejected.recv(4096)
                     if not part:
                         break
-                    response.extend(part)
+                    raw.extend(part)
             finally:
                 rejected.close()
-            raw = bytes(response)
-            status_line = raw.split(b"\r\n", 1)[0]
-            self.assertRegex(status_line, rb"^HTTP/1\.[01] 503(?: |$)")
-            header_bytes, body_bytes = raw.split(b"\r\n\r\n", 1)
+            status_line = bytes(raw).split(b"\\r\\n", 1)[0]
+            self.assertRegex(status_line, rb"^HTTP/1\\.[01] 503(?: |$)")
+            header_bytes, body_bytes = bytes(raw).split(b"\\r\\n\\r\\n", 1)
             headers = {}
-            for line in header_bytes.split(b"\r\n")[1:]:
+            for line in header_bytes.split(b"\\r\\n")[1:]:
                 if b":" in line:
                     key, value = line.split(b":", 1)
                     headers[key.decode("ascii")] = value.strip().decode("ascii")
             payload = json.loads(body_bytes)
             self.assertEqual(payload["error"]["code"], "service_unavailable")
             self.assertEqual(payload["request_id"], headers["X-CE-Request-ID"])
-            self.assertIn(503, SCHEMA["x-endpoints"]["POST /api/v1/chunking/chunks"]["error_statuses"])
+            self.assertEqual(headers["X-CE-Request-ID"], payload["request_id"])
+            self.assertIn(503, SCHEMA["x-endpoints"]["GET /api/v1/chunking/health"]["error_statuses"])
             Draft202012Validator(SCHEMA["$defs"]["errorResponse"]).validate(payload)
+
+            gate_release.set()
+            for conn in gates:
+                response = bytearray()
+                while True:
+                    part = conn.recv(4096)
+                    if not part:
+                        break
+                    response.extend(part)
+                self.assertRegex(bytes(response).split(b"\\r\\n", 1)[0], rb"^HTTP/1\\.[01] 200(?: |$)")
+                conn.close()
+            gates = []
+            with urlopen(f"http://127.0.0.1:{server.server_port}/api/v1/chunking/health", timeout=1) as health:
+                self.assertEqual(health.status, 200)
         finally:
-            stalled.close()
+            gate_release.set()
+            for conn in gates:
+                conn.close()
             server.shutdown()
             server.server_close()
             thread.join(timeout=2)
-            Handler.timeout = original_timeout
+
+        # A worker exception must also release the semaphore slot.
+        failing_server = QuietSingleWorkerServer(("127.0.0.1", 0), CapacityTestHandler)
+        failing_thread = threading.Thread(target=failing_server.serve_forever, daemon=True)
+        failing_thread.start()
+        failed_request = None
+        try:
+            failed_request = raw_request(failing_server.server_port, "GET", "/test/raise", "raise-request")
+            self.assertTrue(raise_started.wait(timeout=2), "exception handler never started")
+            failed_request.settimeout(2)
+            while failed_request.recv(4096):
+                pass
+            deadline = time.monotonic() + 2
+            recovered = False
+            while time.monotonic() < deadline:
+                try:
+                    with urlopen(f"http://127.0.0.1:{failing_server.server_port}/api/v1/chunking/health", timeout=0.25) as health:
+                        recovered = health.status == 200
+                        break
+                except HTTPError as exc:
+                    if exc.code != 503:
+                        raise
+                except (TimeoutError, OSError):
+                    pass
+                time.sleep(0.01)
+            self.assertTrue(recovered, "handler capacity did not recover after an exception")
+        finally:
+            if failed_request is not None:
+                failed_request.close()
+            failing_server.shutdown()
+            failing_server.server_close()
+            failing_thread.join(timeout=2)
+
+    def test_head_and_unrecognized_methods_follow_contractual_error_behavior(self):
+        # HEAD must remain bodyless, while retaining the 405 status and correlation metadata.
+        conn = socket.create_connection(("127.0.0.1", self.httpd.server_port), timeout=2)
+        try:
+            conn.sendall(
+                b"HEAD /api/v1/chunking/health HTTP/1.1\\r\\n"
+                b"Host: 127.0.0.1\\r\\n"
+                b"X-CE-Request-ID: head-method-1\\r\\n"
+                b"Connection: close\\r\\n\\r\\n"
+            )
+            raw = bytearray()
+            while True:
+                part = conn.recv(4096)
+                if not part:
+                    break
+                raw.extend(part)
+            header_bytes, body = bytes(raw).split(b"\\r\\n\\r\\n", 1)
+            self.assertRegex(header_bytes.split(b"\\r\\n", 1)[0], rb"^HTTP/1\\.[01] 405(?: |$)")
+            self.assertIn(b"X-CE-Request-ID: head-method-1", header_bytes)
+            self.assertIn(b"Content-Type: application/json; charset=utf-8", header_bytes)
+            self.assertGreater(int(next(line.split(b":",1)[1] for line in header_bytes.split(b"\\r\\n") if line.lower().startswith(b"content-length:"))), 0)
+            self.assertEqual(body, b"")
+        finally:
+            conn.close()
+
+        # Unknown verbs must not fall through to BaseHTTPRequestHandler's uncorrelated 501.
+        conn = socket.create_connection(("127.0.0.1", self.httpd.server_port), timeout=2)
+        try:
+            conn.sendall(
+                b"BREW /api/v1/chunking/health HTTP/1.1\\r\\n"
+                b"Host: 127.0.0.1\\r\\n"
+                b"X-CE-Request-ID: unknown-method-1\\r\\n"
+                b"Connection: close\\r\\n\\r\\n"
+            )
+            raw = bytearray()
+            while True:
+                part = conn.recv(4096)
+                if not part:
+                    break
+                raw.extend(part)
+            header_bytes, body = bytes(raw).split(b"\\r\\n\\r\\n", 1)
+            self.assertRegex(header_bytes.split(b"\\r\\n", 1)[0], rb"^HTTP/1\\.[01] 405(?: |$)")
+            headers = {}
+            for line in header_bytes.split(b"\\r\\n")[1:]:
+                if b":" in line:
+                    key, value = line.split(b":", 1)
+                    headers[key.decode("ascii").lower()] = value.strip().decode("ascii")
+            payload = json.loads(body)
+            self.assertEqual(payload["error"]["code"], "method_not_allowed")
+            self.assertEqual(payload["request_id"], "unknown-method-1")
+            self.assertEqual(headers["x-ce-request-id"], payload["request_id"])
+            self.assertIn(405, SCHEMA["x-endpoints"]["GET /api/v1/chunking/health"]["error_statuses"])
+            self.assert_error_schema(payload, headers)
+        finally:
+            conn.close()
 
     def test_unknown_endpoint_uses_shared_error_envelope(self):
         status, headers, result = self.post("/api/v1/chunking/unknown", body={})
