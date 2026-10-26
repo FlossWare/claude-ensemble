@@ -151,6 +151,6 @@ The local runtime uses a bounded threaded HTTP server with at most 32 active req
 - Chunk IDs are stable for identical identity/revision/policy and change appropriately when source revision or chunk boundaries change.
 - Offsets, line spans, heading paths, overlap, ordering, and maximum size are verified for ordinary text, Markdown headings, Unicode, empty input, and boundary cases.
 - Non-canonical profile names/versions and invalid policies return stable client errors.
-- Policy upgrades are visible to Index and trigger a defined re-chunk/re-index path without silently mixing versions.
+- Only the canonical `markdown-default@0.1` profile is accepted; unsupported profile/version requests are rejected.
 - Failure and readiness behavior is distinguishable from a valid empty-document result.
 - Contract tests run without requiring a particular programming language or deployment topology.
