@@ -86,9 +86,6 @@ def tokenize(text: str, *, preserve_identifiers: bool = True,
             if include_offsets:
                 token["start_offset"] = match.start()
                 token["end_offset"] = match.end()
-            else:
-                token["start_offset"] = match.start()
-                token["end_offset"] = match.end()
             result.append(token)
             if len(result) > MAX_TOKENS:
                 raise TokenizationError("source_too_large", f"text produces more than {MAX_TOKENS} lexical tokens")
