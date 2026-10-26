@@ -4,7 +4,7 @@ from __future__ import annotations
 import hashlib
 import json
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, Callable
 
 MAX_CONTENT_BYTES = 262_144
 MAX_UNITS = 65_536
@@ -94,7 +94,7 @@ def _choose_end(text: str, start: int, limit: int) -> int:
     return boundary + 1 if boundary >= floor else hard_end
 
 
-def _heading_path(text: str, offset: int) -> list[str]:
+def _heading_path(text: str, offset: int, deadline_check: Callable[[], None] | None = None) -> list[str]:
     """Return ancestry from complete ATX heading lines preceding offset."""
     import re
 
@@ -102,7 +102,9 @@ def _heading_path(text: str, offset: int) -> list[str]:
     fence_char: str | None = None
     fence_length = 0
     position = 0
-    for raw_line in text.splitlines(keepends=True):
+    for line_number, raw_line in enumerate(text.splitlines(keepends=True)):
+        if deadline_check is not None and line_number % 64 == 0:
+            deadline_check()
         line_end = position + len(raw_line)
         # A chunk boundary inside a heading line must never turn its prefix into
         # fabricated provenance.
@@ -138,11 +140,14 @@ def _heading_path(text: str, offset: int) -> list[str]:
     return [heading for _, heading in ancestry[-64:]]
 
 
-def chunk_spans(content: str, policy: Policy, *, max_chunks: int = MAX_CHUNKS) -> list[tuple[int, int]]:
+def chunk_spans(content: str, policy: Policy, *, max_chunks: int = MAX_CHUNKS,
+                deadline_check: Callable[[], None] | None = None) -> list[tuple[int, int]]:
     """Compute bounded source spans without constructing chunk response objects."""
     spans: list[tuple[int, int]] = []
     start = 0
     while start < len(content):
+        if deadline_check is not None:
+            deadline_check()
         end = _choose_end(content, start, policy.max_units)
         if end <= start:
             raise ChunkingError("internal_error", "chunker failed to advance", status=500)
@@ -158,7 +163,8 @@ def chunk_spans(content: str, policy: Policy, *, max_chunks: int = MAX_CHUNKS) -
 
 def chunk_document(*, source_id: str, revision: str, revision_sequence: int,
                    content: str, index_profile: dict[str, str], policy: Policy,
-                   include_text: bool = True, include_line_spans: bool = True) -> dict[str, Any]:
+                   include_text: bool = True, include_line_spans: bool = True,
+                   deadline_check: Callable[[], None] | None = None) -> dict[str, Any]:
     """Return deterministic chunks with code-point offsets into the original string."""
     if not isinstance(content, str) or not content:
         raise ChunkingError("invalid_request", "source.content must be a non-empty string", status=400)
@@ -176,7 +182,7 @@ def chunk_document(*, source_id: str, revision: str, revision_sequence: int,
     if type(include_text) is not bool or type(include_line_spans) is not bool:
         raise ChunkingError("invalid_parameter", "options.include_text and options.include_line_spans must be booleans", status=400)
 
-    spans = chunk_spans(content, policy)
+    spans = chunk_spans(content, policy, deadline_check=deadline_check)
 
     chunks: list[dict[str, Any]] = []
     for ordinal, (start, end) in enumerate(spans):
@@ -192,7 +198,7 @@ def chunk_document(*, source_id: str, revision: str, revision_sequence: int,
             "ordinal": ordinal,
             "start_offset": start,
             "end_offset": end,
-            "heading_path": _heading_path(content, start) if policy.profile == "markdown-default" else [],
+            "heading_path": _heading_path(content, start, deadline_check) if policy.profile == "markdown-default" else [],
             "metadata": {},
         }
         if include_text:
