@@ -14,6 +14,7 @@ Classify a user request into bounded, versioned intent labels with confidence, e
 
 ## Request
 
+<!-- schema-example: docs/contracts/schemas/intent-classification.schema.json#/$defs/request -->
 ~~~json
 {
   "request_id": "correlation-id",
@@ -25,6 +26,7 @@ Classify a user request into bounded, versioned intent labels with confidence, e
 
 ## Response
 
+<!-- schema-example: docs/contracts/schemas/intent-classification.schema.json#/$defs/response -->
 ~~~json
 {
   "request_id": "correlation-id",
