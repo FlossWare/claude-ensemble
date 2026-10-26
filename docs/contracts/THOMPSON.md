@@ -47,7 +47,7 @@ Use the common error envelope. Distinguish invalid context/policy, no eligible a
 
 ## Acceptance tests
 
-1. Repeating the same selection payload and `Idempotency-Key` returns the same persisted choice; a new key is a new stochastic selection and cannot mutate state merely by selecting.
+1. Repeating the same selection payload and `Idempotency-Key` returns the same persisted choice; a new key is a new stochastic selection and cannot mutate posterior parameters or advance `state_version`; it records exposure and selection audit metadata exactly once.
 2. Excluded arms are never selected.
 3. Duplicate update event does not double-count; conflicting reuse of event ID fails.
 4. Reward update provenance and state version are observable.
