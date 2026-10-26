@@ -91,8 +91,8 @@ def main() -> int:
                 if caller == service:
                     errors.append(f"{where}: service cannot call its own REST endpoint")
                     continue
-                if service in SINK_SERVICES:
-                    errors.append(f"{where}: sink service {service!r} cannot be called by another logical service")
+                if caller in SINK_SERVICES:
+                    errors.append(f"{where}: sink service {caller!r} cannot call another logical service")
                 edge = (caller, service)
                 declared_edges.add(edge)
                 if edge not in WORKFLOW_EDGES:
