@@ -102,6 +102,39 @@ class ContractGateTests(unittest.TestCase):
         self.assertNotEqual(result.returncode, 0, result.stdout + result.stderr)
         self.assertIn("duplicate route", result.stderr)
 
+    def test_public_profile_selector_and_rebuild_phases_are_explicit(self):
+        gateway = json.loads((ROOT / "docs" / "contracts" / "schemas" / "gateway.schema.json").read_text(encoding="utf-8"))
+        profile_request = gateway["$defs"]["profileRequest"]
+        self.assertEqual(profile_request["required"], ["name", "version"])
+        self.assertNotIn("digest", profile_request.get("properties", {}))
+        statuses = gateway["$defs"]["rebuildResponse"]["properties"]["status"]["enum"]
+        self.assertIn("cutover_outcome_unknown", statuses)
+        self.assertIn("cutover_committed_cleanup_pending", statuses)
+        self.assertNotIn("cutover", statuses)
+        prose = (ROOT / "docs" / "contracts" / "GATEWAY.md").read_text(encoding="utf-8")
+        self.assertIn("durable orchestration journal", prose)
+        self.assertIn("MUST NOT report cutover failure", prose)
+        self.assertIn("does not supply a digest that clients cannot reliably discover", prose)
+
+    def test_lexical_query_has_declared_tokenization_producer(self):
+        lexical = json.loads((ROOT / "docs" / "contracts" / "schemas" / "lexical-retrieval.schema.json").read_text(encoding="utf-8"))
+        request = lexical["$defs"]["searchRequest"]
+        self.assertIn("query_text", request["required"])
+        self.assertNotIn("terms", request["properties"])
+        prose = (ROOT / "docs" / "contracts" / "LEXICAL-RETRIEVAL.md").read_text(encoding="utf-8")
+        self.assertIn("calls Tokenization over REST", prose)
+        manifest = json.loads((ROOT / "docs" / "contracts" / "service-call-workflows.json").read_text(encoding="utf-8"))
+        self.assertTrue(any(edge["caller"] == "lexical-retrieval" and edge["callee"] == "tokenization" for edge in manifest["edges"]))
+
+    def test_graph_resolution_and_terminal_semantics_are_normative(self):
+        graph = json.loads((ROOT / "docs" / "contracts" / "schemas" / "graph.schema.json").read_text(encoding="utf-8"))
+        self.assertIn("resolution_evidence", graph["$defs"]["traversalResponse"]["required"])
+        self.assertIn("resolutionSupport", graph["$defs"])
+        prose = (ROOT / "docs" / "contracts" / "GRAPH.md").read_text(encoding="utf-8")
+        self.assertIn("resolution_evidence", prose)
+        self.assertIn("does not create a terminal disposition for the conflicting submission", prose)
+        self.assertIn("normalized matched mention", prose)
+
     def test_rrf_integer_golden_vectors(self):
         def contribution(rank: int) -> int:
             return 1_000_000_000_000 // (60 + rank)
