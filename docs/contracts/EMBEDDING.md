@@ -16,6 +16,7 @@ It does not own source records, chunking, lexical tokenization, index storage, r
 
 ## Request
 
+<!-- schema-example: docs/contracts/schemas/embedding.schema.json#/$defs/request -->
 ~~~json
 {
   "index_profile": {"name": "default", "version": "0.1", "digest": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"},
@@ -32,6 +33,7 @@ The profile is resolved through Index and each request carries the immutable `in
 
 ## Response
 
+<!-- schema-example: docs/contracts/schemas/embedding.schema.json#/$defs/response -->
 ~~~json
 {
   "index_profile": {"name": "default", "version": "0.1", "digest": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"},
