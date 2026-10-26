@@ -13,11 +13,13 @@ on:
     branches:
       - main
       - "review/**"
+      - "implementation/**"
     paths:
       - "docs/**"
       - "scripts/**"
       - "tests/**"
       - "runtime/**"
+      - "requirements-test.txt"
       - ".github/workflows/contract-validation.yml"
 
 permissions:
