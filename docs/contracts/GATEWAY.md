@@ -53,6 +53,7 @@ The operator-only rebuild workflow is ordered and durable: (1) Gateway creates t
 
 Request `POST /api/v1/requests`:
 
+<!-- schema-example: docs/contracts/schemas/gateway.schema.json#/$defs/request -->
 ~~~json
 {
   "request_id": "correlation-id",
@@ -67,6 +68,7 @@ Request `POST /api/v1/requests`:
 
 Response:
 
+<!-- schema-example: docs/contracts/schemas/gateway.schema.json#/$defs/response -->
 ~~~json
 {
   "request_id": "correlation-id",
