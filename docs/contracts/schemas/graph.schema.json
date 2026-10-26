@@ -591,7 +591,8 @@
             "pending",
             "complete",
             "failed",
-            "reconciliation_required"
+            "reconciliation_required",
+            "superseded"
           ]
         },
         "request_id": {
@@ -609,6 +610,13 @@
           "type": "integer",
           "minimum": 1,
           "maximum": 9007199254740991
+        },
+        "terminal_disposition": {
+          "enum": [
+            "applied",
+            "superseded",
+            "rejected"
+          ]
         }
       }
     },
@@ -875,7 +883,8 @@
             "minimum": 0,
             "maximum": 9007199254740991
           },
-          "maxProperties": 2
+          "maxProperties": 2,
+          "description": "Per-owner contiguous terminal projection watermarks; includes safely superseded events, but not rejected/conflicting events."
         },
         "ready": {
           "type": "boolean"
@@ -915,7 +924,7 @@
       "required": [
         "owner",
         "sealed_projection_sequence",
-        "applied_projection_sequence",
+        "terminal_projection_sequence",
         "ready",
         "request_id"
       ],
@@ -931,11 +940,6 @@
           "minimum": 0,
           "maximum": 9007199254740991
         },
-        "applied_projection_sequence": {
-          "type": "integer",
-          "minimum": 0,
-          "maximum": 9007199254740991
-        },
         "ready": {
           "type": "boolean"
         },
@@ -943,6 +947,12 @@
           "type": "string",
           "minLength": 1,
           "maxLength": 128
+        },
+        "terminal_projection_sequence": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991,
+          "description": "Highest contiguous sequence with a durable applied or superseded terminal disposition."
         }
       }
     },
