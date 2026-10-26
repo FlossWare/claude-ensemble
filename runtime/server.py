@@ -230,6 +230,11 @@ class Handler(BaseHTTPRequestHandler):
             return ChunkingError("deadline_exceeded", "request deadline has expired", status=504, details={"retry_after_deadline": False})
         return None
 
+    def _check_deadline(self) -> None:
+        error = self._deadline_error()
+        if error is not None:
+            raise error
+
     def _read_body(self, length: int) -> bytes:
         """Read with a monotonic total deadline, even when the peer trickles bytes."""
         body = bytearray()
@@ -351,6 +356,7 @@ class Handler(BaseHTTPRequestHandler):
             policy=policy,
             include_text=include_text,
             include_line_spans=include_line_spans,
+            deadline_check=self._check_deadline,
         )
         if len(result["chunks"]) > 256:
             raise ChunkingError("source_too_large", "source requires more than 256 chunks")
@@ -392,7 +398,8 @@ class Handler(BaseHTTPRequestHandler):
         if policy.profile not in SUPPORTED_PROFILES or policy.profile_version not in SUPPORTED_PROFILES[policy.profile]:
             raise ChunkingError("unsupported_profile", "chunking profile or version is not configured")
         limits = bundle["limits"]
-        spans = chunk_spans(source_text, policy, max_chunks=MAX_CHUNKS)
+        spans = chunk_spans(source_text, policy, max_chunks=MAX_CHUNKS,
+                            deadline_check=self._check_deadline)
         chunk_count = len(spans)
         max_text_bytes = max(len(source_text[start:end].encode("utf-8")) for start, end in spans)
         if max_text_bytes > 65536:
