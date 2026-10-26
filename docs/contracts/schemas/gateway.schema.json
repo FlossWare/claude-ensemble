@@ -1411,8 +1411,8 @@
       ]
     },
     "POST /api/v1/gateway/memories": {
-      "request": "memory.schema.json##/$defs/createRequest",
-      "response": "memory.schema.json##/$defs/createResponse",
+      "request": "memory.schema.json#/$defs/createRequest",
+      "response": "memory.schema.json#/$defs/createResponse",
       "success_status": 202,
       "error_response": "#/$defs/errorResponse",
       "error_statuses": [
@@ -1432,7 +1432,7 @@
       ]
     },
     "GET /api/v1/gateway/memories/{memory_id}": {
-      "response": "memory.schema.json##/$defs/canonicalReadResponse",
+      "response": "memory.schema.json#/$defs/canonicalReadResponse",
       "success_status": 200,
       "error_response": "#/$defs/errorResponse",
       "error_statuses": [
@@ -1449,8 +1449,8 @@
       ]
     },
     "POST /api/v1/gateway/memories/{memory_id}/revisions": {
-      "request": "memory.schema.json##/$defs/updateRequest",
-      "response": "memory.schema.json##/$defs/updateResponse",
+      "request": "memory.schema.json#/$defs/updateRequest",
+      "response": "memory.schema.json#/$defs/updateResponse",
       "success_status": 202,
       "error_response": "#/$defs/errorResponse",
       "error_statuses": [
@@ -1470,8 +1470,8 @@
       ]
     },
     "DELETE /api/v1/gateway/memories/{memory_id}": {
-      "request": "memory.schema.json##/$defs/deleteRequest",
-      "response": "memory.schema.json##/$defs/deleteResponse",
+      "request": "memory.schema.json#/$defs/deleteRequest",
+      "response": "memory.schema.json#/$defs/deleteResponse",
       "success_status": 202,
       "error_response": "#/$defs/errorResponse",
       "error_statuses": [
@@ -1489,7 +1489,7 @@
       ]
     },
     "GET /api/v1/gateway/memories/operations/{operation_id}": {
-      "response": "memory.schema.json##/$defs/operationStatusResponse",
+      "response": "memory.schema.json#/$defs/operationStatusResponse",
       "success_status": 200,
       "error_response": "#/$defs/errorResponse",
       "error_statuses": [
@@ -1507,8 +1507,8 @@
       ]
     },
     "POST /api/v1/gateway/knowledge/sources": {
-      "request": "knowledge.schema.json##/$defs/createRequest",
-      "response": "knowledge.schema.json##/$defs/mutationResponse",
+      "request": "knowledge.schema.json#/$defs/createRequest",
+      "response": "knowledge.schema.json#/$defs/mutationResponse",
       "success_status": 202,
       "error_response": "#/$defs/errorResponse",
       "error_statuses": [
@@ -1528,7 +1528,7 @@
       ]
     },
     "GET /api/v1/gateway/knowledge/sources/{source_key}": {
-      "response": "knowledge.schema.json##/$defs/canonicalReadResponse",
+      "response": "knowledge.schema.json#/$defs/canonicalReadResponse",
       "success_status": 200,
       "error_response": "#/$defs/errorResponse",
       "error_statuses": [
@@ -1545,8 +1545,8 @@
       ]
     },
     "POST /api/v1/gateway/knowledge/sources/{source_key}/revisions": {
-      "request": "knowledge.schema.json##/$defs/updateRequest",
-      "response": "knowledge.schema.json##/$defs/mutationResponse",
+      "request": "knowledge.schema.json#/$defs/updateRequest",
+      "response": "knowledge.schema.json#/$defs/mutationResponse",
       "success_status": 202,
       "error_response": "#/$defs/errorResponse",
       "error_statuses": [
@@ -1566,8 +1566,8 @@
       ]
     },
     "DELETE /api/v1/gateway/knowledge/sources/{source_key}": {
-      "request": "knowledge.schema.json##/$defs/deleteRequest",
-      "response": "knowledge.schema.json##/$defs/deleteResponse",
+      "request": "knowledge.schema.json#/$defs/deleteRequest",
+      "response": "knowledge.schema.json#/$defs/deleteResponse",
       "success_status": 202,
       "error_response": "#/$defs/errorResponse",
       "error_statuses": [
@@ -1585,7 +1585,7 @@
       ]
     },
     "GET /api/v1/gateway/knowledge/operations/{operation_id}": {
-      "response": "knowledge.schema.json##/$defs/operationStatusResponse",
+      "response": "knowledge.schema.json#/$defs/operationStatusResponse",
       "success_status": 200,
       "error_response": "#/$defs/errorResponse",
       "error_statuses": [
@@ -1603,7 +1603,7 @@
       ]
     },
     "POST /api/v1/gateway/index/rebuilds": {
-      "request": "index.schema.json##/$defs/generationCreateRequest",
+      "request": "index.schema.json#/$defs/generationCreateRequest",
       "response": "#/$defs/rebuildResponse",
       "success_status": 202,
       "error_response": "#/$defs/errorResponse",
@@ -1639,7 +1639,7 @@
       ]
     },
     "POST /api/v1/gateway/index/rebuilds/{generation_id}/cutover": {
-      "request": "index.schema.json##/$defs/cutoverRequest",
+      "request": "index.schema.json#/$defs/cutoverRequest",
       "response": "#/$defs/rebuildResponse",
       "success_status": 200,
       "error_response": "#/$defs/errorResponse",
@@ -1659,7 +1659,7 @@
       ]
     },
     "POST /api/v1/gateway/index/rebuilds/{generation_id}/abandon": {
-      "request": "index.schema.json##/$defs/abandonRequest",
+      "request": "index.schema.json#/$defs/abandonRequest",
       "response": "#/$defs/rebuildResponse",
       "success_status": 200,
       "error_response": "#/$defs/errorResponse",
