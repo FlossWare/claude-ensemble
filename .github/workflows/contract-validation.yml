@@ -5,6 +5,7 @@ on:
     paths:
       - "docs/**"
       - "scripts/**"
+      - "tests/**"
       - ".github/workflows/contract-validation.yml"
   push:
     branches:
