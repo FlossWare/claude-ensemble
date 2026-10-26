@@ -73,8 +73,6 @@
       "required": [
         "term",
         "surface",
-        "start_offset",
-        "end_offset",
         "kind"
       ],
       "properties": {
