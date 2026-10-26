@@ -241,7 +241,7 @@ Build a target generation whose profile cannot represent one canonical source. A
 
 ### AT-CALL-GRAPH-01: Static allowed-caller graph
 
-Run `python scripts/validate_contracts.py` and `python scripts/check_service_call_graph.py` against all service contract schemas. Assert every endpoint declares a non-empty `x-callers` array, caller names are unique, all local references and endpoint bindings resolve, all fenced JSON examples parse, forbidden Index-to-Memory/Knowledge, Graph-to-Memory/Knowledge, and Thompson-to-Learning edges are rejected, and the service-level caller graph is acyclic. This static check validates declared contracts only; `AT-INDEX-DIRECTION-01` remains the separate runtime dispatcher-trace scenario.
+Run `python scripts/validate_contracts.py` and `python scripts/check_service_call_graph.py` against all service contract schemas. Assert every endpoint declares a non-empty `x-callers` array; callers are known services or approved external actors; method/path routes are unique; request/response/error bindings resolve; all fenced JSON parses with duplicate-key rejection; and explicitly bound examples validate against their referenced schemas. Every service-to-service edge must be listed in `docs/contracts/service-call-workflows.json` with existing contract references and a defined AT-* scenario; every manifest edge must appear in endpoint caller declarations. Reject unknown caller typos, Index as a caller, forbidden edges, duplicate routes, missing bindings, and cycles. This static check validates declarations only; `AT-INDEX-DIRECTION-01` remains the separate runtime dispatcher-trace scenario.
 
 
 ## Review correction: discriminating RRF arithmetic vectors
