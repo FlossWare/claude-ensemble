@@ -752,7 +752,8 @@
         "truncated",
         "request_id",
         "resolved_start_node_ids",
-        "unresolved_entity_mentions"
+        "unresolved_entity_mentions",
+        "resolution_evidence"
       ],
       "properties": {
         "scope": {
@@ -790,6 +791,14 @@
             "maxLength": 1024
           },
           "maxItems": 16
+        },
+        "resolution_evidence": {
+          "type": "array",
+          "maxItems": 64,
+          "items": {
+            "$ref": "#/$defs/resolutionEvidence"
+          },
+          "description": "Source-supported label/alias evidence for each entity mention to node resolution. Empty when start_node_ids are supplied. Gateway verifies these source identities as well as edge supports before returning paths."
         }
       }
     },
@@ -1036,6 +1045,79 @@
           "type": "string",
           "minLength": 1,
           "maxLength": 128
+        }
+      }
+    },
+    "resolutionSupport": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "source_id",
+        "source_revision",
+        "revision_sequence",
+        "scope",
+        "attribute_kind",
+        "matched_value"
+      ],
+      "properties": {
+        "source_id": {
+          "$ref": "#/$defs/sourceId"
+        },
+        "source_revision": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "revision_sequence": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        },
+        "scope": {
+          "$ref": "#/$defs/scope"
+        },
+        "attribute_kind": {
+          "enum": [
+            "label",
+            "alias"
+          ]
+        },
+        "matched_value": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1024
+        },
+        "provenance": {
+          "$ref": "#/$defs/provenance"
+        }
+      }
+    },
+    "resolutionEvidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "entity_mention",
+        "node_id",
+        "supports"
+      ],
+      "properties": {
+        "entity_mention": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1024
+        },
+        "node_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512
+        },
+        "supports": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 100,
+          "items": {
+            "$ref": "#/$defs/resolutionSupport"
+          }
         }
       }
     }
