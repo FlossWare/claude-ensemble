@@ -34,3 +34,5 @@ jobs:
         run: python scripts/validate_contracts.py
       - name: Validate service call graph
         run: python scripts/check_service_call_graph.py
+      - name: Run contract regression tests
+        run: python -m unittest discover -s tests -v
