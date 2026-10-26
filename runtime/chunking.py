@@ -95,12 +95,29 @@ def _choose_end(text: str, start: int, limit: int) -> int:
 
 
 def _heading_path(text: str, offset: int) -> list[str]:
+    """Return ATX heading ancestry before offset, ignoring fenced code blocks."""
     path: list[str] = []
+    fence_char: str | None = None
+    fence_length = 0
     for line in text[:offset].splitlines():
         stripped = line.lstrip()
+        indent = len(line) - len(stripped)
+        if indent <= 3 and stripped and stripped[0] in "`~":
+            marker = stripped[0]
+            run_length = len(stripped) - len(stripped.lstrip(marker))
+            if run_length >= 3:
+                if fence_char is None and (marker == "`" or "`" not in stripped):
+                    fence_char, fence_length = marker, run_length
+                    continue
+                if fence_char == marker and run_length >= fence_length and not stripped[run_length:].strip():
+                    fence_char, fence_length = None, 0
+                    continue
+        if fence_char is not None:
+            continue
         hashes = len(stripped) - len(stripped.lstrip("#"))
         if hashes and hashes <= 6 and len(stripped) > hashes and stripped[hashes:hashes + 1] == " ":
-            path = path[:hashes - 1] + [stripped[hashes:].strip()]
+            heading = stripped[hashes:].strip().rstrip("#").rstrip()
+            path = path[:hashes - 1] + [heading]
     return path
 
 
