@@ -20,7 +20,7 @@ SOURCE_ID = re.compile(r"^(memory|knowledge):[A-Za-z0-9._~-]{1,128}$")
 MAX_REQUEST_BYTES = 300_000
 MAX_PROFILE_REQUEST_BYTES = 2_097_152
 DEFAULT_REQUEST_TIMEOUT_SECONDS = 30.0
-SUPPORTED_PROFILES = {"markdown-default": {"0.1"}, "plain-text-default": {"0.1"}}
+SUPPORTED_PROFILES = {"markdown-default": {"0.1"}}
 
 
 def _profile_digest(bundle: dict[str, Any]) -> str:
@@ -321,8 +321,7 @@ class Handler(BaseHTTPRequestHandler):
                 "status": "ready",
                 "ready": True,
                 "checks": [{"name": "chunking_engine", "status": "ok"},
-                          {"name": "markdown-default@0.1", "status": "ok"},
-                          {"name": "plain-text-default@0.1", "status": "ok"}],
+                          {"name": "markdown-default@0.1", "status": "ok"}],
             }, request_id)
         else:
             self._send(404, _error("endpoint_not_found", "endpoint not found"), request_id)
