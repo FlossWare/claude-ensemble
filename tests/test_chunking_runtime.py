@@ -734,14 +734,23 @@ class ChunkingHttpTests(unittest.TestCase):
         Draft202012Validator(SCHEMA["$defs"]["preflightResponse"]).validate(result)
 
     def test_capacity_saturation_rejects_excess_and_recovers_after_completion_and_exception(self):
-        gate_started = threading.Barrier(2)
+        gate_started = threading.Event()
         gate_release = threading.Event()
         raise_started = threading.Event()
+        gate_lock = threading.Lock()
+        gate_count = 0
 
         class CapacityTestHandler(Handler):
             def do_GET(self):
+                nonlocal gate_count
                 if self.path == "/test/gate":
-                    gate_started.wait(timeout=2)
+                    with gate_lock:
+                        gate_count += 1
+                        if gate_count == 2:
+                            gate_started.set()
+                    if not gate_started.wait(timeout=2):
+                        self._send(500, {"error": {"code": "test_gate_timeout"}}, "gate-timeout")
+                        return
                     if not gate_release.wait(timeout=3):
                         self._send(500, {"error": {"code": "test_gate_timeout"}}, "gate-timeout")
                         return
@@ -777,8 +786,8 @@ class ChunkingHttpTests(unittest.TestCase):
         gates = []
         try:
             gates = [raw_request(server.server_port, "GET", "/test/gate", f"gate-{i}") for i in range(2)]
-            # The barrier proves both worker slots are occupied by live handlers.
-            gate_started.wait(timeout=2)
+            # Both handlers signal only after occupying their worker slots.
+            self.assertTrue(gate_started.wait(timeout=2), "both handler slots were not occupied")
             rejected = raw_request(server.server_port, "GET", "/api/v1/chunking/health", "capacity-full")
             try:
                 raw = bytearray()
