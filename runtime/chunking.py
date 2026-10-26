@@ -175,6 +175,7 @@ def chunk_spans(content: str, policy: Policy, *, max_chunks: int = MAX_CHUNKS,
 def chunk_document(*, source_id: str, revision: str, revision_sequence: int,
                    content: str, index_profile: dict[str, str], policy: Policy,
                    include_text: bool = True, include_line_spans: bool = True,
+                   media_type: str | None = None,
                    deadline_check: Callable[[], None] | None = None) -> dict[str, Any]:
     """Return deterministic chunks with code-point offsets into the original string."""
     if not isinstance(content, str) or not content:
@@ -203,7 +204,8 @@ def chunk_document(*, source_id: str, revision: str, revision_sequence: int,
         identity = json.dumps({
             "source_id": source_id, "revision": revision,
             "revision_sequence": revision_sequence, "profile": policy.profile,
-            "profile_version": policy.profile_version, "ordinal": ordinal,
+            "profile_version": policy.profile_version, "max_units": policy.max_units,
+            "overlap_units": policy.overlap_units, "ordinal": ordinal,
             "start": start, "end": end, "text": text,
         }, sort_keys=True, separators=(",", ":"), ensure_ascii=False).encode("utf-8")
         chunk: dict[str, Any] = {
@@ -211,7 +213,7 @@ def chunk_document(*, source_id: str, revision: str, revision_sequence: int,
             "ordinal": ordinal,
             "start_offset": start,
             "end_offset": end,
-            "heading_path": _heading_path(content, start, deadline_check) if policy.profile == "markdown-default" else [],
+            "heading_path": _heading_path(content, start, deadline_check) if policy.profile == "markdown-default" and media_type == "text/markdown" else [],
             "metadata": {},
         }
         if include_text:
