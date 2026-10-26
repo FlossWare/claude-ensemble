@@ -401,7 +401,10 @@ class Handler(BaseHTTPRequestHandler):
         spans = chunk_spans(source_text, policy, max_chunks=MAX_CHUNKS,
                             deadline_check=self._check_deadline)
         chunk_count = len(spans)
-        max_text_bytes = max(len(source_text[start:end].encode("utf-8")) for start, end in spans)
+        max_text_bytes = 0
+        for start, end in spans:
+            self._check_deadline()
+            max_text_bytes = max(max_text_bytes, len(source_text[start:end].encode("utf-8")))
         if max_text_bytes > 65536:
             raise ChunkingError("source_too_large", "a chunk's UTF-8 text exceeds the contract response limit")
         upper_bound = chunk_count * limits["max_chunk_representation_bytes"] + limits["max_envelope_bytes"]
