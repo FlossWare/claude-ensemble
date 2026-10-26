@@ -27,7 +27,7 @@ Own Thompson-sampling state and selection semantics: arm/option identity, contex
 
 `POST /api/v1/thompson/selections` requires `Idempotency-Key`, `context_id`, `policy` (`name:"beta-bernoulli-v1"`, `version:"1"`), `eligible_arms`, and optional `expected_state_version`. Each arm has a stable `arm_id` and optional context features. Response returns `selection_id`, `chosen_arm_id`, `policy`, `state_version`, bounded `evidence`, and `request_id`.
 
-`POST /api/v1/thompson/updates` requires `Idempotency-Key`, stable `event_id`, `context_id`, `arm_id`, `reward` exactly `0` or `1`, `reward_semantics:"binary"`, evidence reference, and optional `expected_state_version`. Response returns `event_id`, `operation_id`, `applied`, resulting `state_version`, and `request_id`. Conflicting state versions return `409 revision_conflict`; duplicate event IDs with identical payload return the original result.
+`POST /api/v1/thompson/updates` requires `Idempotency-Key`, stable `event_id`, `selection_id`, `context_id`, `arm_id`, `reward` exactly `0` or `1`, `reward_semantics:"binary"`, evidence reference, and optional `expected_state_version`. Response returns `event_id`, `operation_id`, `applied`, resulting `state_version`, and `request_id`. Conflicting state versions return `409 revision_conflict`; duplicate event IDs with identical payload return the original result.
 
 ## Endpoint status codes
 
