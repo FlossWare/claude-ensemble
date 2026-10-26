@@ -1236,6 +1236,88 @@
           "format": "date-time"
         }
       }
+    },
+    "rebuildResponse": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "operation_id",
+        "generation_id",
+        "status",
+        "memory_status",
+        "knowledge_status",
+        "index_status",
+        "request_id"
+      ],
+      "properties": {
+        "operation_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "generation_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "status": {
+          "enum": [
+            "accepted",
+            "reconciling",
+            "ready_for_cutover",
+            "cutover",
+            "abandoned",
+            "failed",
+            "reconciliation_required"
+          ]
+        },
+        "memory_status": {
+          "enum": [
+            "pending",
+            "reconciling",
+            "fenced",
+            "complete",
+            "failed",
+            "unknown"
+          ]
+        },
+        "knowledge_status": {
+          "enum": [
+            "pending",
+            "reconciling",
+            "fenced",
+            "complete",
+            "failed",
+            "unknown"
+          ]
+        },
+        "index_status": {
+          "enum": [
+            "pending",
+            "building",
+            "caught_up",
+            "active",
+            "abandoned",
+            "failed",
+            "unknown"
+          ]
+        },
+        "request_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "reason_code": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "replacement_generation_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        }
+      }
     }
   },
   "x-endpoints": {
@@ -1326,6 +1408,274 @@
       ],
       "x-callers": [
         "health-probe"
+      ]
+    },
+    "POST /api/v1/gateway/memories": {
+      "request": "memory.schema.json##/$defs/createRequest",
+      "response": "memory.schema.json##/$defs/createResponse",
+      "success_status": 202,
+      "error_response": "#/$defs/errorResponse",
+      "error_statuses": [
+        400,
+        404,
+        409,
+        413,
+        422,
+        429,
+        500,
+        503,
+        504
+      ],
+      "x-callers": [
+        "client",
+        "hook-adapter"
+      ]
+    },
+    "GET /api/v1/gateway/memories/{memory_id}": {
+      "response": "memory.schema.json##/$defs/canonicalReadResponse",
+      "success_status": 200,
+      "error_response": "#/$defs/errorResponse",
+      "error_statuses": [
+        400,
+        404,
+        429,
+        500,
+        503,
+        504
+      ],
+      "x-callers": [
+        "client",
+        "hook-adapter"
+      ]
+    },
+    "POST /api/v1/gateway/memories/{memory_id}/revisions": {
+      "request": "memory.schema.json##/$defs/updateRequest",
+      "response": "memory.schema.json##/$defs/updateResponse",
+      "success_status": 202,
+      "error_response": "#/$defs/errorResponse",
+      "error_statuses": [
+        400,
+        404,
+        409,
+        413,
+        422,
+        429,
+        500,
+        503,
+        504
+      ],
+      "x-callers": [
+        "client",
+        "hook-adapter"
+      ]
+    },
+    "DELETE /api/v1/gateway/memories/{memory_id}": {
+      "request": "memory.schema.json##/$defs/deleteRequest",
+      "response": "memory.schema.json##/$defs/deleteResponse",
+      "success_status": 202,
+      "error_response": "#/$defs/errorResponse",
+      "error_statuses": [
+        400,
+        404,
+        409,
+        429,
+        500,
+        503,
+        504
+      ],
+      "x-callers": [
+        "client",
+        "hook-adapter"
+      ]
+    },
+    "GET /api/v1/gateway/memories/operations/{operation_id}": {
+      "response": "memory.schema.json##/$defs/operationStatusResponse",
+      "success_status": 200,
+      "error_response": "#/$defs/errorResponse",
+      "error_statuses": [
+        400,
+        404,
+        429,
+        500,
+        503,
+        504
+      ],
+      "x-callers": [
+        "client",
+        "hook-adapter",
+        "operator"
+      ]
+    },
+    "POST /api/v1/gateway/knowledge/sources": {
+      "request": "knowledge.schema.json##/$defs/createRequest",
+      "response": "knowledge.schema.json##/$defs/mutationResponse",
+      "success_status": 202,
+      "error_response": "#/$defs/errorResponse",
+      "error_statuses": [
+        400,
+        404,
+        409,
+        413,
+        422,
+        429,
+        500,
+        503,
+        504
+      ],
+      "x-callers": [
+        "client",
+        "hook-adapter"
+      ]
+    },
+    "GET /api/v1/gateway/knowledge/sources/{source_key}": {
+      "response": "knowledge.schema.json##/$defs/canonicalReadResponse",
+      "success_status": 200,
+      "error_response": "#/$defs/errorResponse",
+      "error_statuses": [
+        400,
+        404,
+        429,
+        500,
+        503,
+        504
+      ],
+      "x-callers": [
+        "client",
+        "hook-adapter"
+      ]
+    },
+    "POST /api/v1/gateway/knowledge/sources/{source_key}/revisions": {
+      "request": "knowledge.schema.json##/$defs/updateRequest",
+      "response": "knowledge.schema.json##/$defs/mutationResponse",
+      "success_status": 202,
+      "error_response": "#/$defs/errorResponse",
+      "error_statuses": [
+        400,
+        404,
+        409,
+        413,
+        422,
+        429,
+        500,
+        503,
+        504
+      ],
+      "x-callers": [
+        "client",
+        "hook-adapter"
+      ]
+    },
+    "DELETE /api/v1/gateway/knowledge/sources/{source_key}": {
+      "request": "knowledge.schema.json##/$defs/deleteRequest",
+      "response": "knowledge.schema.json##/$defs/deleteResponse",
+      "success_status": 202,
+      "error_response": "#/$defs/errorResponse",
+      "error_statuses": [
+        400,
+        404,
+        409,
+        429,
+        500,
+        503,
+        504
+      ],
+      "x-callers": [
+        "client",
+        "hook-adapter"
+      ]
+    },
+    "GET /api/v1/gateway/knowledge/operations/{operation_id}": {
+      "response": "knowledge.schema.json##/$defs/operationStatusResponse",
+      "success_status": 200,
+      "error_response": "#/$defs/errorResponse",
+      "error_statuses": [
+        400,
+        404,
+        429,
+        500,
+        503,
+        504
+      ],
+      "x-callers": [
+        "client",
+        "hook-adapter",
+        "operator"
+      ]
+    },
+    "POST /api/v1/gateway/index/rebuilds": {
+      "request": "index.schema.json##/$defs/generationCreateRequest",
+      "response": "#/$defs/rebuildResponse",
+      "success_status": 202,
+      "error_response": "#/$defs/errorResponse",
+      "error_statuses": [
+        400,
+        404,
+        409,
+        413,
+        422,
+        429,
+        500,
+        503,
+        504
+      ],
+      "x-callers": [
+        "operator"
+      ]
+    },
+    "GET /api/v1/gateway/index/rebuilds/{operation_id}": {
+      "response": "#/$defs/rebuildResponse",
+      "success_status": 200,
+      "error_response": "#/$defs/errorResponse",
+      "error_statuses": [
+        400,
+        404,
+        429,
+        500,
+        503,
+        504
+      ],
+      "x-callers": [
+        "operator"
+      ]
+    },
+    "POST /api/v1/gateway/index/rebuilds/{generation_id}/cutover": {
+      "request": "index.schema.json##/$defs/cutoverRequest",
+      "response": "#/$defs/rebuildResponse",
+      "success_status": 200,
+      "error_response": "#/$defs/errorResponse",
+      "error_statuses": [
+        400,
+        404,
+        409,
+        413,
+        422,
+        429,
+        500,
+        503,
+        504
+      ],
+      "x-callers": [
+        "operator"
+      ]
+    },
+    "POST /api/v1/gateway/index/rebuilds/{generation_id}/abandon": {
+      "request": "index.schema.json##/$defs/abandonRequest",
+      "response": "#/$defs/rebuildResponse",
+      "success_status": 200,
+      "error_response": "#/$defs/errorResponse",
+      "error_statuses": [
+        400,
+        404,
+        409,
+        413,
+        422,
+        429,
+        500,
+        503,
+        504
+      ],
+      "x-callers": [
+        "operator"
       ]
     }
   },
