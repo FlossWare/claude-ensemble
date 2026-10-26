@@ -799,7 +799,7 @@ class ChunkingHttpTests(unittest.TestCase):
             finally:
                 rejected.close()
             status_line = bytes(raw).split(b"\r\n", 1)[0]
-            self.assertRegex(status_line, rb"^HTTP/1\\.[01] 503(?: |$)")
+            self.assertRegex(status_line, rb"^HTTP/1\.[01] 503(?: |$)")
             header_bytes, body_bytes = bytes(raw).split(b"\r\n\r\n", 1)
             headers = {}
             for line in header_bytes.split(b"\r\n")[1:]:
@@ -821,7 +821,7 @@ class ChunkingHttpTests(unittest.TestCase):
                     if not part:
                         break
                     response.extend(part)
-                self.assertRegex(bytes(response).split(b"\r\n", 1)[0], rb"^HTTP/1\\.[01] 200(?: |$)")
+                self.assertRegex(bytes(response).split(b"\r\n", 1)[0], rb"^HTTP/1\.[01] 200(?: |$)")
                 conn.close()
             gates = []
             with urlopen(f"http://127.0.0.1:{server.server_port}/api/v1/chunking/health", timeout=1) as health:
@@ -883,7 +883,7 @@ class ChunkingHttpTests(unittest.TestCase):
                     break
                 raw.extend(part)
             header_bytes, body = bytes(raw).split(b"\r\n\r\n", 1)
-            self.assertRegex(header_bytes.split(b"\r\n", 1)[0], rb"^HTTP/1\\.[01] 405(?: |$)")
+            self.assertRegex(header_bytes.split(b"\r\n", 1)[0], rb"^HTTP/1\.[01] 405(?: |$)")
             self.assertIn(b"X-CE-Request-ID: head-method-1", header_bytes)
             self.assertIn(b"Content-Type: application/json; charset=utf-8", header_bytes)
             self.assertGreater(int(next(line.split(b":",1)[1] for line in header_bytes.split(b"\r\n") if line.lower().startswith(b"content-length:"))), 0)
@@ -907,7 +907,7 @@ class ChunkingHttpTests(unittest.TestCase):
                     break
                 raw.extend(part)
             header_bytes, body = bytes(raw).split(b"\r\n\r\n", 1)
-            self.assertRegex(header_bytes.split(b"\r\n", 1)[0], rb"^HTTP/1\\.[01] 405(?: |$)")
+            self.assertRegex(header_bytes.split(b"\r\n", 1)[0], rb"^HTTP/1\.[01] 405(?: |$)")
             headers = {}
             for line in header_bytes.split(b"\r\n")[1:]:
                 if b":" in line:
