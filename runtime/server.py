@@ -47,6 +47,10 @@ def _validate_profile_bundle(bundle: Any) -> dict[str, Any]:
     def string(value: Any, maximum: int, field: str) -> None:
         if not isinstance(value, str) or not 1 <= len(value) <= maximum:
             raise ChunkingError("invalid_request", f"profile_bundle.{field} is invalid", status=400)
+        try:
+            value.encode("utf-8")
+        except UnicodeEncodeError as exc:
+            raise ChunkingError("invalid_request", f"profile_bundle.{field} contains invalid Unicode", status=400) from exc
     string(bundle["name"], 128, "name")
     string(bundle["version"], 64, "version")
     if not isinstance(bundle["status"], str) or bundle["status"] not in {"active", "deprecated", "retired"}:
@@ -209,7 +213,7 @@ class Handler(BaseHTTPRequestHandler):
             if (error := self._deadline_error()) is not None:
                 raise error
             remaining = self._request_deadline_monotonic - time.monotonic()
-            self.connection.settimeout(max(0.001, remaining))
+            self.connection.settimeout(max(0.001, min(self.timeout, remaining)))
             # read1 performs at most one underlying read, allowing us to refresh
             # the remaining budget between trickled packets.
             part = self.rfile.read1(min(8192, length - len(body)))
