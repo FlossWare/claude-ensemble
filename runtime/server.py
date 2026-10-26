@@ -404,12 +404,12 @@ class Handler(BaseHTTPRequestHandler):
         pinned = bundle["chunking"]
         policy = Policy.from_dict(request["policy"]) if "policy" in request else Policy(
             pinned["profile"], pinned["version"], pinned["max_units"], pinned["overlap_units"])
+        if policy.profile not in SUPPORTED_PROFILES or policy.profile_version not in SUPPORTED_PROFILES[policy.profile]:
+            raise ChunkingError("unsupported_profile", "chunking profile or version is not configured")
         if any(getattr(policy, attr) != expected for attr, expected in (
             ("profile", pinned["profile"]), ("profile_version", pinned["version"]),
             ("max_units", pinned["max_units"]), ("overlap_units", pinned["overlap_units"]))):
             raise ChunkingError("profile_mismatch", "policy does not match the pinned Index profile bundle", status=409)
-        if policy.profile not in SUPPORTED_PROFILES or policy.profile_version not in SUPPORTED_PROFILES[policy.profile]:
-            raise ChunkingError("unsupported_profile", "chunking profile or version is not configured")
         options = _require_object(request.get("options", {}), "options",
             {"include_text", "include_line_spans"}, set())
         include_text = options.get("include_text", True)
