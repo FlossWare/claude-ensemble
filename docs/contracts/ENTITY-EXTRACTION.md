@@ -14,6 +14,7 @@ Extract exact entities, technical identifiers, paths, names, version strings, sy
 
 ## Request
 
+<!-- schema-example: docs/contracts/schemas/entity-extraction.schema.json#/$defs/request -->
 ~~~json
 {
   "request_id": "correlation-id",
@@ -24,6 +25,7 @@ Extract exact entities, technical identifiers, paths, names, version strings, sy
 
 ## Response
 
+<!-- schema-example: docs/contracts/schemas/entity-extraction.schema.json#/$defs/response -->
 ~~~json
 {
   "request_id": "correlation-id",
