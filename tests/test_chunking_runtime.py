@@ -450,6 +450,23 @@ class ChunkingHttpTests(unittest.TestCase):
             Handler.timeout = original_timeout
             conn.close()
 
+    def test_client_disconnect_during_body_read_does_not_take_down_health(self):
+        conn = socket.create_connection(("127.0.0.1", self.httpd.server_port), timeout=2)
+        conn.sendall(
+            b"POST /api/v1/chunking/chunks HTTP/1.1\\r\\n"
+            b"Host: 127.0.0.1\\r\\n"
+            b"Content-Type: application/json\\r\\n"
+            b"Content-Length: 100\\r\\n"
+            b"Connection: close\\r\\n\\r\\n"
+            b'{"partial":'
+        )
+        conn.close()
+        time.sleep(0.05)
+        with urlopen(self.base + "/api/v1/chunking/health", timeout=1) as health:
+            result = json.load(health)
+            self.assertEqual(health.status, 200)
+            self.assertEqual(result["status"], "alive")
+
     def test_trickled_body_hits_default_absolute_deadline_while_health_stays_responsive(self):
         original_budget = server_module.DEFAULT_REQUEST_TIMEOUT_SECONDS
         server_module.DEFAULT_REQUEST_TIMEOUT_SECONDS = 0.9
