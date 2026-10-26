@@ -1269,7 +1269,10 @@
             "cutover",
             "abandoned",
             "failed",
-            "reconciliation_required"
+            "reconciliation_required",
+            "cutover_outcome_unknown",
+            "cutover_committed_cleanup_pending",
+            "complete"
           ]
         },
         "memory_status": {
@@ -1317,6 +1320,251 @@
           "type": "string",
           "minLength": 1,
           "maxLength": 256
+        },
+        "cleanup_status": {
+          "enum": [
+            "pending",
+            "complete",
+            "reconciliation_required",
+            "unknown"
+          ]
+        }
+      }
+    },
+    "profileRequest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "version": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64
+        }
+      }
+    },
+    "memoryCreateRequest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "scope",
+        "type",
+        "content",
+        "provenance",
+        "retention_policy",
+        "index_profile"
+      ],
+      "properties": {
+        "scope": {
+          "$ref": "#/$defs/scope"
+        },
+        "type": {
+          "enum": [
+            "episodic",
+            "semantic",
+            "decision",
+            "fact",
+            "preference",
+            "task"
+          ]
+        },
+        "content": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 262144
+        },
+        "provenance": {
+          "$ref": "#/$defs/provenance"
+        },
+        "retention_policy": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind"
+          ],
+          "properties": {
+            "kind": {
+              "enum": [
+                "standard",
+                "ephemeral",
+                "retained"
+              ]
+            },
+            "expires_at": {
+              "type": "string",
+              "format": "date-time"
+            }
+          }
+        },
+        "index_profile": {
+          "$ref": "#/$defs/profileRequest"
+        },
+        "request_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      }
+    },
+    "memoryUpdateRequest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "expected_base_revision_sequence",
+        "content",
+        "provenance",
+        "index_profile"
+      ],
+      "properties": {
+        "expected_base_revision_sequence": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        },
+        "content": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 262144
+        },
+        "provenance": {
+          "$ref": "#/$defs/provenance"
+        },
+        "index_profile": {
+          "$ref": "#/$defs/profileRequest"
+        },
+        "request_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      }
+    },
+    "knowledgeCreateRequest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "scope",
+        "source_kind",
+        "content",
+        "provenance",
+        "retention_policy",
+        "index_profile"
+      ],
+      "properties": {
+        "scope": {
+          "$ref": "#/$defs/scope"
+        },
+        "source_kind": {
+          "enum": [
+            "document",
+            "file",
+            "note",
+            "url",
+            "record",
+            "code",
+            "other"
+          ]
+        },
+        "canonical_locator": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096
+        },
+        "content": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 262144
+        },
+        "provenance": {
+          "$ref": "#/$defs/provenance"
+        },
+        "index_profile": {
+          "$ref": "#/$defs/profileRequest"
+        },
+        "retention_policy": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind"
+          ],
+          "properties": {
+            "kind": {
+              "enum": [
+                "standard",
+                "ephemeral",
+                "retained"
+              ]
+            },
+            "expires_at": {
+              "type": "string",
+              "format": "date-time"
+            }
+          }
+        },
+        "request_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      }
+    },
+    "knowledgeUpdateRequest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "expected_base_revision_sequence",
+        "content",
+        "provenance",
+        "index_profile"
+      ],
+      "properties": {
+        "expected_base_revision_sequence": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        },
+        "content": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 262144
+        },
+        "provenance": {
+          "$ref": "#/$defs/provenance"
+        },
+        "index_profile": {
+          "$ref": "#/$defs/profileRequest"
+        },
+        "request_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      }
+    },
+    "rebuildCutoverRequest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "expected_active_generation",
+        "request_id"
+      ],
+      "properties": {
+        "expected_active_generation": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "request_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
         }
       }
     }
@@ -1412,7 +1660,7 @@
       ]
     },
     "POST /api/v1/gateway/memories": {
-      "request": "memory.schema.json#/$defs/createRequest",
+      "request": "#/$defs/memoryCreateRequest",
       "response": "memory.schema.json#/$defs/createResponse",
       "success_status": 202,
       "error_response": "#/$defs/errorResponse",
@@ -1450,7 +1698,7 @@
       ]
     },
     "POST /api/v1/gateway/memories/{memory_id}/revisions": {
-      "request": "memory.schema.json#/$defs/updateRequest",
+      "request": "#/$defs/memoryUpdateRequest",
       "response": "memory.schema.json#/$defs/updateResponse",
       "success_status": 202,
       "error_response": "#/$defs/errorResponse",
@@ -1508,7 +1756,7 @@
       ]
     },
     "POST /api/v1/gateway/knowledge/sources": {
-      "request": "knowledge.schema.json#/$defs/createRequest",
+      "request": "#/$defs/knowledgeCreateRequest",
       "response": "knowledge.schema.json#/$defs/mutationResponse",
       "success_status": 202,
       "error_response": "#/$defs/errorResponse",
@@ -1546,7 +1794,7 @@
       ]
     },
     "POST /api/v1/gateway/knowledge/sources/{source_key}/revisions": {
-      "request": "knowledge.schema.json#/$defs/updateRequest",
+      "request": "#/$defs/knowledgeUpdateRequest",
       "response": "knowledge.schema.json#/$defs/mutationResponse",
       "success_status": 202,
       "error_response": "#/$defs/errorResponse",
@@ -1640,7 +1888,7 @@
       ]
     },
     "POST /api/v1/gateway/index/rebuilds/{generation_id}/cutover": {
-      "request": "index.schema.json#/$defs/cutoverRequest",
+      "request": "#/$defs/rebuildCutoverRequest",
       "response": "#/$defs/rebuildResponse",
       "success_status": 200,
       "error_response": "#/$defs/errorResponse",
