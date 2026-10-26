@@ -98,7 +98,7 @@ Unsupported HTTP methods return `405 method_not_allowed` using the shared CE RES
 
 ## Readiness and diagnostics
 
-Expose `GET /api/v1/chunking/health` and `GET /api/v1/chunking/ready`. Readiness reports whether configured chunking profiles are available. Diagnostics include effective profile/version and duration, but do not log document content by default.
+Expose `GET /api/v1/chunking/health` and `GET /api/v1/chunking/ready`. Readiness reports whether the canonical `markdown-default@0.1` implementation is available. Diagnostics include effective profile/version and duration, but do not log document content by default.
 
 The runtime supports only `markdown-default@0.1`. Other profile names and versions are rejected as `unsupported_profile`; adding another profile requires a concrete use case and a contract change. If `policy` is omitted, the runtime uses the explicit `markdown-default@0.1` policy of 1200 Unicode code points per chunk and 120 code points of overlap. The canonical profile recognizes ATX headings only: Setext headings and headings inside fenced code blocks are not interpreted as structural headings in this initial implementation. `options.include_text=false` omits each chunk's `text` field; offsets and identifiers remain available.
 
