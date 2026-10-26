@@ -43,7 +43,6 @@ Successful responses use the endpoint's documented schema. Empty collections are
 
 Errors use this envelope:
 
-<!-- schema-example: docs/contracts/schemas/gateway.schema.json#/$defs/errorResponse -->
 ```json
 {
   "error": {
@@ -125,7 +124,6 @@ All canonical-owner verification endpoints accept the same bounded payload: `{ "
 
 Use the same scope object across service contracts:
 
-<!-- schema-example: docs/contracts/schemas/gateway.schema.json#/$defs/scope -->
 ~~~json
 {
   "scope": {
