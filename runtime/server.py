@@ -4,10 +4,10 @@ from __future__ import annotations
 import json
 import os
 import re
-from pathlib import Path
 import threading
 import time
 import uuid
+from pathlib import Path
 from datetime import datetime, timezone
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from typing import Any
@@ -117,7 +117,6 @@ def _validate_profile_bundle(bundle: Any) -> dict[str, Any]:
     if _profile_digest(bundle).lower() != digest.lower():
         raise ChunkingError("profile_digest_mismatch", "profile_bundle content does not match its digest", status=409)
     return bundle
-
 
 
 class IndexProfileRegistry:
@@ -379,12 +378,11 @@ class Handler(BaseHTTPRequestHandler):
             self._send_profile(self.server.profile_registry.resolve_current(match.group(1)), request_id)
         elif (match := re.fullmatch(r"/api/v1/index/profiles/([^/]+)/versions/([^/]+)", self.path)):
             self._send_profile(self.server.profile_registry.resolve_version(match.group(1), match.group(2)),
-                               request_id, pinned=True)
+                               request_id)
         else:
             self._send(404, _error("endpoint_not_found", "endpoint not found"), request_id)
 
-    def _send_profile(self, bundle: dict[str, Any] | None, request_id: str,
-                      pinned: bool = False) -> None:
+    def _send_profile(self, bundle: dict[str, Any] | None, request_id: str) -> None:
         if bundle is None:
             self._send(404, _error("profile_not_found", "Index profile version is not configured"), request_id)
             return
