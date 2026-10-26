@@ -1,6 +1,6 @@
 # Chunking Service Contract (Draft)
 
-Status: proposed contract for architecture review. No implementation or storage technology is prescribed.
+Status: contract baseline approved by merged PR #8; the initial runtime implementation is under review in PR #9. The contract remains normative, and passing static validation alone does not establish runtime conformance.
 
 ## Responsibility
 
