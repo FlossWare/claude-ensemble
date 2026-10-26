@@ -443,7 +443,8 @@ class ChunkingHttpTests(unittest.TestCase):
                     break
                 response.extend(part)
             raw = bytes(response)
-            self.assertIn(b"408 Request Timeout", raw)
+            status_line = raw.split(b"\r\n", 1)[0]
+            self.assertRegex(status_line, rb"^HTTP/1\.[01] 408(?: |$)")
             self.assertIn(b'"code":"request_timeout"', raw)
         finally:
             Handler.timeout = original_timeout
@@ -532,7 +533,8 @@ class ChunkingHttpTests(unittest.TestCase):
                 response.extend(part)
             elapsed = time.monotonic() - started
             raw = bytes(response)
-            self.assertIn(b"504 Gateway Timeout", raw)
+            status_line = raw.split(b"\r\n", 1)[0]
+            self.assertRegex(status_line, rb"^HTTP/1\.[01] 504(?: |$)")
             header_bytes, body_bytes = raw.split(b"\r\n\r\n", 1)
             headers_out = {}
             for line in header_bytes.split(b"\r\n")[1:]:
