@@ -10,6 +10,7 @@ from datetime import datetime, timezone
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from typing import Any
 
+from .tokenization import MAX_TEXT_BYTES, MAX_TOKENS, PROFILE_NAME, PROFILE_VERSION, NORMALIZATION_VERSION, TokenizationError, tokenize
 from .chunking import (
     MAX_CONTENT_BYTES, MAX_CHUNKS, DEFAULT_POLICY, ChunkingError, Policy, chunk_document, chunk_spans, validate_index_profile,
 )
@@ -323,6 +324,16 @@ class Handler(BaseHTTPRequestHandler):
                 "checks": [{"name": "chunking_engine", "status": "ok"},
                           {"name": "markdown-default@0.1", "status": "ok"}],
             }, request_id)
+        elif self.path == "/api/v1/tokenization/health":
+            self._send(200, {"service": "tokenization", "status": "alive"}, request_id)
+        elif self.path == "/api/v1/tokenization/ready":
+            self._send(200, {
+                "service": "tokenization",
+                "status": "ready",
+                "ready": True,
+                "checks": [{"name": "technical-default@0.1", "status": "ok"},
+                           {"name": "normalization@0.1", "status": "ok"}],
+            }, request_id)
         else:
             self._send(404, _error("endpoint_not_found", "endpoint not found"), request_id)
 
@@ -335,7 +346,10 @@ class Handler(BaseHTTPRequestHandler):
         if deadline_error is not None:
             self._fail(deadline_error, request_id)
             return
-        if self.path not in ("/api/v1/chunking/chunks", "/api/v1/chunking/preflight"):
+        if self.path not in (
+            "/api/v1/chunking/chunks", "/api/v1/chunking/preflight",
+            "/api/v1/tokenization/lexical", "/api/v1/tokenization/lexical/batch",
+        ):
             self._send(404, _error("endpoint_not_found", "endpoint not found"), request_id)
             return
         if self.headers.get_content_type() != "application/json":
@@ -346,7 +360,14 @@ class Handler(BaseHTTPRequestHandler):
             if length_text is None or not length_text.isdecimal():
                 raise ChunkingError("invalid_request", "a valid Content-Length is required", status=400)
             length = int(length_text)
-            limit = MAX_REQUEST_BYTES if self.path.endswith("/chunks") else MAX_PROFILE_REQUEST_BYTES
+            if self.path == "/api/v1/chunking/chunks":
+                limit = MAX_REQUEST_BYTES
+            elif self.path == "/api/v1/chunking/preflight":
+                limit = MAX_PROFILE_REQUEST_BYTES
+            elif self.path == "/api/v1/tokenization/lexical/batch":
+                limit = 524_288
+            else:
+                limit = MAX_REQUEST_BYTES
             if length > limit:
                 # Do not drain an attacker-controlled body just to preserve keep-alive.
                 # Explicitly close after the bounded 413 response; unread bytes must not
@@ -360,8 +381,12 @@ class Handler(BaseHTTPRequestHandler):
             except (UnicodeDecodeError, json.JSONDecodeError, ValueError) as exc:
                 raise ChunkingError("invalid_request", "request body must be valid UTF-8 JSON without duplicate object keys", status=400) from exc
             _validate_json_unicode(request)
-            if self.path.endswith("/preflight"):
+            if self.path == "/api/v1/chunking/preflight":
                 response = self._preflight(request)
+            elif self.path == "/api/v1/tokenization/lexical":
+                response = self._tokenize(request)
+            elif self.path == "/api/v1/tokenization/lexical/batch":
+                response = self._tokenize_batch(request)
             else:
                 response = self._chunks(request)
             if (deadline_error := self._deadline_error()) is not None:
@@ -376,8 +401,81 @@ class Handler(BaseHTTPRequestHandler):
                 self._send(408, _error("request_timeout", "request body was not received before the socket timeout"), request_id)
         except ChunkingError as exc:
             self._fail(exc, request_id)
+        except TokenizationError as exc:
+            self._send(exc.status, _error(exc.code, str(exc)), request_id)
         except Exception:
             self._send(500, _error("internal_error", "request could not be processed"), request_id)
+
+    def _tokenization_context(self, request: Any, *, batch: bool) -> tuple[dict[str, Any], dict[str, bool]]:
+        allowed = {"request_id", "index_profile", "profile", "profile_version", "options"}
+        required = {"index_profile", "profile", "profile_version", "inputs"} if batch else {
+            "index_profile", "profile", "profile_version", "text", "options"
+        }
+        if batch:
+            allowed.add("inputs")
+        else:
+            allowed.add("text")
+        body = _require_object(request, "request", allowed, required)
+        identity = validate_index_profile(body["index_profile"])
+        if body["profile"] != PROFILE_NAME or body["profile_version"] != PROFILE_VERSION:
+            raise TokenizationError("unsupported_profile", "tokenization profile or version is not supported")
+        options = _require_object(body.get("options", {}), "options",
+            {"preserve_identifiers", "include_offsets", "include_normalized_terms"}, set())
+        effective = {
+            "preserve_identifiers": options.get("preserve_identifiers", True),
+            "include_offsets": options.get("include_offsets", True),
+            "include_normalized_terms": options.get("include_normalized_terms", True),
+        }
+        for name, value in effective.items():
+            if type(value) is not bool:
+                raise TokenizationError("invalid_parameter", f"options.{name} must be a boolean", status=400)
+        return identity, effective
+
+    def _tokenize(self, value: Any) -> dict[str, Any]:
+        request = _require_object(value, "request",
+            {"request_id", "index_profile", "text", "profile", "profile_version", "options"},
+            {"index_profile", "text", "profile", "profile_version", "options"})
+        identity, options = self._tokenization_context(request, batch=False)
+        tokens = tokenize(request["text"], **options)
+        return {
+            "profile": PROFILE_NAME,
+            "version": PROFILE_VERSION,
+            "normalization_version": NORMALIZATION_VERSION,
+            "index_profile": identity,
+            "tokens": tokens,
+        }
+
+    def _tokenize_batch(self, value: Any) -> dict[str, Any]:
+        request = _require_object(value, "request",
+            {"request_id", "index_profile", "profile", "profile_version", "options", "inputs"},
+            {"index_profile", "profile", "profile_version", "inputs"})
+        identity, options = self._tokenization_context(request, batch=True)
+        inputs = request["inputs"]
+        if not isinstance(inputs, list) or not 1 <= len(inputs) <= 64:
+            raise TokenizationError("invalid_parameter", "inputs must contain between 1 and 64 items", status=400)
+        input_ids: set[str] = set()
+        results: list[dict[str, Any]] = []
+        for item in inputs:
+            item = _require_object(item, "inputs[]", {"input_id", "text"}, {"input_id", "text"})
+            input_id = item["input_id"]
+            if not isinstance(input_id, str) or not 1 <= len(input_id) <= 128:
+                raise TokenizationError("invalid_parameter", "input_id must be a string of 1 to 128 characters", status=400)
+            if input_id in input_ids:
+                raise TokenizationError("invalid_parameter", "input_id values must be unique", status=400)
+            input_ids.add(input_id)
+            try:
+                results.append({"input_id": input_id, "tokens": tokenize(item["text"], **options)})
+            except TokenizationError as exc:
+                results.append({"input_id": input_id, "error": {
+                    "code": exc.code, "message": str(exc), "retryable": False,
+                }})
+        return {
+            "profile": PROFILE_NAME,
+            "version": PROFILE_VERSION,
+            "normalization_version": NORMALIZATION_VERSION,
+            "index_profile": identity,
+            "results": results,
+        }
 
     def _chunks(self, value: Any) -> dict[str, Any]:
         request = _require_object(value, "request",
