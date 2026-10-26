@@ -916,7 +916,7 @@ class ChunkingHttpTests(unittest.TestCase):
             payload = json.loads(body)
             self.assertEqual(payload["error"]["code"], "method_not_allowed")
             self.assertEqual(payload["request_id"], "unknown-method-1")
-            self.assertEqual(headers["x-ce-request-id"], payload["request_id"])
+            self.assertEqual(headers["X-CE-Request-ID"], payload["request_id"])
             self.assertIn(405, SCHEMA["x-endpoints"]["GET /api/v1/chunking/health"]["error_statuses"])
             self.assert_error_schema(payload, headers)
         finally:
