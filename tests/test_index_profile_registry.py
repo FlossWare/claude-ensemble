@@ -44,7 +44,7 @@ class IndexProfileRegistryUnitTests(unittest.TestCase):
     def test_rejects_bad_digest_and_duplicate_versions(self):
         bad = valid_bundle()
         bad["digest"] = "0" * 64
-        with self.assertRaises(Exception):
+        with self.assertRaises(ChunkingError):
             IndexProfileRegistry([bad], {})
         with self.assertRaises(ValueError):
             IndexProfileRegistry([valid_bundle(), valid_bundle()], {})
