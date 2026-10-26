@@ -7,7 +7,8 @@ import json
 import sys
 from pathlib import Path
 
-SCHEMA_DIR = Path(__file__).resolve().parents[1] / "docs" / "contracts" / "schemas"
+ROOT = Path(__file__).resolve().parents[1]
+SCHEMA_DIR = ROOT / "docs" / "contracts" / "schemas"
 EXTERNAL_CALLERS = {"client", "hook-adapter", "operator", "health-probe"}
 SERVICE_NAMES = {
     path.name.removesuffix(".schema.json")
@@ -40,10 +41,21 @@ def main() -> int:
                 continue
             if not isinstance(item.get("workflow"), str) or not item["workflow"].strip():
                 errors.append(f"workflow manifest edge {index}: workflow rationale is required")
-            if not isinstance(item.get("contracts"), list) or not item["contracts"]:
+            contracts = item.get("contracts")
+            if not isinstance(contracts, list) or not contracts:
                 errors.append(f"workflow manifest edge {index}: contract references are required")
-            if not isinstance(item.get("acceptance_test"), str) or not item["acceptance_test"].startswith("AT-"):
+            else:
+                for contract_path in contracts:
+                    if not isinstance(contract_path, str) or not (ROOT / "docs" / "contracts" / contract_path).is_file():
+                        errors.append(f"workflow manifest edge {index}: missing contract reference {contract_path!r}")
+            acceptance_test = item.get("acceptance_test")
+            if not isinstance(acceptance_test, str) or not acceptance_test.startswith("AT-"):
                 errors.append(f"workflow manifest edge {index}: acceptance_test must name an AT-* scenario")
+            else:
+                acceptance_path = ROOT / "docs" / "ARCHITECTURE-REVIEW-ACCEPTANCE.md"
+                acceptance_text = acceptance_path.read_text(encoding="utf-8") if acceptance_path.is_file() else ""
+                if acceptance_test not in acceptance_text:
+                    errors.append(f"workflow manifest edge {index}: acceptance scenario {acceptance_test!r} is not defined")
             edge = (caller, callee)
             if edge in workflow_edges:
                 errors.append(f"workflow manifest: duplicate edge {caller} -> {callee}")
