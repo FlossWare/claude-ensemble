@@ -582,18 +582,21 @@ class ChunkingHttpTests(unittest.TestCase):
         finally:
             conn.close()
 
-    def test_unsupported_method_uses_shared_error_envelope(self):
-        request = Request(self.base + "/api/v1/chunking/chunks", data=b"",
-                          headers={"X-CE-Request-ID": "method-test-1"}, method="PUT")
-        try:
-            with urlopen(request, timeout=3) as response:
-                status, headers, payload = response.status, response.headers, json.load(response)
-        except HTTPError as exc:
-            status, headers, payload = exc.code, exc.headers, json.loads(exc.read())
-        self.assertEqual(status, 405)
-        self.assertEqual(payload["error"]["code"], "method_not_allowed")
-        self.assertEqual(payload["request_id"], "method-test-1")
-        self.assert_error_schema(payload, headers)
+    def test_unsupported_methods_use_declared_shared_error_envelope(self):
+        for method in ("PUT", "PATCH", "DELETE", "OPTIONS", "TRACE", "CONNECT"):
+            request = Request(self.base + "/api/v1/chunking/chunks", data=b"",
+                              headers={"X-CE-Request-ID": "method-test-1"}, method=method)
+            try:
+                with urlopen(request, timeout=3) as response:
+                    status, headers, payload = response.status, response.headers, json.load(response)
+            except HTTPError as exc:
+                status, headers, payload = exc.code, exc.headers, json.loads(exc.read())
+            with self.subTest(method=method):
+                self.assertEqual(status, 405)
+                self.assertEqual(payload["error"]["code"], "method_not_allowed")
+                self.assertEqual(payload["request_id"], headers["X-CE-Request-ID"])
+                self.assertIn(status, SCHEMA["x-endpoints"]["POST /api/v1/chunking/chunks"]["error_statuses"])
+                self.assert_error_schema(payload, headers)
 
     def test_preflight_matches_schema_and_checks_profile_identity(self):
         bundle = profile_bundle()
@@ -667,6 +670,59 @@ class ChunkingHttpTests(unittest.TestCase):
         self.assertFalse(result["fits_profile"])
         self.assertGreater(result["chunk_count"], bundle["limits"]["max_chunks"])
         Draft202012Validator(SCHEMA["$defs"]["preflightResponse"]).validate(result)
+
+    def test_capacity_limit_rejects_excess_handler_with_correlated_503(self):
+        class SingleWorkerServer(BoundedThreadingHTTPServer):
+            max_workers = 1
+
+        original_timeout = Handler.timeout
+        Handler.timeout = 1.0
+        server = SingleWorkerServer(("127.0.0.1", 0), Handler)
+        thread = threading.Thread(target=server.serve_forever, daemon=True)
+        thread.start()
+        stalled = socket.create_connection(("127.0.0.1", server.server_port), timeout=2)
+        try:
+            stalled.sendall(
+                b"POST /api/v1/chunking/chunks HTTP/1.1\r\n"
+                b"Host: 127.0.0.1\r\n"
+                b"Content-Type: application/json\r\n"
+                b"Content-Length: 100\r\n"
+                b"Connection: close\r\n\r\n"
+            )
+            rejected = socket.create_connection(("127.0.0.1", server.server_port), timeout=2)
+            try:
+                rejected.sendall(
+                    b"GET /api/v1/chunking/health HTTP/1.1\r\n"
+                    b"Host: 127.0.0.1\r\n"
+                    b"Connection: close\r\n\r\n"
+                )
+                response = bytearray()
+                while True:
+                    part = rejected.recv(4096)
+                    if not part:
+                        break
+                    response.extend(part)
+            finally:
+                rejected.close()
+            raw = bytes(response)
+            status_line = raw.split(b"\r\n", 1)[0]
+            self.assertRegex(status_line, rb"^HTTP/1\.[01] 503(?: |$)")
+            header_bytes, body_bytes = raw.split(b"\r\n\r\n", 1)
+            headers = {}
+            for line in header_bytes.split(b"\r\n")[1:]:
+                if b":" in line:
+                    key, value = line.split(b":", 1)
+                    headers[key.decode("ascii")] = value.strip().decode("ascii")
+            payload = json.loads(body_bytes)
+            self.assertEqual(payload["error"]["code"], "service_unavailable")
+            self.assertEqual(payload["request_id"], headers["X-CE-Request-ID"])
+            Draft202012Validator(SCHEMA["$defs"]["errorResponse"]).validate(payload)
+        finally:
+            stalled.close()
+            server.shutdown()
+            server.server_close()
+            thread.join(timeout=2)
+            Handler.timeout = original_timeout
 
     def test_unknown_endpoint_uses_shared_error_envelope(self):
         status, headers, result = self.post("/api/v1/chunking/unknown", body={})
