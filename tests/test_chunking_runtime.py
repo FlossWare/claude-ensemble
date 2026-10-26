@@ -683,6 +683,7 @@ class ChunkingHttpTests(unittest.TestCase):
             lambda bundle: bundle.update({"digest": "f" * 64}),
             lambda bundle: bundle["chunking"].update({"max_units": 0}),
             lambda bundle: bundle["tokenization"].pop("version"),
+            lambda bundle: bundle["tokenization"].update({"profile": "other-profile"}),
             lambda bundle: bundle["lexical"].update({"statistics_policy": "unknown"}),
             lambda bundle: bundle.update({"embedding": None}),
             # A digest-covered content mutation with the original digest must fail.
