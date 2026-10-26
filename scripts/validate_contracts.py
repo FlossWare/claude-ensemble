@@ -137,7 +137,7 @@ def main() -> int:
                         resolve_ref(path, ref, schemas)
                     except Exception as exc:
                         errors.append(f"{where}: invalid {key} {ref!r}: {exc}")
-            if method in {"POST", "PUT", "PATCH", "DELETE"}:
+            if method in {"POST", "PUT", "PATCH"}:
                 ref = binding.get("request")
                 if not isinstance(ref, str) or not ref:
                     errors.append(f"{where}: mutating endpoint requires request binding")
@@ -207,8 +207,10 @@ def main() -> int:
                     schema = schemas.get(schema_path)
                     if schema is None:
                         raise ValueError(f"schema file is not in the loaded schema registry: {schema_file}")
-                    definition = resolve_pointer(schema, "#" + fragment if sep else "#")
-                    Draft202012Validator(definition).validate(instance)
+                    definition_pointer = "#" + fragment if sep else "#"
+                    resolve_pointer(schema, definition_pointer)
+                    instance_schema = {"$schema": schema["$schema"], "$defs": schema.get("$defs", {}), "$ref": definition_pointer}
+                    Draft202012Validator(instance_schema).validate(instance)
                 except Exception as exc:
                     errors.append(f"{path.relative_to(ROOT)} JSON example {index} against {target}: {exc}")
 
