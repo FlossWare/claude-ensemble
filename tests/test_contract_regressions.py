@@ -114,7 +114,12 @@ class ContractGateTests(unittest.TestCase):
         prose = (ROOT / "docs" / "contracts" / "GATEWAY.md").read_text(encoding="utf-8")
         self.assertIn("durable orchestration journal", prose)
         self.assertIn("MUST NOT report cutover failure", prose)
-        self.assertIn("they do not supply a digest that clients cannot reliably discover", prose)
+        profile_route = gateway["x-endpoints"]["GET /api/v1/gateway/index/write-profile"]
+        self.assertEqual(profile_route["response"], "index.schema.json#/$defs/profileCurrentResponse")
+        self.assertEqual(profile_route["x-callers"], ["client", "hook-adapter"])
+        self.assertIn("gateway.write_profile_name", prose)
+        self.assertIn("There is no built-in or implicit `default` profile", prose)
+        self.assertIn("they do not supply a digest", prose)
 
     def test_lexical_query_has_declared_tokenization_producer(self):
         lexical = json.loads((ROOT / "docs" / "contracts" / "schemas" / "lexical-retrieval.schema.json").read_text(encoding="utf-8"))
