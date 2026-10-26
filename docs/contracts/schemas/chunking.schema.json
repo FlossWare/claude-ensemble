@@ -8,8 +8,7 @@
       "additionalProperties": false,
       "required": [
         "index_profile",
-        "source",
-        "policy"
+        "source"
       ],
       "properties": {
         "request_id": {
@@ -197,11 +196,11 @@
             "additionalProperties": false,
             "required": [
               "chunk_id",
-              "text",
               "start_offset",
               "end_offset",
               "ordinal"
             ],
+            "description": "The text field is present unless options.include_text is false on the request.",
             "properties": {
               "chunk_id": {
                 "type": "string",
@@ -485,6 +484,7 @@
                 "invalid_node",
                 "invalid_parameter",
                 "invalid_request",
+                "method_not_allowed",
                 "invalid_scope",
                 "local_access_denied",
                 "missing_endpoint_node",
@@ -499,6 +499,7 @@
                 "profile_retired",
                 "rate_limited",
                 "reconciliation_required",
+                "request_timeout",
                 "request_too_large",
                 "revision_conflict",
                 "revision_sequence_regression",
@@ -630,8 +631,11 @@
       "error_statuses": [
         400,
         404,
+        405,
+        408,
         409,
         413,
+        415,
         422,
         429,
         500,
@@ -651,8 +655,11 @@
       "error_statuses": [
         400,
         404,
+        405,
+        408,
         409,
         413,
+        415,
         422,
         429,
         500,
@@ -669,9 +676,12 @@
       "success_status": 200,
       "error_response": "#/$defs/errorResponse",
       "error_statuses": [
+        400,
+        405,
         429,
         500,
-        503
+        503,
+        504
       ],
       "x-callers": [
         "health-probe"
@@ -682,9 +692,12 @@
       "success_status": 200,
       "error_response": "#/$defs/errorResponse",
       "error_statuses": [
+        400,
+        405,
         429,
         500,
-        503
+        503,
+        504
       ],
       "x-callers": [
         "health-probe"
