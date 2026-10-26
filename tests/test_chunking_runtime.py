@@ -10,13 +10,13 @@ import unittest
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
-from http.server import ThreadingHTTPServer
 from urllib.error import HTTPError
 from urllib.request import Request, urlopen
 
 from jsonschema import Draft202012Validator
 
 from runtime.chunking import DEFAULT_POLICY, MAX_CHUNKS, ChunkingError, Policy, chunk_document, chunk_spans
+import runtime.server as server_module
 from runtime.server import BoundedThreadingHTTPServer, Handler, _profile_digest
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -358,11 +358,13 @@ class ChunkingHttpTests(unittest.TestCase):
                 self.assertEqual(result["source_id"], "knowledge:source01")
                 self.assertEqual(result["chunks"][0]["text"], expected[:result["chunks"][0]["end_offset"]])
 
-    def test_include_text_false_is_honored(self):
-        body = request_body(options={"include_text": False})
+    def test_optional_text_and_line_spans_can_be_omitted(self):
+        body = request_body(options={"include_text": False, "include_line_spans": False})
         status, headers, result = self.post(body=body)
         self.assertEqual(status, 200)
         self.assertNotIn("text", result["chunks"][0])
+        self.assertNotIn("start_line", result["chunks"][0])
+        self.assertNotIn("end_line", result["chunks"][0])
         Draft202012Validator(SCHEMA["$defs"]["chunkResponse"]).validate(result)
 
     def test_unknown_fields_and_missing_fields_rejected(self):
@@ -447,8 +449,9 @@ class ChunkingHttpTests(unittest.TestCase):
             Handler.timeout = original_timeout
             conn.close()
 
-    def test_trickled_body_hits_absolute_deadline_while_health_stays_responsive(self):
-        deadline = (datetime.now(timezone.utc) + timedelta(milliseconds=900)).isoformat().replace("+00:00", "Z")
+    def test_trickled_body_hits_default_absolute_deadline_while_health_stays_responsive(self):
+        original_budget = server_module.DEFAULT_REQUEST_TIMEOUT_SECONDS
+        server_module.DEFAULT_REQUEST_TIMEOUT_SECONDS = 0.9
         body = json.dumps(request_body()).encode("utf-8")
         conn = socket.create_connection(("127.0.0.1", self.httpd.server_port), timeout=3)
         try:
@@ -457,7 +460,6 @@ class ChunkingHttpTests(unittest.TestCase):
                 "Host: 127.0.0.1\r\n"
                 "Content-Type: application/json\r\n"
                 f"Content-Length: {len(body)}\r\n"
-                f"X-CE-Deadline: {deadline}\r\n"
                 "X-CE-Request-ID: trickle-deadline-1\r\n"
                 "Connection: close\r\n\r\n"
             ).encode("ascii")
@@ -504,6 +506,7 @@ class ChunkingHttpTests(unittest.TestCase):
             sender.join(timeout=0.2)
         finally:
             conn.close()
+            server_module.DEFAULT_REQUEST_TIMEOUT_SECONDS = original_budget
 
     def test_absolute_deadline_bounds_slow_body_receipt(self):
         deadline = (datetime.now(timezone.utc) + timedelta(milliseconds=250)).isoformat().replace("+00:00", "Z")
@@ -630,6 +633,30 @@ class ChunkingHttpTests(unittest.TestCase):
         self.assertEqual(status, 409)
         self.assertEqual(error["error"]["code"], "profile_mismatch")
         self.assert_error_schema(error, headers)
+
+    def test_preflight_rejects_retired_profile_bundle_over_http(self):
+        bundle = profile_bundle()
+        bundle["status"] = "retired"
+        body = {"index_profile": dict(PROFILE), "source_text": "hello world",
+                "chunking_profile": {"profile": "plain-text-default", "version": "0.1",
+                                     "max_units": 12, "overlap_units": 2},
+                "profile_bundle": bundle}
+        status, headers, result = self.post("/api/v1/chunking/preflight", body)
+        self.assertEqual(status, 422)
+        self.assertEqual(result["error"]["code"], "unsupported_profile")
+        self.assertIn(status, SCHEMA["x-endpoints"]["POST /api/v1/chunking/preflight"]["error_statuses"])
+        self.assert_error_schema(result, headers)
+
+    def test_chunk_count_limit_is_enforced_over_http(self):
+        body = request_body()
+        body["policy"] = {"profile": "plain-text-default", "profile_version": "0.1",
+                          "max_units": 1, "overlap_units": 0, "unit": "unicode_code_points"}
+        body["source"]["content"] = "x" * 257
+        status, headers, result = self.post(body=body)
+        self.assertEqual(status, 422)
+        self.assertEqual(result["error"]["code"], "source_too_large")
+        self.assertIn(status, SCHEMA["x-endpoints"]["POST /api/v1/chunking/chunks"]["error_statuses"])
+        self.assert_error_schema(result, headers)
 
     def test_preflight_rejects_digest_tampering_and_invalid_nested_profile(self):
         for mutate in (
