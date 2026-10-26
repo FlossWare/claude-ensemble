@@ -8,7 +8,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from typing import Any
 
 from .chunking import (
-    MAX_CONTENT_BYTES, ChunkingError, Policy, chunk_document, validate_index_profile,
+    MAX_CONTENT_BYTES, ChunkingError, Policy, chunk_document, chunk_spans, validate_index_profile,
 )
 
 REQUEST_ID = re.compile(r"^[A-Za-z0-9._:-]{1,128}$")
@@ -209,19 +209,9 @@ class Handler(BaseHTTPRequestHandler):
         }
         if not limit_keys.issubset(limits) or any(type(limits[k]) is not int or limits[k] < 1 for k in limit_keys):
             raise ChunkingError("invalid_request", "profile_bundle.limits is incomplete or invalid", status=400)
-        result = chunk_document(
-            source_id="knowledge:preflight",
-            revision="preflight",
-            revision_sequence=1,
-            content=source_text,
-            index_profile=identity,
-            policy=policy,
-            include_text=True,
-            include_line_spans=True,
-        )
-        chunks = result["chunks"]
-        chunk_count = len(chunks)
-        max_text_bytes = max(len(chunk["text"].encode("utf-8")) for chunk in chunks)
+        spans = chunk_spans(source_text, policy, max_chunks=MAX_CONTENT_BYTES)
+        chunk_count = len(spans)
+        max_text_bytes = max(len(source_text[start:end].encode("utf-8")) for start, end in spans)
         upper_bound = chunk_count * limits["max_chunk_representation_bytes"] + limits["max_envelope_bytes"]
         fits = (
             source_bytes <= limits["max_source_bytes"]
