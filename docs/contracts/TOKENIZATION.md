@@ -22,6 +22,7 @@ Apply the same profile and options to 1–64 inputs, with a maximum 512 KiB enco
 
 Request:
 
+<!-- schema-example: docs/contracts/schemas/tokenization.schema.json#/$defs/batchRequest -->
 ```json
 {
   "index_profile": {"name": "default", "version": "0.1", "digest": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"},
@@ -40,6 +41,7 @@ For indexing workflows, callers supply the immutable Index-owned bundle identity
 
 Response:
 
+<!-- schema-example: docs/contracts/schemas/tokenization.schema.json#/$defs/batchResponse -->
 ```json
 {
   "profile": "technical-default",
