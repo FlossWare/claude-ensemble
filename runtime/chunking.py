@@ -95,12 +95,21 @@ def _choose_end(text: str, start: int, limit: int) -> int:
 
 
 def _heading_path(text: str, offset: int) -> list[str]:
-    """Return ATX heading ancestry before offset, ignoring fenced code blocks."""
-    path: list[str] = []
+    """Return ancestry from complete ATX heading lines preceding offset."""
+    import re
+
+    ancestry: list[tuple[int, str]] = []
     fence_char: str | None = None
     fence_length = 0
-    for line in text[:offset].splitlines():
-        stripped = line.lstrip()
+    position = 0
+    for raw_line in text.splitlines(keepends=True):
+        line_end = position + len(raw_line)
+        # A chunk boundary inside a heading line must never turn its prefix into
+        # fabricated provenance.
+        if line_end > offset:
+            break
+        line = raw_line.rstrip("\r\n")
+        stripped = line.lstrip(" ")
         indent = len(line) - len(stripped)
         if indent <= 3 and stripped and stripped[0] in "`~":
             marker = stripped[0]
@@ -108,17 +117,25 @@ def _heading_path(text: str, offset: int) -> list[str]:
             if run_length >= 3:
                 if fence_char is None and (marker == "`" or "`" not in stripped):
                     fence_char, fence_length = marker, run_length
+                    position = line_end
                     continue
                 if fence_char == marker and run_length >= fence_length and not stripped[run_length:].strip():
                     fence_char, fence_length = None, 0
+                    position = line_end
                     continue
-        if fence_char is not None:
-            continue
-        hashes = len(stripped) - len(stripped.lstrip("#"))
-        if hashes and hashes <= 6 and len(stripped) > hashes and stripped[hashes:hashes + 1] == " ":
-            heading = stripped[hashes:].strip().rstrip("#").rstrip()
-            path = path[:hashes - 1] + [heading]
-    return path
+        if fence_char is None and indent <= 3:
+            match = re.match(r"^ {0,3}(#{1,6})(?:[ \t]+|$)(.*?)\s*$", line)
+            if match:
+                level = len(match.group(1))
+                heading = match.group(2)
+                heading = re.sub(r"[ \t]+#+[ \t]*$", "", heading).strip()
+                # The schema caps heading provenance at 1024 characters. Ignore
+                # oversized headings rather than return a schema-invalid claim.
+                if heading and len(heading) <= 1024:
+                    ancestry = [(depth, value) for depth, value in ancestry if depth < level]
+                    ancestry.append((level, heading))
+        position = line_end
+    return [heading for _, heading in ancestry[-64:]]
 
 
 def chunk_spans(content: str, policy: Policy, *, max_chunks: int = MAX_CHUNKS) -> list[tuple[int, int]]:
