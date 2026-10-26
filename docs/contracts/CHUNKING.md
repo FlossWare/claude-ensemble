@@ -16,6 +16,7 @@ Transform one source document into chunks. The operation is deterministic for th
 
 Request:
 
+<!-- schema-example: docs/contracts/schemas/chunking.schema.json#/$defs/chunkRequest -->
 ```json
 {
   "index_profile": {"name": "default", "version": "0.1", "digest": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"},
@@ -44,6 +45,7 @@ The caller may omit `policy` to use the explicitly configured default profile. T
 
 Response:
 
+<!-- schema-example: docs/contracts/schemas/chunking.schema.json#/$defs/chunkResponse -->
 ```json
 {
   "index_profile": {"name": "default", "version": "0.1", "digest": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"},
