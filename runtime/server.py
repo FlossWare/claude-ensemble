@@ -158,7 +158,7 @@ class Handler(BaseHTTPRequestHandler):
     def _chunks(self, value: Any) -> dict[str, Any]:
         request = _require_object(value, "request",
             {"request_id", "index_profile", "source", "policy", "options"},
-            {"index_profile", "source", "policy"})
+            {"index_profile", "source"})
         profile = validate_index_profile(request["index_profile"])
         source = _require_object(request["source"], "source",
             {"source_id", "revision", "revision_sequence", "media_type", "content"},
