@@ -41,7 +41,7 @@ Request:
 }
 ```
 
-The caller may omit `policy` to use the explicitly configured default profile. The response must identify the effective profile and version; defaults must never be implicit in diagnostics.
+The caller may omit `policy` to use the explicitly configured default profile. The initial runtime default is `markdown-default@0.1` with `max_units=1200`, `overlap_units=120`, and `unit=unicode_code_points`. The response must identify the effective profile and version; defaults must never be implicit in diagnostics. An Index-pinned component profile should normally be supplied explicitly.
 
 Response:
 
@@ -100,7 +100,9 @@ Use the shared CE REST error envelope. At minimum distinguish malformed request,
 
 Expose `GET /api/v1/chunking/health` and `GET /api/v1/chunking/ready`. Readiness reports whether configured chunking profiles are available. Diagnostics include effective profile/version and duration, but do not log document content by default.
 
-The initial runtime configures `plain-text-default@0.1` and `markdown-default@0.1`; other profile names or versions are rejected as `unsupported_profile` until explicitly configured. The plain-text profile does not infer Markdown heading provenance. The Markdown profile derives heading context from ATX headings. `options.include_text=false` omits each chunk's `text` field; offsets and identifiers remain available.
+The initial runtime configures `plain-text-default@0.1` and `markdown-default@0.1`; other profile names or versions are rejected as `unsupported_profile` until explicitly configured. If `policy` is omitted, the runtime uses the explicit `markdown-default@0.1` policy of 1200 Unicode code points per chunk and 120 code points of overlap. The plain-text profile does not infer Markdown heading provenance. The Markdown profile recognizes ATX headings only: Setext headings and headings inside fenced code blocks are not interpreted as structural headings in this initial implementation. `options.include_text=false` omits each chunk's `text` field; offsets and identifiers remain available.
+
+The normal chunks endpoint has a 300,000-byte HTTP request-body cap and independently enforces the 262,144-byte UTF-8 source-content cap. Preflight has a 2 MiB request-body cap because the resolved profile bundle accompanies the source. Callers must not treat the larger preflight envelope allowance as permission to submit source content larger than 262,144 UTF-8 bytes. Both normal chunking and preflight enforce the runtime's hard maximum of 256 chunks; preflight rejects sources exceeding that bound rather than allocating an unbounded span list.
 
 ## Bounded ingestion preflight
 
