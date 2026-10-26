@@ -1,11 +1,14 @@
 """Contract, algorithm, and real-HTTP-boundary tests for Chunking."""
 import hashlib
 import json
+import socket
 import subprocess
 import sys
 import threading
+import time
 import unittest
 from concurrent.futures import ThreadPoolExecutor
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from http.server import ThreadingHTTPServer
 from urllib.error import HTTPError
@@ -323,6 +326,33 @@ class ChunkingHttpTests(unittest.TestCase):
         self.assertEqual(expired["error"]["code"], "deadline_exceeded")
         self.assert_error_schema(expired, headers)
 
+    def test_absolute_deadline_bounds_slow_body_receipt(self):
+        deadline = (datetime.now(timezone.utc) + timedelta(milliseconds=250)).isoformat().replace("+00:00", "Z")
+        body = json.dumps(request_body()).encode("utf-8")
+        conn = socket.create_connection(("127.0.0.1", self.httpd.server_port), timeout=2)
+        try:
+            headers = (
+                "POST /api/v1/chunking/chunks HTTP/1.1\r\n"
+                "Host: 127.0.0.1\r\n"
+                "Content-Type: application/json\r\n"
+                f"Content-Length: {len(body)}\r\n"
+                f"X-CE-Deadline: {deadline}\r\n"
+                "Connection: close\r\n\r\n"
+            ).encode("ascii")
+            conn.sendall(headers)
+            time.sleep(0.35)
+            response = bytearray()
+            while True:
+                part = conn.recv(4096)
+                if not part:
+                    break
+                response.extend(part)
+            raw = bytes(response)
+            self.assertIn(b"504 Gateway Timeout", raw)
+            self.assertIn(b'"code":"deadline_exceeded"', raw)
+        finally:
+            conn.close()
+
     def test_invalid_policy_returns_contract_error(self):
         body = request_body()
         body["policy"]["overlap_units"] = body["policy"]["max_units"]
@@ -402,6 +432,7 @@ class ChunkingHttpTests(unittest.TestCase):
     def test_preflight_reports_profile_limit_without_materializing_all_chunks(self):
         bundle = profile_bundle()
         bundle["limits"]["max_chunks"] = 2
+        bundle["limits"]["max_request_bytes"] = 12288
         bundle["chunking"]["max_units"] = 4
         refresh_profile_digest(bundle)
         body = {"index_profile": dict(PROFILE), "source_text": "abcdefghijklmnop",
