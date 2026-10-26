@@ -231,9 +231,9 @@ class ChunkingAlgorithmTests(unittest.TestCase):
         self.assertEqual(DEFAULT_POLICY.profile_version, "0.1")
         self.assertGreater(DEFAULT_POLICY.max_units, DEFAULT_POLICY.overlap_units)
 
-    def test_plain_text_does_not_claim_markdown_heading_context(self):
-        result = chunk("# Not a parsed heading\\nbody", policy=Policy("markdown-default", "0.1", 64, 0))
-        self.assertEqual(result["chunks"][0]["heading_path"], [])
+    def test_canonical_markdown_profile_reports_heading_context(self):
+        result = chunk("# Heading\\nbody", policy=Policy("markdown-default", "0.1", 64, 0))
+        self.assertEqual(result["chunks"][0]["heading_path"], ["Heading"])
 
     def test_invalid_policy_rejected(self):
         for policy in (
