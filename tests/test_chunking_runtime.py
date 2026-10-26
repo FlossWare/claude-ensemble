@@ -395,7 +395,7 @@ class ChunkingHttpTests(unittest.TestCase):
             "tomorrow",
             "2026-10-26 12:00:00Z",
             "2026-10-26T12:00Z",
-            "2026-10-26T12:00:00.1234567Z",
+            "2026-10-26T12:00:00.1234567xZ",
             "2026-10-26T12:00:00+00:00",
         ):
             status, headers, malformed = self.post(body=request_body(), headers={"X-CE-Deadline": invalid_deadline})
