@@ -7,7 +7,8 @@ import unittest
 from urllib.error import HTTPError
 from urllib.request import Request, urlopen
 
-from runtime.chunking import ChunkingError\nfrom runtime.server import BoundedThreadingHTTPServer, Handler, IndexProfileRegistry, _profile_digest
+from runtime.chunking import ChunkingError
+from runtime.server import BoundedThreadingHTTPServer, Handler, IndexProfileRegistry, _profile_digest
 
 
 def valid_bundle(name="default", version="0.1", status="active"):
