@@ -251,6 +251,32 @@ class Handler(BaseHTTPRequestHandler):
             body.extend(part)
         return bytes(body)
 
+    def _method_not_allowed(self) -> None:
+        request_id, invalid_id = self._request_id()
+        self.close_connection = True
+        if invalid_id:
+            self._send(400, _error("invalid_parameter", "X-CE-Request-ID contains invalid characters or length"), request_id)
+        else:
+            self._send(405, _error("method_not_allowed", "HTTP method is not supported"), request_id)
+
+    def do_PUT(self) -> None:
+        self._method_not_allowed()
+
+    def do_PATCH(self) -> None:
+        self._method_not_allowed()
+
+    def do_DELETE(self) -> None:
+        self._method_not_allowed()
+
+    def do_OPTIONS(self) -> None:
+        self._method_not_allowed()
+
+    def do_TRACE(self) -> None:
+        self._method_not_allowed()
+
+    def do_CONNECT(self) -> None:
+        self._method_not_allowed()
+
     def do_GET(self) -> None:
         request_id, invalid_id = self._request_id()
         if invalid_id:
