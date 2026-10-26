@@ -242,3 +242,14 @@ Build a target generation whose profile cannot represent one canonical source. A
 ### AT-CALL-GRAPH-01: Static allowed-caller graph
 
 Run `python scripts/validate_contracts.py` and `python scripts/check_service_call_graph.py` against all service contract schemas. Assert every endpoint declares a non-empty `x-callers` array, caller names are unique, all local references and endpoint bindings resolve, all fenced JSON examples parse, forbidden Index-to-Memory/Knowledge, Graph-to-Memory/Knowledge, and Thompson-to-Learning edges are rejected, and the service-level caller graph is acyclic. This static check validates declared contracts only; `AT-INDEX-DIRECTION-01` remains the separate runtime dispatcher-trace scenario.
+
+
+## Review correction: discriminating RRF arithmetic vectors
+
+This correction supersedes the non-discriminating tie example currently described in AT-RANK-01. Under the v1 integer fixed-point RRF policy, each unique list contributes floor(1,000,000,000,000 / (60 + rank)). The tests must assert these exact integer totals:
+
+- Rank pair (3,24): 27,777,777,777.
+- Rank pair (12,12): 27,777,777,776. The (3,24) candidate must rank first even when the (12,12) candidate has an identity that sorts earlier.
+- Rank pairs (3,80), (80,3), (24,30), and (30,24): each totals 23,015,873,015. These candidates must be ordered by the canonical identity comparator alone, regardless of insertion order.
+
+The original (64,98) versus (98,64) example is not a useful arithmetic discriminator because both have the same terms in reversed order. Keep it only as a commutativity check, not as evidence that integer fixed-point behavior is implemented correctly.
