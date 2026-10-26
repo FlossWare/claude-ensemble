@@ -15,6 +15,7 @@ REQUEST_ID = re.compile(r"^[A-Za-z0-9._:-]{1,128}$")
 SOURCE_ID = re.compile(r"^(memory|knowledge):[A-Za-z0-9._~-]{1,128}$")
 MAX_REQUEST_BYTES = 300_000
 MAX_PROFILE_REQUEST_BYTES = 2_097_152
+SUPPORTED_PROFILES = {"markdown-default": {"0.1"}, "plain-text-default": {"0.1"}}
 
 
 def _error(code: str, message: str, retryable: bool = False,
@@ -87,7 +88,9 @@ class Handler(BaseHTTPRequestHandler):
                 "service": "chunking",
                 "status": "ready",
                 "ready": True,
-                "checks": [{"name": "chunking_engine", "status": "ok"}],
+                "checks": [{"name": "chunking_engine", "status": "ok"},
+                          {"name": "markdown-default@0.1", "status": "ok"},
+                          {"name": "plain-text-default@0.1", "status": "ok"}],
             }, request_id)
         else:
             self._send(404, _error("endpoint_not_found", "endpoint not found"), request_id)
@@ -141,15 +144,14 @@ class Handler(BaseHTTPRequestHandler):
         if "media_type" in source and (not isinstance(source["media_type"], str) or len(source["media_type"]) > 128):
             raise ChunkingError("invalid_parameter", "source.media_type is invalid", status=400)
         policy = Policy.from_dict(request["policy"])
+        if policy.profile not in SUPPORTED_PROFILES or policy.profile_version not in SUPPORTED_PROFILES[policy.profile]:
+            raise ChunkingError("unsupported_profile", "chunking profile or version is not configured")
         options = _require_object(request.get("options", {}), "options",
             {"include_text", "include_line_spans"}, set())
         include_text = options.get("include_text", True)
         include_line_spans = options.get("include_line_spans", True)
         if type(include_text) is not bool or type(include_line_spans) is not bool:
             raise ChunkingError("invalid_parameter", "options.include_text and options.include_line_spans must be booleans", status=400)
-        # The response schema requires chunk text and at least one chunk.
-        if not include_text:
-            raise ChunkingError("invalid_parameter", "options.include_text=false is not supported by the v1 response schema", status=400)
         result = chunk_document(
             source_id=source["source_id"],
             revision=source["revision"],
@@ -199,6 +201,8 @@ class Handler(BaseHTTPRequestHandler):
             "overlap_units": requested["overlap_units"],
             "unit": "unicode_code_points",
         })
+        if policy.profile not in SUPPORTED_PROFILES or policy.profile_version not in SUPPORTED_PROFILES[policy.profile]:
+            raise ChunkingError("unsupported_profile", "chunking profile or version is not configured")
         limits = bundle.get("limits")
         if not isinstance(limits, dict):
             raise ChunkingError("invalid_request", "profile_bundle.limits must be an object", status=400)
