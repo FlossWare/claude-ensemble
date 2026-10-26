@@ -19,6 +19,95 @@ MAX_PROFILE_REQUEST_BYTES = 2_097_152
 SUPPORTED_PROFILES = {"markdown-default": {"0.1"}, "plain-text-default": {"0.1"}}
 
 
+def _profile_digest(bundle: dict[str, Any]) -> str:
+    # Index profile schema values are JSON primitives; sorted compact UTF-8 JSON
+    # is RFC 8785-equivalent for this schema (which excludes floating-point values).
+    covered = {k: v for k, v in bundle.items() if k not in {"digest", "status"}}
+    canonical = json.dumps(covered, ensure_ascii=False, sort_keys=True, separators=(",", ":"),
+                          allow_nan=False).encode("utf-8")
+    import hashlib
+    return hashlib.sha256(canonical).hexdigest()
+
+
+def _validate_profile_bundle(bundle: Any) -> dict[str, Any]:
+    """Validate the full Index profile shape and its cross-field size invariants."""
+    if not isinstance(bundle, dict):
+        raise ChunkingError("invalid_request", "profile_bundle must be an object", status=400)
+    required = {"name", "version", "status", "chunking", "tokenization", "lexical",
+                "embedding", "limits", "digest"}
+    if set(bundle) != required:
+        raise ChunkingError("invalid_request", "profile_bundle has missing or unknown fields", status=400)
+    def obj(name: str, keys: set[str]) -> dict[str, Any]:
+        value = bundle[name]
+        if not isinstance(value, dict) or set(value) != keys:
+            raise ChunkingError("invalid_request", f"profile_bundle.{name} has missing, unknown, or invalid fields", status=400)
+        return value
+    def string(value: Any, maximum: int, field: str) -> None:
+        if not isinstance(value, str) or not 1 <= len(value) <= maximum:
+            raise ChunkingError("invalid_request", f"profile_bundle.{field} is invalid", status=400)
+    string(bundle["name"], 128, "name")
+    string(bundle["version"], 64, "version")
+    if bundle["status"] not in {"active", "deprecated", "retired"}:
+        raise ChunkingError("invalid_request", "profile_bundle.status is invalid", status=400)
+    chunking = obj("chunking", {"profile", "version", "max_units"})
+    string(chunking["profile"], 128, "chunking.profile")
+    string(chunking["version"], 64, "chunking.version")
+    if type(chunking["max_units"]) is not int or not 1 <= chunking["max_units"] <= 65536:
+        raise ChunkingError("invalid_request", "profile_bundle.chunking.max_units is invalid", status=400)
+    tokenization = obj("tokenization", {"profile", "version"})
+    string(tokenization["profile"], 128, "tokenization.profile")
+    string(tokenization["version"], 64, "tokenization.version")
+    lexical = obj("lexical", {"profile", "version", "statistics_policy"})
+    string(lexical["profile"], 128, "lexical.profile")
+    string(lexical["version"], 64, "lexical.version")
+    if lexical["statistics_policy"] not in {"scope_partition", "isolated_corpus"}:
+        raise ChunkingError("invalid_request", "profile_bundle.lexical.statistics_policy is invalid", status=400)
+    embedding = obj("embedding", {"required", "profile", "version", "model", "model_version",
+                                  "input_types", "dimensions", "normalization", "metric", "max_input_tokens"})
+    if type(embedding["required"]) is not bool:
+        raise ChunkingError("invalid_request", "profile_bundle.embedding.required is invalid", status=400)
+    for key, maximum in (("profile",128),("version",64),("model",256),("model_version",128)):
+        string(embedding[key], maximum, "embedding."+key)
+    if (not isinstance(embedding["input_types"], list) or not 1 <= len(embedding["input_types"]) <= 2
+            or len(set(embedding["input_types"])) != len(embedding["input_types"])
+            or any(v not in {"query", "document"} for v in embedding["input_types"])):
+        raise ChunkingError("invalid_request", "profile_bundle.embedding.input_types is invalid", status=400)
+    if type(embedding["dimensions"]) is not int or not 1 <= embedding["dimensions"] <= 4096:
+        raise ChunkingError("invalid_request", "profile_bundle.embedding.dimensions is invalid", status=400)
+    if embedding["normalization"] not in {"none", "l2"} or embedding["metric"] not in {"cosine", "dot_product", "euclidean"}:
+        raise ChunkingError("invalid_request", "profile_bundle.embedding normalization or metric is invalid", status=400)
+    if type(embedding["max_input_tokens"]) is not int or not 1 <= embedding["max_input_tokens"] <= 1_000_000:
+        raise ChunkingError("invalid_request", "profile_bundle.embedding.max_input_tokens is invalid", status=400)
+    limits = obj("limits", {"max_chunks", "max_source_bytes", "max_chunk_text_bytes", "max_request_bytes",
+                            "max_chunk_representation_bytes", "max_envelope_bytes", "max_metadata_bytes",
+                            "max_lexical_terms_per_chunk", "max_lexical_term_bytes"})
+    bounds = {
+        "max_chunks": (1, 256), "max_source_bytes": (1, 262144),
+        "max_chunk_text_bytes": (1, 65536), "max_request_bytes": (1024, 2097152),
+        "max_chunk_representation_bytes": (256, 1048576), "max_envelope_bytes": (1024, 131072),
+        "max_metadata_bytes": (0, 8192), "max_lexical_terms_per_chunk": (1, 512),
+        "max_lexical_term_bytes": (1, 128),
+    }
+    for key, (minimum, maximum) in bounds.items():
+        value = limits[key]
+        if type(value) is not int or not minimum <= value <= maximum:
+            raise ChunkingError("invalid_request", f"profile_bundle.limits.{key} is invalid", status=400)
+    if limits["max_chunks"] * limits["max_chunk_representation_bytes"] + limits["max_envelope_bytes"] > limits["max_request_bytes"]:
+        raise ChunkingError("invalid_request", "profile_bundle limits violate the complete request-size bound", status=400)
+    representation_minimum = (6 * limits["max_chunk_text_bytes"] + 2
+        + (25 * embedding["dimensions"] + 2 if embedding["required"] else 0)
+        + limits["max_lexical_terms_per_chunk"] * (6 * limits["max_lexical_term_bytes"] + 4)
+        + limits["max_metadata_bytes"] + 1024)
+    if limits["max_chunk_representation_bytes"] < representation_minimum:
+        raise ChunkingError("invalid_request", "profile_bundle limits violate the conservative representation-size bound", status=400)
+    digest = bundle["digest"]
+    if not isinstance(digest, str) or len(digest) != 64 or any(ch not in "0123456789abcdefABCDEF" for ch in digest):
+        raise ChunkingError("invalid_request", "profile_bundle.digest is invalid", status=400)
+    if _profile_digest(bundle).lower() != digest.lower():
+        raise ChunkingError("profile_digest_mismatch", "profile_bundle content does not match its digest", status=409)
+    return bundle
+
+
 def _error(code: str, message: str, retryable: bool = False,
            details: dict[str, Any] | None = None) -> dict[str, Any]:
     return {
@@ -217,17 +306,12 @@ class Handler(BaseHTTPRequestHandler):
         if source_bytes > MAX_CONTENT_BYTES:
             raise ChunkingError("source_too_large", "source_text exceeds 262144 UTF-8 bytes")
 
-        bundle = request["profile_bundle"]
-        if not isinstance(bundle, dict):
-            raise ChunkingError("invalid_request", "profile_bundle must be an object", status=400)
-        required_bundle = {"name", "version", "status", "chunking", "tokenization", "lexical", "embedding", "limits", "digest"}
-        if set(bundle) != required_bundle:
-            raise ChunkingError("invalid_request", "profile_bundle does not match the Index profile bundle shape", status=400)
-        if any(bundle.get(k) != identity[k] for k in ("name", "version", "digest")):
-            raise ChunkingError("profile_digest_mismatch", "index_profile identity does not match profile_bundle")
-        if bundle.get("status") == "retired":
+        bundle = _validate_profile_bundle(request["profile_bundle"])
+        if any(bundle[k] != identity[k] for k in ("name", "version", "digest")):
+            raise ChunkingError("profile_digest_mismatch", "index_profile identity does not match profile_bundle", status=409)
+        if bundle["status"] == "retired":
             raise ChunkingError("unsupported_profile", "retired Index profile bundles cannot be used for ingestion")
-        chunking = bundle.get("chunking")
+        chunking = bundle["chunking"]
         requested = _require_object(request["chunking_profile"], "chunking_profile",
             {"profile", "version", "max_units", "overlap_units"},
             {"profile", "version", "max_units", "overlap_units"})
@@ -242,23 +326,12 @@ class Handler(BaseHTTPRequestHandler):
         })
         if policy.profile not in SUPPORTED_PROFILES or policy.profile_version not in SUPPORTED_PROFILES[policy.profile]:
             raise ChunkingError("unsupported_profile", "chunking profile or version is not configured")
-        limits = bundle.get("limits")
-        if not isinstance(limits, dict):
-            raise ChunkingError("invalid_request", "profile_bundle.limits must be an object", status=400)
-        limit_keys = {
-            "max_chunks", "max_source_bytes", "max_chunk_text_bytes", "max_request_bytes",
-            "max_chunk_representation_bytes", "max_envelope_bytes", "max_metadata_bytes",
-            "max_lexical_terms_per_chunk", "max_lexical_term_bytes",
-        }
-        if (not limit_keys.issubset(limits)
-                or any(type(limits[k]) is not int or limits[k] < (0 if k == "max_metadata_bytes" else 1)
-                       for k in limit_keys)):
-            raise ChunkingError("invalid_request", "profile_bundle.limits is incomplete or invalid", status=400)
-        if bundle.get("status") not in {"active", "deprecated", "retired"}:
-            raise ChunkingError("invalid_request", "profile_bundle.status is invalid", status=400)
+        limits = bundle["limits"]
         spans = chunk_spans(source_text, policy, max_chunks=MAX_CHUNKS)
         chunk_count = len(spans)
         max_text_bytes = max(len(source_text[start:end].encode("utf-8")) for start, end in spans)
+        if max_text_bytes > 65536:
+            raise ChunkingError("source_too_large", "a chunk's UTF-8 text exceeds the contract response limit")
         upper_bound = chunk_count * limits["max_chunk_representation_bytes"] + limits["max_envelope_bytes"]
         fits = (
             source_bytes <= limits["max_source_bytes"]
