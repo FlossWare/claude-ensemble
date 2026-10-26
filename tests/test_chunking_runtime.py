@@ -29,7 +29,7 @@ POLICY = Policy.from_dict(POLICY_DICT)
 
 def chunk(content="hello world", **overrides):
     args = dict(source_id="knowledge:source01", revision="r1", revision_sequence=1,
-                content=content, index_profile=PROFILE, policy=POLICY)
+                content=content, index_profile=PROFILE, policy=POLICY, media_type="text/markdown")
     args.update(overrides)
     return chunk_document(**args)
 
@@ -40,6 +40,7 @@ def request_body(**overrides):
         "source": {"source_id": "knowledge:source01", "revision": "r1",
                    "revision_sequence": 1, "media_type": "text/plain", "content": "hello world"},
         "policy": dict(POLICY_DICT),
+        "profile_bundle": profile_bundle(),
     }
     body.update(overrides)
     return body
@@ -56,7 +57,7 @@ def refresh_profile_digest(bundle):
 def profile_bundle():
     bundle = {
         "name": "default", "version": "0.1", "status": "active",
-        "chunking": {"profile": "markdown-default", "version": "0.1", "max_units": 12},
+        "chunking": {"profile": "markdown-default", "version": "0.1", "max_units": 12, "overlap_units": 2},
         "tokenization": {"profile": "default", "version": "0.1"},
         "lexical": {"profile": "default", "version": "0.1", "statistics_policy": "scope_partition"},
         "embedding": {"required": False, "profile": "default", "version": "0.1", "model": "none",
