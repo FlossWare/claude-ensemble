@@ -10,6 +10,7 @@ from pathlib import Path
 from typing import Any
 
 from jsonschema import Draft202012Validator
+from referencing import Registry, Resource
 
 ROOT = Path(__file__).resolve().parents[1]
 SCHEMA_DIR = ROOT / "docs" / "contracts" / "schemas"
@@ -84,6 +85,12 @@ def main() -> int:
             schemas[path] = parse_json(path.read_text(encoding="utf-8"))
         except (OSError, json.JSONDecodeError, ValueError) as exc:
             errors.append(f"{path.relative_to(ROOT)}: cannot parse schema JSON: {exc}")
+
+    registry = Registry()
+    for schema in schemas.values():
+        schema_id = schema.get("$id")
+        if isinstance(schema_id, str):
+            registry = registry.with_resource(schema_id, Resource.from_contents(schema))
 
     global_routes: dict[tuple[str, str], str] = {}
     for path, schema in schemas.items():
@@ -209,8 +216,8 @@ def main() -> int:
                         raise ValueError(f"schema file is not in the loaded schema registry: {schema_file}")
                     definition_pointer = "#" + fragment if sep else "#"
                     resolve_pointer(schema, definition_pointer)
-                    instance_schema = {"$schema": schema["$schema"], "$defs": schema.get("$defs", {}), "$ref": definition_pointer}
-                    Draft202012Validator(instance_schema).validate(instance)
+                    instance_schema = {"$schema": schema["$schema"], "$id": schema["$id"], "$defs": schema.get("$defs", {}), "$ref": definition_pointer}
+                    Draft202012Validator(instance_schema, registry=registry).validate(instance)
                 except Exception as exc:
                     errors.append(f"{path.relative_to(ROOT)} JSON example {index} against {target}: {exc}")
 
