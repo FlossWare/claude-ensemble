@@ -8,8 +8,7 @@
       "additionalProperties": false,
       "required": [
         "index_profile",
-        "source",
-        "policy"
+        "source"
       ],
       "properties": {
         "request_id": {
