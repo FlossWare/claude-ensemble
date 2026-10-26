@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import json
 import re
+import threading
 import time
 import uuid
 from datetime import datetime, timezone
@@ -14,6 +15,7 @@ from .chunking import (
 )
 
 REQUEST_ID = re.compile(r"^[A-Za-z0-9._:-]{1,128}$")
+DEADLINE_TIMESTAMP = re.compile(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,6})?Z$")
 SOURCE_ID = re.compile(r"^(memory|knowledge):[A-Za-z0-9._~-]{1,128}$")
 MAX_REQUEST_BYTES = 300_000
 MAX_PROFILE_REQUEST_BYTES = 2_097_152
@@ -136,6 +138,10 @@ def _unique_json_object(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
     return result
 
 
+def _reject_json_constant(value: str) -> None:
+    raise ValueError(f"non-standard JSON numeric constant {value} is not permitted")
+
+
 def _validate_json_unicode(value: Any) -> None:
     if isinstance(value, str):
         try:
@@ -215,8 +221,8 @@ class Handler(BaseHTTPRequestHandler):
                 self._request_deadline_monotonic = now_mono + DEFAULT_REQUEST_TIMEOUT_SECONDS
             else:
                 try:
-                    if not supplied.endswith("Z"):
-                        raise ValueError("deadline must be UTC and end in Z")
+                    if not DEADLINE_TIMESTAMP.fullmatch(supplied):
+                        raise ValueError("deadline must be an RFC 3339 UTC timestamp with at most microsecond precision")
                     deadline = datetime.fromisoformat(supplied[:-1] + "+00:00")
                     if deadline.tzinfo != timezone.utc:
                         raise ValueError("deadline must be UTC")
@@ -326,7 +332,8 @@ class Handler(BaseHTTPRequestHandler):
                 raise ChunkingError("request_too_large", "request exceeds configured byte limit", status=413)
             raw = self._read_body(length)
             try:
-                request = json.loads(raw.decode("utf-8"), object_pairs_hook=_unique_json_object)
+                request = json.loads(raw.decode("utf-8"), object_pairs_hook=_unique_json_object,
+                                  parse_constant=_reject_json_constant)
             except (UnicodeDecodeError, json.JSONDecodeError, ValueError) as exc:
                 raise ChunkingError("invalid_request", "request body must be valid UTF-8 JSON without duplicate object keys", status=400) from exc
             _validate_json_unicode(request)
@@ -450,8 +457,57 @@ class Handler(BaseHTTPRequestHandler):
         }
 
 
+class BoundedThreadingHTTPServer(ThreadingHTTPServer):
+    """Threaded local server with a hard cap on active handlers.
+
+    Excess connections receive a correlated 503 instead of creating unbounded
+    request threads. This is a local-runtime guardrail, not deployment admission control.
+    """
+    max_workers = 32
+    request_queue_size = 64
+    daemon_threads = True
+
+    def __init__(self, server_address: Any, RequestHandlerClass: type[BaseHTTPRequestHandler],
+                 bind_and_activate: bool = True):
+        self._worker_slots = threading.BoundedSemaphore(self.max_workers)
+        super().__init__(server_address, RequestHandlerClass, bind_and_activate)
+
+    def process_request(self, request: Any, client_address: Any) -> None:
+        if not self._worker_slots.acquire(blocking=False):
+            request_id = str(uuid.uuid4())
+            body = _error("service_unavailable", "request capacity is temporarily exhausted", retryable=True)
+            body["request_id"] = request_id
+            payload = json.dumps(body, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
+            response = (
+                b"HTTP/1.1 503 Service Unavailable\r\n"
+                b"Content-Type: application/json; charset=utf-8\r\n"
+                + f"Content-Length: {len(payload)}\r\n".encode("ascii")
+                + f"X-CE-Request-ID: {request_id}\r\n".encode("ascii")
+                + b"Connection: close\r\n\r\n"
+                + payload
+            )
+            try:
+                request.sendall(response)
+            except OSError:
+                pass
+            finally:
+                self.shutdown_request(request)
+            return
+        try:
+            super().process_request(request, client_address)
+        except Exception:
+            self._worker_slots.release()
+            raise
+
+    def process_request_thread(self, request: Any, client_address: Any) -> None:
+        try:
+            super().process_request_thread(request, client_address)
+        finally:
+            self._worker_slots.release()
+
+
 def serve(host: str = "127.0.0.1", port: int = 8080) -> None:
-    ThreadingHTTPServer((host, port), Handler).serve_forever()
+    BoundedThreadingHTTPServer((host, port), Handler).serve_forever()
 
 
 if __name__ == "__main__":
