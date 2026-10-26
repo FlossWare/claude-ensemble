@@ -48,6 +48,11 @@ def _require_object(value: Any, name: str, allowed: set[str], required: set[str]
 
 class Handler(BaseHTTPRequestHandler):
     server_version = "ClaudeEnsemble/0.1"
+    timeout = 5.0
+
+    def setup(self) -> None:
+        super().setup()
+        self.connection.settimeout(self.timeout)
 
     def log_message(self, fmt: str, *args: Any) -> None:
         # Avoid default access logs that can accidentally expose sensitive request data.
@@ -98,9 +103,8 @@ class Handler(BaseHTTPRequestHandler):
         request_id, invalid_id = self._request_id()
         if invalid_id:
             self._send(400, _error("invalid_parameter", "X-CE-Request-ID contains invalid characters or length"), request_id)
-        elif self._deadline_error() is not None:
-            error = self._deadline_error()
-            self._fail(error, request_id)
+        elif (deadline_error := self._deadline_error()) is not None:
+            self._fail(deadline_error, request_id)
         elif self.path == "/api/v1/chunking/health":
             self._send(200, {"service": "chunking", "status": "alive"}, request_id)
         elif self.path == "/api/v1/chunking/ready":
@@ -149,7 +153,12 @@ class Handler(BaseHTTPRequestHandler):
                 response = self._preflight(request)
             else:
                 response = self._chunks(request)
+            if (deadline_error := self._deadline_error()) is not None:
+                self._fail(deadline_error, request_id)
+                return
             self._send(200, response, request_id)
+        except TimeoutError:
+            self._send(408, _error("request_timeout", "request body was not received before the socket timeout"), request_id)
         except ChunkingError as exc:
             self._fail(exc, request_id)
         except Exception:
