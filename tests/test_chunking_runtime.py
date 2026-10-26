@@ -476,7 +476,8 @@ class ChunkingHttpTests(unittest.TestCase):
                     break
                 response.extend(part)
             raw = bytes(response)
-            self.assertIn(b"413 Request Entity Too Large", raw)
+            status_line = raw.split(b"\r\n", 1)[0]
+            self.assertRegex(status_line, rb"^HTTP/1\.[01] 413(?: |$)")
             header_bytes, body_bytes = raw.split(b"\r\n\r\n", 1)
             headers = {}
             for line in header_bytes.split(b"\r\n")[1:]:
