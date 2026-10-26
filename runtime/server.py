@@ -57,11 +57,13 @@ def _validate_profile_bundle(bundle: Any) -> dict[str, Any]:
     string(bundle["version"], 64, "version")
     if not isinstance(bundle["status"], str) or bundle["status"] not in {"active", "deprecated", "retired"}:
         raise ChunkingError("invalid_request", "profile_bundle.status is invalid", status=400)
-    chunking = obj("chunking", {"profile", "version", "max_units"})
+    chunking = obj("chunking", {"profile", "version", "max_units", "overlap_units"})
     string(chunking["profile"], 128, "chunking.profile")
     string(chunking["version"], 64, "chunking.version")
     if type(chunking["max_units"]) is not int or not 1 <= chunking["max_units"] <= 65536:
         raise ChunkingError("invalid_request", "profile_bundle.chunking.max_units is invalid", status=400)
+    if type(chunking["overlap_units"]) is not int or not 0 <= chunking["overlap_units"] <= min(8192, chunking["max_units"] - 1):
+        raise ChunkingError("invalid_request", "profile_bundle.chunking.overlap_units is invalid", status=400)
     tokenization = obj("tokenization", {"profile", "version"})
     string(tokenization["profile"], 128, "tokenization.profile")
     string(tokenization["version"], 64, "tokenization.version")
@@ -381,12 +383,17 @@ class Handler(BaseHTTPRequestHandler):
 
     def _chunks(self, value: Any) -> dict[str, Any]:
         request = _require_object(value, "request",
-            {"request_id", "index_profile", "source", "policy", "options"},
-            {"index_profile", "source"})
+            {"request_id", "index_profile", "source", "policy", "options", "profile_bundle"},
+            {"index_profile", "source", "profile_bundle"})
         if "request_id" in request and (not isinstance(request["request_id"], str)
                 or not 1 <= len(request["request_id"]) <= 128):
             raise ChunkingError("invalid_request", "request.request_id must be a string of 1 to 128 characters", status=400)
         profile = validate_index_profile(request["index_profile"])
+        bundle = _validate_profile_bundle(request["profile_bundle"])
+        if any(bundle[k] != profile[k] for k in ("name", "version", "digest")):
+            raise ChunkingError("profile_digest_mismatch", "index_profile identity does not match profile_bundle", status=409)
+        if bundle["status"] == "retired":
+            raise ChunkingError("unsupported_profile", "retired Index profile bundles cannot be used for ingestion")
         source = _require_object(request["source"], "source",
             {"source_id", "revision", "revision_sequence", "media_type", "content"},
             {"source_id", "revision", "revision_sequence", "content"})
@@ -394,7 +401,13 @@ class Handler(BaseHTTPRequestHandler):
             raise ChunkingError("invalid_parameter", "source.source_id is invalid", status=400)
         if "media_type" in source and (not isinstance(source["media_type"], str) or len(source["media_type"]) > 128):
             raise ChunkingError("invalid_parameter", "source.media_type is invalid", status=400)
-        policy = Policy.from_dict(request["policy"]) if "policy" in request else DEFAULT_POLICY
+        pinned = bundle["chunking"]
+        policy = Policy.from_dict(request["policy"]) if "policy" in request else Policy(
+            pinned["profile"], pinned["version"], pinned["max_units"], pinned["overlap_units"])
+        if any(getattr(policy, attr) != expected for attr, expected in (
+            ("profile", pinned["profile"]), ("profile_version", pinned["version"]),
+            ("max_units", pinned["max_units"]), ("overlap_units", pinned["overlap_units"]))):
+            raise ChunkingError("profile_mismatch", "policy does not match the pinned Index profile bundle", status=409)
         if policy.profile not in SUPPORTED_PROFILES or policy.profile_version not in SUPPORTED_PROFILES[policy.profile]:
             raise ChunkingError("unsupported_profile", "chunking profile or version is not configured")
         options = _require_object(request.get("options", {}), "options",
@@ -412,6 +425,7 @@ class Handler(BaseHTTPRequestHandler):
             policy=policy,
             include_text=include_text,
             include_line_spans=include_line_spans,
+            media_type=source.get("media_type"),
             deadline_check=self._check_deadline,
         )
         return result
@@ -440,7 +454,7 @@ class Handler(BaseHTTPRequestHandler):
         requested = _require_object(request["chunking_profile"], "chunking_profile",
             {"profile", "version", "max_units", "overlap_units"},
             {"profile", "version", "max_units", "overlap_units"})
-        if not isinstance(chunking, dict) or any(requested.get(k) != chunking.get(k) for k in ("profile", "version", "max_units")):
+        if not isinstance(chunking, dict) or any(requested.get(k) != chunking.get(k) for k in ("profile", "version", "max_units", "overlap_units")):
             raise ChunkingError("profile_mismatch", "chunking_profile does not match the pinned Index profile bundle", status=409)
         policy = Policy.from_dict({
             "profile": requested["profile"],
