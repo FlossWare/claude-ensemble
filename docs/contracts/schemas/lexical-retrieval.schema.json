@@ -289,9 +289,9 @@
         "scope",
         "index_profile",
         "lexical_profile",
-        "terms",
         "limit",
-        "index_generation"
+        "index_generation",
+        "query_text"
       ],
       "properties": {
         "request_id": {
@@ -312,16 +312,6 @@
         },
         "lexical_profile": {
           "$ref": "#/$defs/componentProfile"
-        },
-        "terms": {
-          "type": "array",
-          "items": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 128
-          },
-          "maxItems": 512,
-          "minItems": 1
         },
         "source_ids": {
           "type": "array",
@@ -353,6 +343,12 @@
           "type": "string",
           "minLength": 1,
           "maxLength": 256
+        },
+        "query_text": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 8192,
+          "description": "Original bounded query text. Lexical Retrieval calls Tokenization using the pinned lexical profile; callers must not supply derived terms."
         }
       }
     },
