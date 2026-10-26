@@ -113,6 +113,8 @@ class ChunkingAlgorithmTests(unittest.TestCase):
         base = chunk()["chunks"][0]["chunk_id"]
         self.assertNotEqual(base, chunk(revision="r2")["chunks"][0]["chunk_id"])
         self.assertNotEqual(base, chunk(policy=Policy("other", "2", 12, 2))["chunks"][0]["chunk_id"])
+        self.assertNotEqual(chunk(policy=Policy("markdown-default", "0.1", 12, 0))["chunks"][0]["chunk_id"],
+                            chunk(policy=Policy("markdown-default", "0.1", 12, 2))["chunks"][0]["chunk_id"])
 
     def test_unicode_offsets_are_code_points(self):
         content = "a🙂é漢字\nnext"
@@ -655,6 +657,12 @@ class ChunkingHttpTests(unittest.TestCase):
         self.assertEqual(result["request_id"], headers["X-CE-Request-ID"])
         Draft202012Validator(SCHEMA["$defs"]["preflightResponse"]).validate(result)
         body["chunking_profile"]["version"] = "99"
+        status, headers, error = self.post("/api/v1/chunking/preflight", body)
+        self.assertEqual(status, 409)
+        self.assertEqual(error["error"]["code"], "profile_mismatch")
+        self.assert_error_schema(error, headers)
+        body["chunking_profile"]["version"] = "0.1"
+        body["chunking_profile"]["overlap_units"] = 0
         status, headers, error = self.post("/api/v1/chunking/preflight", body)
         self.assertEqual(status, 409)
         self.assertEqual(error["error"]["code"], "profile_mismatch")
