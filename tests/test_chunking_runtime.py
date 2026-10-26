@@ -366,14 +366,22 @@ class ChunkingHttpTests(unittest.TestCase):
         self.assertEqual(result["error"]["code"], "invalid_parameter")
         self.assert_error_schema(result, headers)
 
-    def test_malformed_json_and_unsupported_media_type(self):
-        status, headers, result = self.post(raw=b"{")
-        self.assertEqual(status, 400)
-        self.assert_error_schema(result, headers)
-        status, headers, result = self.post(body=request_body(), headers={"Content-Type": "text/plain"})
-        self.assertEqual(status, 415)
-        self.assertEqual(result["error"]["code"], "unsupported_media_type")
-        self.assert_error_schema(result, headers)
+    def test_malformed_json_and_unsupported_media_type_for_both_post_endpoints(self):
+        for path in ("/api/v1/chunking/chunks", "/api/v1/chunking/preflight"):
+            with self.subTest(path=path):
+                status, headers, result = self.post(path, raw=b"{")
+                self.assertEqual(status, 400)
+                self.assert_error_schema(result, headers)
+                status, headers, result = self.post(path, body=request_body(), headers={"Content-Type": "text/plain"})
+                self.assertEqual(status, 415)
+                self.assertEqual(result["error"]["code"], "unsupported_media_type")
+                endpoint = SCHEMA["x-endpoints"]["POST " + path]
+                self.assertIn(status, endpoint["error_statuses"])
+                self.assert_error_schema(result, headers)
+        for raw in (b'{"x":1,"x":2}', b'{"x":NaN}', b'{"x":Infinity}'):
+            status, headers, result = self.post(raw=raw)
+            self.assertEqual(status, 400)
+            self.assert_error_schema(result, headers)
 
     def test_invalid_request_id_is_not_silently_accepted(self):
         status, headers, result = self.post(body=request_body(), headers={"X-CE-Request-ID": "bad id"})
@@ -383,10 +391,17 @@ class ChunkingHttpTests(unittest.TestCase):
         self.assert_error_schema(result, headers)
 
     def test_malformed_and_expired_deadlines_are_rejected(self):
-        status, headers, malformed = self.post(body=request_body(), headers={"X-CE-Deadline": "tomorrow"})
-        self.assertEqual(status, 400)
-        self.assertEqual(malformed["error"]["code"], "invalid_parameter")
-        self.assert_error_schema(malformed, headers)
+        for invalid_deadline in (
+            "tomorrow",
+            "2026-10-26 12:00:00Z",
+            "2026-10-26T12:00Z",
+            "2026-10-26T12:00:00.1234567Z",
+            "2026-10-26T12:00:00+00:00",
+        ):
+            status, headers, malformed = self.post(body=request_body(), headers={"X-CE-Deadline": invalid_deadline})
+            self.assertEqual(status, 400, invalid_deadline)
+            self.assertEqual(malformed["error"]["code"], "invalid_parameter")
+            self.assert_error_schema(malformed, headers)
         status, headers, expired = self.post(body=request_body(), headers={"X-CE-Deadline": "2000-01-01T00:00:00Z"})
         self.assertEqual(status, 504)
         self.assertEqual(expired["error"]["code"], "deadline_exceeded")
