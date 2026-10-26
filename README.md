@@ -37,6 +37,8 @@ The v1 contract baseline was merged in [PR #8: Resolve architecture and contract
 
 The [contract-validation workflow](.github/workflows/contract-validation.yml) runs Draft 2020-12 schema/reference/endpoint-binding checks, duplicate-key-safe parsing of both backtick and tilde JSON fences, schema validation for explicitly annotated examples, the documented service-call workflow manifest, and regression tests for invalid examples/callers and RRF integer golden vectors. Unannotated examples are parse-checked only; the validator reports this distinction explicitly. See [workflow runs](https://github.com/FlossWare/claude-ensemble/actions/workflows/contract-validation.yml) for the current result. These are static/specification checks, not runtime, crash/recovery, integration, or latency test evidence. Owner confirmation is recorded for OD-01–OD-04 and OD-06–OD-12; OD-05 remains the binding v1 scope decision and is unchanged. Owner decisions establish the v1 scope baseline, but do not waive technical findings. Every runtime slice still requires current-head code review, regression tests, and passing CI before merge.
 
+The initial Chunking runtime and REST tests were squash-merged in [PR #9](https://github.com/FlossWare/claude-ensemble/pull/9) at commit `a55ec589a0dcbe1450b02210878ba177c3a3b6d7`. This is the first runtime slice, not completion of the service set. The next implementation slice must preserve the Index-owned immutable profile-resolution boundary required by Tokenization; do not add a local/default-profile fallback to Tokenization while Index profile resolution is unavailable.
+
 
 ## Running the contract and runtime tests
 
