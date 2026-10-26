@@ -306,6 +306,21 @@ class ChunkingHttpTests(unittest.TestCase):
                 self.assertEqual(response.headers["X-CE-Request-ID"], result["request_id"])
                 Draft202012Validator(SCHEMA["$defs"][definition]).validate(result)
 
+    def test_invalid_request_id_on_get_uses_declared_error_envelope(self):
+        request = Request(self.base + "/api/v1/chunking/health",
+                          headers={"X-CE-Request-ID": "bad id"})
+        try:
+            with urlopen(request, timeout=3) as response:
+                status, headers, payload = response.status, response.headers, json.load(response)
+        except HTTPError as exc:
+            status, headers, payload = exc.code, exc.headers, json.loads(exc.read())
+        self.assertEqual(status, 400)
+        self.assertEqual(payload["error"]["code"], "invalid_parameter")
+        self.assertNotEqual(headers["X-CE-Request-ID"], "bad id")
+        self.assertEqual(payload["request_id"], headers["X-CE-Request-ID"])
+        self.assertIn(status, SCHEMA["x-endpoints"]["GET /api/v1/chunking/health"]["error_statuses"])
+        self.assert_error_schema(payload, headers)
+
     def test_success_matches_schema_and_propagates_request_id(self):
         status, headers, result = self.post(body=request_body(), headers={"X-CE-Request-ID": "test-request-01"})
         self.assertEqual(status, 200)
@@ -716,6 +731,7 @@ class ChunkingHttpTests(unittest.TestCase):
             payload = json.loads(body_bytes)
             self.assertEqual(payload["error"]["code"], "service_unavailable")
             self.assertEqual(payload["request_id"], headers["X-CE-Request-ID"])
+            self.assertIn(503, SCHEMA["x-endpoints"]["POST /api/v1/chunking/chunks"]["error_statuses"])
             Draft202012Validator(SCHEMA["$defs"]["errorResponse"]).validate(payload)
         finally:
             stalled.close()
