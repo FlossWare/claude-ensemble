@@ -49,7 +49,7 @@ def _validate_profile_bundle(bundle: Any) -> dict[str, Any]:
             raise ChunkingError("invalid_request", f"profile_bundle.{field} is invalid", status=400)
     string(bundle["name"], 128, "name")
     string(bundle["version"], 64, "version")
-    if bundle["status"] not in {"active", "deprecated", "retired"}:
+    if not isinstance(bundle["status"], str) or bundle["status"] not in {"active", "deprecated", "retired"}:
         raise ChunkingError("invalid_request", "profile_bundle.status is invalid", status=400)
     chunking = obj("chunking", {"profile", "version", "max_units"})
     string(chunking["profile"], 128, "chunking.profile")
@@ -62,7 +62,7 @@ def _validate_profile_bundle(bundle: Any) -> dict[str, Any]:
     lexical = obj("lexical", {"profile", "version", "statistics_policy"})
     string(lexical["profile"], 128, "lexical.profile")
     string(lexical["version"], 64, "lexical.version")
-    if lexical["statistics_policy"] not in {"scope_partition", "isolated_corpus"}:
+    if not isinstance(lexical["statistics_policy"], str) or lexical["statistics_policy"] not in {"scope_partition", "isolated_corpus"}:
         raise ChunkingError("invalid_request", "profile_bundle.lexical.statistics_policy is invalid", status=400)
     embedding = obj("embedding", {"required", "profile", "version", "model", "model_version",
                                   "input_types", "dimensions", "normalization", "metric", "max_input_tokens"})
@@ -71,12 +71,13 @@ def _validate_profile_bundle(bundle: Any) -> dict[str, Any]:
     for key, maximum in (("profile",128),("version",64),("model",256),("model_version",128)):
         string(embedding[key], maximum, "embedding."+key)
     if (not isinstance(embedding["input_types"], list) or not 1 <= len(embedding["input_types"]) <= 2
-            or len(set(embedding["input_types"])) != len(embedding["input_types"])
-            or any(v not in {"query", "document"} for v in embedding["input_types"])):
+            or any(not isinstance(v, str) or v not in {"query", "document"} for v in embedding["input_types"])
+            or len(set(embedding["input_types"])) != len(embedding["input_types"])):
         raise ChunkingError("invalid_request", "profile_bundle.embedding.input_types is invalid", status=400)
     if type(embedding["dimensions"]) is not int or not 1 <= embedding["dimensions"] <= 4096:
         raise ChunkingError("invalid_request", "profile_bundle.embedding.dimensions is invalid", status=400)
-    if embedding["normalization"] not in {"none", "l2"} or embedding["metric"] not in {"cosine", "dot_product", "euclidean"}:
+    if (not isinstance(embedding["normalization"], str) or embedding["normalization"] not in {"none", "l2"}
+            or not isinstance(embedding["metric"], str) or embedding["metric"] not in {"cosine", "dot_product", "euclidean"}):
         raise ChunkingError("invalid_request", "profile_bundle.embedding normalization or metric is invalid", status=400)
     if type(embedding["max_input_tokens"]) is not int or not 1 <= embedding["max_input_tokens"] <= 1_000_000:
         raise ChunkingError("invalid_request", "profile_bundle.embedding.max_input_tokens is invalid", status=400)
