@@ -57,7 +57,7 @@ def profile_bundle():
     bundle = {
         "name": "default", "version": "0.1", "status": "active",
         "chunking": {"profile": "markdown-default", "version": "0.1", "max_units": 12},
-        "tokenization": {"profile": "default", "version": "0.1"},
+        "tokenization": {"profile": "technical-default", "version": "0.1"},
         "lexical": {"profile": "default", "version": "0.1", "statistics_policy": "scope_partition"},
         "embedding": {"required": False, "profile": "default", "version": "0.1", "model": "none",
                       "model_version": "none", "input_types": ["document"], "dimensions": 1,
