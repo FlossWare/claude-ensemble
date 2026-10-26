@@ -255,7 +255,8 @@
                 "unsupported_profile",
                 "upstream_failure",
                 "vector_dimension_mismatch",
-                "no_eligible_arms"
+                "no_eligible_arms",
+                "selection_outcome_conflict"
               ]
             },
             "message": {
@@ -340,7 +341,8 @@
         "context_id",
         "arm_id",
         "reward",
-        "evidence_ref"
+        "evidence_ref",
+        "selection_id"
       ],
       "properties": {
         "event_id": {
@@ -381,6 +383,11 @@
           "type": "string",
           "minLength": 1,
           "maxLength": 128
+        },
+        "selection_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
         }
       }
     },
