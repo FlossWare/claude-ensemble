@@ -86,8 +86,17 @@ class ChunkingAlgorithmTests(unittest.TestCase):
     def test_markdown_heading_context_and_lines(self):
         content = "# Root\n## Child\nalpha beta gamma"
         result = chunk(content, policy=Policy("markdown-default", "0.1", 10, 0))["chunks"]
-        self.assertTrue(any(c["heading_path"] == ["Root", "Child"] for c in result))
+        content_start = content.index("alpha")
+        body_chunks = [c for c in result if c["start_offset"] >= content_start]
+        self.assertTrue(body_chunks)
+        self.assertTrue(all(c["heading_path"] == ["Root", "Child"] for c in body_chunks))
         self.assertTrue(all(c["start_line"] <= c["end_line"] for c in result))
+
+    def test_heading_provenance_ignores_atx_lines_inside_fenced_code(self):
+        content = "# Real\n```python\n# not a heading\n```\nbody text"
+        result = chunk(content, policy=Policy("markdown-default", "0.1", 64, 0))["chunks"]
+        body = next(c for c in result if c["start_offset"] == content.index("body"))
+        self.assertEqual(body["heading_path"], ["Real"])
 
     def test_empty_and_oversized_content_rejected(self):
         with self.assertRaises(ChunkingError):
@@ -96,8 +105,9 @@ class ChunkingAlgorithmTests(unittest.TestCase):
             chunk("é" * 140_000)
 
     def test_chunk_count_is_bounded(self):
-        with self.assertRaises(ChunkingError):
+        with self.assertRaises(ChunkingError) as caught:
             chunk("x" * 257, policy=Policy("plain-text-default", "0.1", 1, 0))
+        self.assertEqual(caught.exception.code, "source_too_large")
 
     def test_adversarial_short_residual_fragments_preserve_bounds_and_coverage(self):
         cases = [
@@ -185,9 +195,10 @@ class ChunkingHttpTests(unittest.TestCase):
         except HTTPError as exc:
             return exc.code, exc.headers, json.loads(exc.read())
 
-    def assert_error_schema(self, payload):
+    def assert_error_schema(self, payload, headers):
         Draft202012Validator(SCHEMA["$defs"]["errorResponse"]).validate(payload)
-        self.assertEqual(payload["request_id"], payload["error"].get("request_id", payload["request_id"]))
+        self.assertIn("request_id", payload)
+        self.assertEqual(payload["request_id"], headers["X-CE-Request-ID"])
 
     def test_health_and_readiness_match_contract(self):
         for path, definition in (("/api/v1/chunking/health", "healthResponse"),
@@ -207,7 +218,7 @@ class ChunkingHttpTests(unittest.TestCase):
     def test_omitted_policy_uses_documented_default(self):
         body = request_body()
         del body["policy"]
-        status, _, result = self.post(body=body)
+        status, headers, result = self.post(body=body)
         self.assertEqual(status, 200)
         self.assertEqual(result["chunker"], {"profile": DEFAULT_POLICY.profile, "version": DEFAULT_POLICY.profile_version})
         Draft202012Validator(SCHEMA["$defs"]["chunkResponse"]).validate(result)
@@ -249,7 +260,7 @@ class ChunkingHttpTests(unittest.TestCase):
         for body in (bad_unknown, bad_missing):
             status, _, result = self.post(body=body)
             self.assertEqual(status, 400)
-            self.assert_error_schema(result)
+            self.assert_error_schema(result, headers)
 
     def test_bad_option_type_rejected(self):
         status, _, result = self.post(body=request_body(options={"include_text": "false"}))
@@ -277,11 +288,11 @@ class ChunkingHttpTests(unittest.TestCase):
         status, _, malformed = self.post(body=request_body(), headers={"X-CE-Deadline": "tomorrow"})
         self.assertEqual(status, 400)
         self.assertEqual(malformed["error"]["code"], "invalid_parameter")
-        self.assert_error_schema(malformed)
+        self.assert_error_schema(malformed, headers)
         status, _, expired = self.post(body=request_body(), headers={"X-CE-Deadline": "2000-01-01T00:00:00Z"})
         self.assertEqual(status, 504)
         self.assertEqual(expired["error"]["code"], "deadline_exceeded")
-        self.assert_error_schema(expired)
+        self.assert_error_schema(expired, headers)
 
     def test_invalid_policy_returns_contract_error(self):
         body = request_body()
@@ -323,7 +334,7 @@ class ChunkingHttpTests(unittest.TestCase):
         status, _, error = self.post("/api/v1/chunking/preflight", body)
         self.assertEqual(status, 409)
         self.assertEqual(error["error"]["code"], "profile_mismatch")
-        self.assert_error_schema(error)
+        self.assert_error_schema(error, headers)
 
     def test_preflight_reports_profile_limit_without_materializing_all_chunks(self):
         bundle = profile_bundle()
