@@ -199,9 +199,9 @@ class ChunkingAlgorithmTests(unittest.TestCase):
             ("\\n" * 19, 3, 2),
             ("\\n\\n\\n\\n\\n\\n\\n", 3, 2),
             ("a\\n\\nb\\n\\nc\\n", 3, 2),
-            ("\\n" * 19, 3, 2),
-            ("\\n\\n\\n\\n\\n\\n\\n", 3, 2),
-            ("a\\n\\nb\\n\\nc\\n", 3, 2),
+            ("\n" * 19, 3, 2),
+            ("\n\n\n\n\n\n\n", 3, 2),
+            ("a\n\nb\n\nc\n", 3, 2),
             ("x" * 32, 3, 2),
         ]
         for text, max_units, overlap in cases:
