@@ -653,6 +653,7 @@
       "error_statuses": [
         400,
         404,
+        408,
         409,
         413,
         422,
@@ -671,9 +672,11 @@
       "success_status": 200,
       "error_response": "#/$defs/errorResponse",
       "error_statuses": [
+        400,
         429,
         500,
-        503
+        503,
+        504
       ],
       "x-callers": [
         "health-probe"
@@ -684,9 +687,11 @@
       "success_status": 200,
       "error_response": "#/$defs/errorResponse",
       "error_statuses": [
+        400,
         429,
         500,
-        503
+        503,
+        504
       ],
       "x-callers": [
         "health-probe"
