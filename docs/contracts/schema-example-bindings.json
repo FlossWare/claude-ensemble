@@ -1,0 +1,16 @@
+{
+  "version": 1,
+  "description": "Explicit schema bindings for contract examples that cannot be annotated inline.",
+  "bindings": [
+    {
+      "document": "docs/contracts/CHUNKING.md",
+      "example": 1,
+      "schema": "docs/contracts/schemas/chunking.schema.json#/$defs/chunkRequest"
+    },
+    {
+      "document": "docs/contracts/CHUNKING.md",
+      "example": 2,
+      "schema": "docs/contracts/schemas/chunking.schema.json#/$defs/chunkResponse"
+    }
+  ]
+}
