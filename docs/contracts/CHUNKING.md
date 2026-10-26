@@ -19,7 +19,7 @@ Request:
 <!-- schema-example: docs/contracts/schemas/chunking.schema.json#/$defs/chunkRequest -->
 ```json
 {
-  "index_profile": {"name": "default", "version": "0.1", "digest": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"},
+  "index_profile": {"name": "default", "version": "0.1", "digest": "16f97decdb831addaf3656c31387704cf795c0b869d93326817baa2b4a5f4074"},
   "source": {
     "source_id": "knowledge:kn_01J7M6P4V9Q2R8T6W3X5Y0ZABC",
     "revision": "rev-17",
@@ -62,7 +62,7 @@ Request:
       "max_lexical_terms_per_chunk": 512,
       "max_lexical_term_bytes": 128
     },
-    "digest": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+    "digest": "16f97decdb831addaf3656c31387704cf795c0b869d93326817baa2b4a5f4074"
   },
   "policy": {
     "profile": "markdown-default",
@@ -85,7 +85,7 @@ Response:
 <!-- schema-example: docs/contracts/schemas/chunking.schema.json#/$defs/chunkResponse -->
 ```json
 {
-  "index_profile": {"name": "default", "version": "0.1", "digest": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"},
+  "index_profile": {"name": "default", "version": "0.1", "digest": "16f97decdb831addaf3656c31387704cf795c0b869d93326817baa2b4a5f4074"},
   "source_id": "knowledge:kn_01J7M6P4V9Q2R8T6W3X5Y0ZABC",
   "source_revision": "rev-17",
   "revision_sequence": 17,
