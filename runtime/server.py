@@ -127,6 +127,30 @@ def _error(code: str, message: str, retryable: bool = False,
     }
 
 
+def _unique_json_object(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
+    result: dict[str, Any] = {}
+    for key, value in pairs:
+        if key in result:
+            raise ValueError(f"duplicate JSON object key {key!r}")
+        result[key] = value
+    return result
+
+
+def _validate_json_unicode(value: Any) -> None:
+    if isinstance(value, str):
+        try:
+            value.encode("utf-8")
+        except UnicodeEncodeError as exc:
+            raise ChunkingError("invalid_request", "request contains invalid Unicode scalar values", status=400) from exc
+    elif isinstance(value, dict):
+        for key, item in value.items():
+            _validate_json_unicode(key)
+            _validate_json_unicode(item)
+    elif isinstance(value, list):
+        for item in value:
+            _validate_json_unicode(item)
+
+
 def _require_object(value: Any, name: str, allowed: set[str], required: set[str]) -> dict[str, Any]:
     if not isinstance(value, dict):
         raise ChunkingError("invalid_request", f"{name} must be an object", status=400)
@@ -271,9 +295,10 @@ class Handler(BaseHTTPRequestHandler):
                 raise ChunkingError("request_too_large", "request exceeds configured byte limit", status=413)
             raw = self._read_body(length)
             try:
-                request = json.loads(raw.decode("utf-8"))
-            except (UnicodeDecodeError, json.JSONDecodeError) as exc:
-                raise ChunkingError("invalid_request", "request body must be valid UTF-8 JSON", status=400) from exc
+                request = json.loads(raw.decode("utf-8"), object_pairs_hook=_unique_json_object)
+            except (UnicodeDecodeError, json.JSONDecodeError, ValueError) as exc:
+                raise ChunkingError("invalid_request", "request body must be valid UTF-8 JSON without duplicate object keys", status=400) from exc
+            _validate_json_unicode(request)
             if self.path.endswith("/preflight"):
                 response = self._preflight(request)
             else:
@@ -297,6 +322,9 @@ class Handler(BaseHTTPRequestHandler):
         request = _require_object(value, "request",
             {"request_id", "index_profile", "source", "policy", "options"},
             {"index_profile", "source"})
+        if "request_id" in request and (not isinstance(request["request_id"], str)
+                or not 1 <= len(request["request_id"]) <= 128):
+            raise ChunkingError("invalid_request", "request.request_id must be a string of 1 to 128 characters", status=400)
         profile = validate_index_profile(request["index_profile"])
         source = _require_object(request["source"], "source",
             {"source_id", "revision", "revision_sequence", "media_type", "content"},
@@ -332,6 +360,9 @@ class Handler(BaseHTTPRequestHandler):
         request = _require_object(value, "request",
             {"request_id", "index_profile", "source_text", "chunking_profile", "profile_bundle"},
             {"index_profile", "source_text", "chunking_profile", "profile_bundle"})
+        if "request_id" in request and (not isinstance(request["request_id"], str)
+                or not 1 <= len(request["request_id"]) <= 128):
+            raise ChunkingError("invalid_request", "request.request_id must be a string of 1 to 128 characters", status=400)
         identity = validate_index_profile(request["index_profile"])
         source_text = request["source_text"]
         if not isinstance(source_text, str) or not source_text:
