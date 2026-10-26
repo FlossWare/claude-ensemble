@@ -118,7 +118,7 @@ class ContractGateTests(unittest.TestCase):
         self.assertEqual(profile_route["response"], "index.schema.json#/$defs/profileCurrentResponse")
         self.assertEqual(profile_route["x-callers"], ["client", "hook-adapter"])
         self.assertIn("gateway.write_profile_name", prose)
-        self.assertIn("There is no built-in or implicit `default` profile", prose)
+        self.assertIn("no built-in or implicit `default` profile", prose)
         self.assertIn("they do not supply a digest", prose)
 
     def test_lexical_query_has_declared_tokenization_producer(self):
