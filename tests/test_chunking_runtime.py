@@ -161,6 +161,23 @@ class ChunkingAlgorithmTests(unittest.TestCase):
         source = "# " + ("x" * 1100) + "\nbody"
         self.assertEqual(_heading_path(source, len(source)), [])
 
+    def test_omitted_replacement_heading_clears_stale_ancestry(self):
+        from runtime.chunking import _heading_path
+        cases = (
+            ("# Old\n## Old child\n# " + ("x" * 1100) + "\nbody", []),
+            ("# Old\n## Old child\n#\nbody", []),
+            ("# Root\n## Old child\n## " + ("x" * 1100) + "\nbody", ["Root"]),
+            ("# Root\n## Old child\n##\nbody", ["Root"]),
+        )
+        for source, expected in cases:
+            with self.subTest(source=source[:40]):
+                self.assertEqual(_heading_path(source, len(source)), expected)
+
+    def test_omitted_replacement_heading_provenance_through_chunking(self):
+        source = "# Old\n## Old child\n# " + ("x" * 1100) + "\nbody"
+        result = chunk(source, policy=Policy("markdown-default", "0.1", 1200, 0))
+        self.assertEqual(result["chunks"][-1]["heading_path"], [])
+
     def test_empty_and_oversized_content_rejected(self):
         with self.assertRaises(ChunkingError):
             chunk("")
@@ -428,10 +445,51 @@ class ChunkingHttpTests(unittest.TestCase):
             self.assert_error_schema(result, headers)
 
     def test_oversized_http_body_is_rejected_before_json_parsing(self):
-        status, headers, result = self.post(raw=b"x" * 300_001)
-        self.assertEqual(status, 413)
-        self.assertEqual(result["error"]["code"], "request_too_large")
-        self.assert_error_schema(result, headers)
+        # Advertise an oversized body without sending it: the server must reject
+        # from Content-Length before reading/parsing, avoiding a client-side reset.
+        conn = socket.create_connection(("127.0.0.1", self.httpd.server_port), timeout=3)
+        try:
+            conn.sendall(
+                b"POST /api/v1/chunking/chunks HTTP/1.1\r\n"
+                b"Host: 127.0.0.1\r\n"
+                b"Content-Type: application/json\r\n"
+                b"Content-Length: 300001\r\n"
+                b"X-CE-Request-ID: oversized-body-1\r\n"
+                b"Connection: close\r\n\r\n"
+            )
+            response = bytearray()
+            while True:
+                part = conn.recv(4096)
+                if not part:
+                    break
+                response.extend(part)
+            raw = bytes(response)
+            self.assertIn(b"413 Request Entity Too Large", raw)
+            header_bytes, body_bytes = raw.split(b"\r\n\r\n", 1)
+            headers = {}
+            for line in header_bytes.split(b"\r\n")[1:]:
+                if b":" in line:
+                    key, value = line.split(b":", 1)
+                    headers[key.decode("ascii")] = value.strip().decode("ascii")
+            result = json.loads(body_bytes)
+            self.assertEqual(result["error"]["code"], "request_too_large")
+            self.assertEqual(headers["X-CE-Request-ID"], "oversized-body-1")
+            self.assert_error_schema(result, headers)
+        finally:
+            conn.close()
+
+    def test_unsupported_method_uses_shared_error_envelope(self):
+        request = Request(self.base + "/api/v1/chunking/chunks", data=b"",
+                          headers={"X-CE-Request-ID": "method-test-1"}, method="PUT")
+        try:
+            with urlopen(request, timeout=3) as response:
+                status, headers, payload = response.status, response.headers, json.load(response)
+        except HTTPError as exc:
+            status, headers, payload = exc.code, exc.headers, json.loads(exc.read())
+        self.assertEqual(status, 405)
+        self.assertEqual(payload["error"]["code"], "method_not_allowed")
+        self.assertEqual(payload["request_id"], "method-test-1")
+        self.assert_error_schema(payload, headers)
 
     def test_preflight_matches_schema_and_checks_profile_identity(self):
         bundle = profile_bundle()
