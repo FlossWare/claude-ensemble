@@ -97,7 +97,7 @@ class ContractGateTests(unittest.TestCase):
         schema = json.loads(path.read_text(encoding="utf-8"))
         original = next(iter(schema["x-endpoints"]))
         schema["x-endpoints"]["GET /api/v1/gateway/health"] = schema["x-endpoints"].pop(original)
-        path.write_text(json.dumps(schema, indent=2) + "\\n", encoding="utf-8")
+        path.write_text(json.dumps(schema, indent=2) + "\n", encoding="utf-8")
         result = subprocess.run([sys.executable, str(base / "scripts" / VALIDATOR_PATH.name)], cwd=base, text=True, capture_output=True)
         self.assertNotEqual(result.returncode, 0, result.stdout + result.stderr)
         self.assertIn("duplicate route", result.stderr)
