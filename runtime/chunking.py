@@ -186,6 +186,8 @@ def chunk_document(*, source_id: str, revision: str, revision_sequence: int,
 
     chunks: list[dict[str, Any]] = []
     for ordinal, (start, end) in enumerate(spans):
+        if deadline_check is not None:
+            deadline_check()
         text = content[start:end]
         identity = json.dumps({
             "source_id": source_id, "revision": revision,
