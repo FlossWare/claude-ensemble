@@ -148,7 +148,7 @@ def chunk_document(*, source_id: str, revision: str, revision_sequence: int,
             "ordinal": ordinal,
             "start_offset": start,
             "end_offset": end,
-            "heading_path": _heading_path(content, start),
+            "heading_path": _heading_path(content, start) if policy.profile == "markdown-default" else [],
             "metadata": {},
         }
         if include_text:
