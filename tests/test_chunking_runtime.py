@@ -4,6 +4,7 @@ import subprocess
 import sys
 import threading
 import unittest
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from http.server import ThreadingHTTPServer
 from urllib.error import HTTPError
@@ -11,7 +12,7 @@ from urllib.request import Request, urlopen
 
 from jsonschema import Draft202012Validator
 
-from runtime.chunking import ChunkingError, Policy, chunk_document
+from runtime.chunking import DEFAULT_POLICY, MAX_CHUNKS, ChunkingError, Policy, chunk_document, chunk_spans
 from runtime.server import Handler
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -98,6 +99,45 @@ class ChunkingAlgorithmTests(unittest.TestCase):
         with self.assertRaises(ChunkingError):
             chunk("x" * 257, policy=Policy("plain-text-default", "0.1", 1, 0))
 
+    def test_adversarial_short_residual_fragments_preserve_bounds_and_coverage(self):
+        cases = [
+            ("a", 3, 2),
+            ("ab", 3, 2),
+            ("abc", 3, 2),
+            ("abcd", 3, 2),
+            ("abcdefg", 3, 2),
+            ("\\n" * 19, 3, 2),
+            ("\\n\\n\\n\\n\\n\\n\\n", 3, 2),
+            ("a\\n\\nb\\n\\nc\\n", 3, 2),
+            ("x" * 32, 3, 2),
+        ]
+        for text, max_units, overlap in cases:
+            with self.subTest(text=repr(text), max_units=max_units, overlap=overlap):
+                spans = chunk_spans(text, Policy("plain-text-default", "0.1", max_units, overlap))
+                self.assertEqual(spans[0][0], 0)
+                self.assertEqual(spans[-1][1], len(text))
+                for start, end in spans:
+                    self.assertLess(start, end)
+                    self.assertLessEqual(end - start, max_units)
+                for (left_start, left_end), (right_start, right_end) in zip(spans, spans[1:]):
+                    self.assertGreater(right_start, left_start)
+                    self.assertLessEqual(right_start, left_end)
+                    self.assertEqual(left_end - right_start, min(overlap, left_end - left_start - 1))
+                reconstructed = set()
+                for start, end in spans:
+                    reconstructed.update(range(start, end))
+                self.assertEqual(reconstructed, set(range(len(text))))
+
+    def test_preflight_hard_limit_is_global_chunk_limit(self):
+        policy = Policy("plain-text-default", "0.1", 1, 0)
+        with self.assertRaises(ChunkingError):
+            chunk_spans("x" * (MAX_CHUNKS + 1), policy, max_chunks=MAX_CHUNKS)
+
+    def test_configured_default_policy_is_explicit(self):
+        self.assertEqual(DEFAULT_POLICY.profile, "markdown-default")
+        self.assertEqual(DEFAULT_POLICY.profile_version, "0.1")
+        self.assertGreater(DEFAULT_POLICY.max_units, DEFAULT_POLICY.overlap_units)
+
     def test_plain_text_does_not_claim_markdown_heading_context(self):
         result = chunk("# Not a parsed heading\\nbody", policy=Policy("plain-text-default", "0.1", 64, 0))
         self.assertEqual(result["chunks"][0]["heading_path"], [])
@@ -163,6 +203,32 @@ class ChunkingHttpTests(unittest.TestCase):
         self.assertEqual(headers["X-CE-Request-ID"], "test-request-01")
         self.assertEqual(result["request_id"], "test-request-01")
         Draft202012Validator(SCHEMA["$defs"]["chunkResponse"]).validate(result)
+
+    def test_omitted_policy_uses_documented_default(self):
+        body = request_body()
+        del body["policy"]
+        status, _, result = self.post(body=body)
+        self.assertEqual(status, 200)
+        self.assertEqual(result["chunker"], {"profile": DEFAULT_POLICY.profile, "version": DEFAULT_POLICY.profile_version})
+        Draft202012Validator(SCHEMA["$defs"]["chunkResponse"]).validate(result)
+
+    def test_concurrent_http_requests_keep_responses_isolated(self):
+        def send(i):
+            body = request_body()
+            body["source"]["content"] = f"concurrent payload {i}"
+            request_id = f"parallel-{i}"
+            status, headers, result = self.post(body=body, headers={"X-CE-Request-ID": request_id})
+            return status, headers.get("X-CE-Request-ID"), result
+
+        with ThreadPoolExecutor(max_workers=12) as pool:
+            results = list(pool.map(send, range(24)))
+        self.assertEqual(len(results), 24)
+        for i, (status, header_id, result) in enumerate(results):
+            with self.subTest(request=i):
+                self.assertEqual(status, 200)
+                self.assertEqual(header_id, f"parallel-{i}")
+                self.assertEqual(result["request_id"], f"parallel-{i}")
+                self.assertEqual(result["chunks"][0]["text"], f"concurrent payload {i}")
 
     def test_include_text_false_is_honored(self):
         body = request_body(options={"include_text": False})
