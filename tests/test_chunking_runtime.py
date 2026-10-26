@@ -84,7 +84,7 @@ class ChunkingAlgorithmTests(unittest.TestCase):
 
     def test_markdown_heading_context_and_lines(self):
         content = "# Root\n## Child\nalpha beta gamma"
-        result = chunk(content, policy=Policy("md", "1", 10, 0))["chunks"]
+        result = chunk(content, policy=Policy("markdown-default", "0.1", 10, 0))["chunks"]
         self.assertTrue(any(c["heading_path"] == ["Root", "Child"] for c in result))
         self.assertTrue(all(c["start_line"] <= c["end_line"] for c in result))
 
@@ -93,6 +93,14 @@ class ChunkingAlgorithmTests(unittest.TestCase):
             chunk("")
         with self.assertRaises(ChunkingError):
             chunk("é" * 140_000)
+
+    def test_chunk_count_is_bounded(self):
+        with self.assertRaises(ChunkingError):
+            chunk("x" * 257, policy=Policy("plain-text-default", "0.1", 1, 0))
+
+    def test_plain_text_does_not_claim_markdown_heading_context(self):
+        result = chunk("# Not a parsed heading\\nbody", policy=Policy("plain-text-default", "0.1", 64, 0))
+        self.assertEqual(result["chunks"][0]["heading_path"], [])
 
     def test_invalid_policy_rejected(self):
         for policy in (
@@ -194,6 +202,16 @@ class ChunkingHttpTests(unittest.TestCase):
         self.assertNotEqual(headers["X-CE-Request-ID"], "bad id")
         self.assertEqual(result["request_id"], headers["X-CE-Request-ID"])
         self.assert_error_schema(result)
+
+    def test_malformed_and_expired_deadlines_are_rejected(self):
+        status, _, malformed = self.post(body=request_body(), headers={"X-CE-Deadline": "tomorrow"})
+        self.assertEqual(status, 400)
+        self.assertEqual(malformed["error"]["code"], "invalid_parameter")
+        self.assert_error_schema(malformed)
+        status, _, expired = self.post(body=request_body(), headers={"X-CE-Deadline": "2000-01-01T00:00:00Z"})
+        self.assertEqual(status, 504)
+        self.assertEqual(expired["error"]["code"], "deadline_exceeded")
+        self.assert_error_schema(expired)
 
     def test_invalid_policy_returns_contract_error(self):
         body = request_body()
