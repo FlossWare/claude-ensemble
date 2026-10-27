@@ -46,3 +46,14 @@ loaded, readiness reports \`ready: false\`.
 ## Nomic embedding profile
 
 The intended embedding model is `nomic-ai/nomic-embed-text-v1.5`, configured for 768-dimensional vectors. CE prepends `search_query: ` to query inputs and `search_document: ` to document inputs; callers send raw text without these prefixes. Provision model files outside the source repository through the machine's controlled setup process. Record the exact model revision, dimension, license, and checksum. Real-model integration validation remains outstanding until those exact weights are provisioned and exercised offline.
+
+
+### Validate the actual model offline
+
+After provisioning the exact model revision and configuring the three environment variables, run:
+
+```sh
+python scripts/validate_local_embedding_model.py
+```
+
+The check forces Hugging Face/Transformers offline mode before model loading, then exercises both query and document paths on CPU. It verifies the configured model identity, 768 dimensions, finite values, and L2 normalization. It does not download weights. A successful run is the required real-weight validation; CI's fake-model tests alone do not establish that the provisioned files are correct.
