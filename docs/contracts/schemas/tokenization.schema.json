@@ -73,10 +73,16 @@
       "required": [
         "term",
         "surface",
-        "start_offset",
-        "end_offset",
         "kind"
       ],
+      "dependentRequired": {
+        "start_offset": [
+          "end_offset"
+        ],
+        "end_offset": [
+          "start_offset"
+        ]
+      },
       "properties": {
         "term": {
           "type": "string",
@@ -154,14 +160,10 @@
           "maxLength": 262144
         },
         "profile": {
-          "type": "string",
-          "minLength": 1,
-          "maxLength": 128
+          "const": "technical-default"
         },
         "profile_version": {
-          "type": "string",
-          "minLength": 1,
-          "maxLength": 64
+          "const": "0.1"
         },
         "options": {
           "$ref": "#/$defs/options"
@@ -185,19 +187,13 @@
           "maxLength": 128
         },
         "profile": {
-          "type": "string",
-          "minLength": 1,
-          "maxLength": 128
+          "const": "technical-default"
         },
         "version": {
-          "type": "string",
-          "minLength": 1,
-          "maxLength": 64
+          "const": "0.1"
         },
         "normalization_version": {
-          "type": "string",
-          "minLength": 1,
-          "maxLength": 64
+          "const": "0.1"
         },
         "index_profile": {
           "$ref": "#/$defs/indexProfile"
@@ -230,14 +226,10 @@
           "$ref": "#/$defs/indexProfile"
         },
         "profile": {
-          "type": "string",
-          "minLength": 1,
-          "maxLength": 128
+          "const": "technical-default"
         },
         "profile_version": {
-          "type": "string",
-          "minLength": 1,
-          "maxLength": 64
+          "const": "0.1"
         },
         "options": {
           "$ref": "#/$defs/options"
@@ -285,19 +277,13 @@
           "maxLength": 128
         },
         "profile": {
-          "type": "string",
-          "minLength": 1,
-          "maxLength": 128
+          "const": "technical-default"
         },
         "version": {
-          "type": "string",
-          "minLength": 1,
-          "maxLength": 64
+          "const": "0.1"
         },
         "normalization_version": {
-          "type": "string",
-          "minLength": 1,
-          "maxLength": 64
+          "const": "0.1"
         },
         "index_profile": {
           "$ref": "#/$defs/indexProfile"
@@ -328,7 +314,31 @@
               "error": {
                 "$ref": "#/$defs/itemError"
               }
-            }
+            },
+            "oneOf": [
+              {
+                "required": [
+                  "input_id",
+                  "tokens"
+                ],
+                "not": {
+                  "required": [
+                    "error"
+                  ]
+                }
+              },
+              {
+                "required": [
+                  "input_id",
+                  "error"
+                ],
+                "not": {
+                  "required": [
+                    "tokens"
+                  ]
+                }
+              }
+            ]
           }
         }
       }
@@ -383,6 +393,7 @@
                 "invalid_request",
                 "invalid_scope",
                 "local_access_denied",
+                "method_not_allowed",
                 "missing_endpoint_node",
                 "not_found",
                 "not_ready",
@@ -395,6 +406,7 @@
                 "profile_retired",
                 "rate_limited",
                 "reconciliation_required",
+                "request_timeout",
                 "request_too_large",
                 "revision_conflict",
                 "revision_sequence_regression",
@@ -527,8 +539,11 @@
       "error_statuses": [
         400,
         404,
+        405,
+        408,
         409,
         413,
+        415,
         422,
         429,
         500,
@@ -549,8 +564,11 @@
       "error_statuses": [
         400,
         404,
+        405,
+        408,
         409,
         413,
+        415,
         422,
         429,
         500,
@@ -568,9 +586,12 @@
       "success_status": 200,
       "error_response": "#/$defs/errorResponse",
       "error_statuses": [
+        400,
+        405,
         429,
         500,
-        503
+        503,
+        504
       ],
       "x-callers": [
         "health-probe"
@@ -581,9 +602,12 @@
       "success_status": 200,
       "error_response": "#/$defs/errorResponse",
       "error_statuses": [
+        400,
+        405,
         429,
         500,
-        503
+        503,
+        504
       ],
       "x-callers": [
         "health-probe"

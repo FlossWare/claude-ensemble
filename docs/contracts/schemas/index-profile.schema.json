@@ -71,14 +71,10 @@
       ],
       "properties": {
         "profile": {
-          "type": "string",
-          "minLength": 1,
-          "maxLength": 128
+          "const": "technical-default"
         },
         "version": {
-          "type": "string",
-          "minLength": 1,
-          "maxLength": 64
+          "const": "0.1"
         }
       }
     },

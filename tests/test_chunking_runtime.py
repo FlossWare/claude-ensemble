@@ -58,7 +58,7 @@ def profile_bundle():
     bundle = {
         "name": "default", "version": "0.1", "status": "active",
         "chunking": {"profile": "markdown-default", "version": "0.1", "max_units": 12, "overlap_units": 2},
-        "tokenization": {"profile": "default", "version": "0.1"},
+        "tokenization": {"profile": "technical-default", "version": "0.1"},
         "lexical": {"profile": "default", "version": "0.1", "statistics_policy": "scope_partition"},
         "embedding": {"required": False, "profile": "default", "version": "0.1", "model": "none",
                       "model_version": "none", "input_types": ["document"], "dimensions": 1,
@@ -723,6 +723,20 @@ class ChunkingHttpTests(unittest.TestCase):
         status, _, unsupported = self.post(body=body)
         self.assertEqual(status, 200)
         self.assertTrue(all(item["heading_path"] == [] for item in unsupported["chunks"]))
+
+    def test_preflight_rejects_noncanonical_tokenization_profile(self):
+        bundle = profile_bundle()
+        bundle["tokenization"]["profile"] = "other-profile"
+        body = {"index_profile": {"name": bundle["name"], "version": bundle["version"],
+                                  "digest": bundle["digest"]},
+                "source_text": "hello world",
+                "chunking_profile": {"profile": "markdown-default", "version": "0.1",
+                                     "max_units": 12, "overlap_units": 2},
+                "profile_bundle": bundle}
+        status, headers, result = self.post("/api/v1/chunking/preflight", body)
+        self.assertEqual(status, 422)
+        self.assertEqual(result["error"]["code"], "unsupported_profile")
+        self.assert_error_schema(result, headers)
 
     def test_preflight_rejects_digest_tampering_and_invalid_nested_profile(self):
         for mutate in (

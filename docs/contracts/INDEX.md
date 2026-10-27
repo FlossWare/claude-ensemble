@@ -189,7 +189,7 @@ The Index service must reject incompatible vector dimensions/model profiles rath
 
 - `name`, `version`, registry lifecycle `status` (`active`, `deprecated`, `retired`). Status is registry metadata and is excluded from the immutable content digest.
 - `chunking`: profile name/version and maximum chunk units.
-- `tokenization`: profile name/version.
+- `tokenization`: canonical `technical-default@0.1` lexical profile.
 - `lexical`: profile name/version and corpus-statistics policy.
 - `embedding`: required flag, model name/version, query/document `input_types`, provider `max_input_tokens`, dimensions, normalization, and distance metric.
 - Representation limits: maximum chunks, encoded source bytes, per-chunk text bytes, per-chunk serialized representation bytes, envelope bytes, maximum lexical terms and term bytes, and metadata bytes.

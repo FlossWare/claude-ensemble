@@ -37,7 +37,7 @@ Request:
       "max_units": 1200,
       "overlap_units": 120
     },
-    "tokenization": {"profile": "default", "version": "0.1"},
+    "tokenization": {"profile": "technical-default", "version": "0.1"},
     "lexical": {"profile": "default", "version": "0.1", "statistics_policy": "scope_partition"},
     "embedding": {
       "required": false,
