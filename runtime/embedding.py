@@ -73,7 +73,7 @@ class EmbeddingEngine:
         getter = getattr(model, "get_sentence_embedding_dimension", None)
         dimensions = getter() if callable(getter) else None
         if type(dimensions) is not int or not 1 <= dimensions <= MAX_DIMENSIONS:
-            raise EmbeddingError("model_unavailable", "local model has invalid or unknown embedding dimensions", status=503)
+            raise EmbeddingError("service_unavailable", "local model has invalid or unknown embedding dimensions", status=503)
         return dimensions
 
     def _load(self) -> Any:
@@ -81,13 +81,13 @@ class EmbeddingEngine:
             return self._model
         if not self.model_path or not self.model_version:
             raise EmbeddingError(
-                "model_unavailable",
+                "service_unavailable",
                 "CE_EMBEDDING_MODEL_PATH and CE_EMBEDDING_MODEL_VERSION must identify an installed local model",
                 status=503,
             )
         path = Path(self.model_path).expanduser()
         if not path.is_dir():
-            raise EmbeddingError("model_unavailable", "configured local embedding model directory does not exist", status=503)
+            raise EmbeddingError("service_unavailable", "configured local embedding model directory does not exist", status=503)
         try:
             # Import lazily so contract/unit tests do not require ML packages.
             from sentence_transformers import SentenceTransformer
@@ -109,7 +109,7 @@ class EmbeddingEngine:
             self._model = None
             self._dimensions = None
             # Do not include exception text; it can contain local paths or configuration.
-            raise EmbeddingError("model_unavailable", "configured local embedding model could not be loaded offline", status=503) from exc
+            raise EmbeddingError("service_unavailable", "configured local embedding model could not be loaded offline", status=503) from exc
 
     def readiness(self) -> dict[str, Any]:
         try:
@@ -139,7 +139,7 @@ class EmbeddingEngine:
         model = self._load()
         if normalization == "profile-default":
             normalization = "l2"
-        if normalization not in {"none", "l2"}:
+        if not isinstance(normalization, str) or normalization not in {"none", "l2"}:
             raise EmbeddingError("invalid_parameter", "normalize must be profile-default, none, or l2", status=400)
 
         texts = [item["text"] for item in inputs]
