@@ -193,6 +193,13 @@ class LexicalRetrievalService:
         stats = lookup.get("corpus_statistics", {})
         candidates = lookup.get("candidates", [])
         ranked = bm25_v1(terms, candidates, stats)
+        for candidate in ranked:
+            candidate["provenance"] = {
+                "index_generation": generation,
+                "index_profile_digest": index_profile["digest"],
+                "lexical_profile": f"{lexical_profile['name']}@{lexical_profile['version']}",
+                "retrieval_policy": "bm25-v1",
+            }
         return {
             "query_id": query_id, "request_id": request_id, "index_generation": generation,
             "index_profile": index_profile, "lexical_profile": lexical_profile,
@@ -296,14 +303,15 @@ class VectorRetrievalService:
                 or len(query_vector) != dimensions or not isinstance(model_id, str) or not isinstance(model_version, str)
                 or any(not isinstance(v, (int, float)) or not math.isfinite(float(v)) for v in query_vector)):
             raise RetrievalError("incompatible_representation", "query vector/model/dimension metadata is invalid", 422)
+        if (model_id != expected.get("model") or model_version != expected.get("model_version")
+                or dimensions != expected.get("dimensions")):
+            raise RetrievalError("incompatible_representation", "query embedding model/version/dimensions do not match the pinned Index profile", 422)
         metric = expected.get("metric")
         lookup = self._index_neighbors_call({
             "request_id": request_id, "scope": scope, "index_generation": generation,
             "index_profile": index_profile, "embedding_profile": embedding_profile,
-            "model": model_id, "model_version": model_version, "dimensions": dimensions,
-            "query_vector": query_vector, "metric": metric, "limit": limit,
+            "input_type": "query", "query_vector": query_vector, "metric": metric, "limit": limit,
             "source_ids": request.get("filters", {}).get("source_ids", []),
-            "source_revisions": request.get("filters", {}).get("source_revisions", []),
         })
         if lookup.get("index_generation") != generation:
             raise RetrievalError("profile_mismatch", "Index lookup returned a different pinned generation", 409)
