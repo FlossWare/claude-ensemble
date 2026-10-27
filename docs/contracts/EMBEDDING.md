@@ -60,9 +60,9 @@ The Index profile identity is validated for shape and echoed for correlation; it
   "profile_version": "0.1",
   "model": {
     "provider": "local",
-    "model_id": "all-MiniLM-L6-v2",
-    "model_version": "local-v1",
-    "dimensions": 384,
+    "model_id": "test-model",
+    "model_version": "test-v1",
+    "dimensions": 2,
     "normalization": "l2"
   },
   "results": [
