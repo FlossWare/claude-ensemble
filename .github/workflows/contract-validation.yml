@@ -27,10 +27,15 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.head.ref || github.ref }}
+  cancel-in-progress: true
+
 jobs:
   validate-and-test:
     name: Contracts, dependencies, and full test suite
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     env:
       PYTHONPATH: .
     steps:
@@ -66,6 +71,7 @@ jobs:
   detect-model-validation:
     name: Detect real-model validation scripts
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     outputs:
       enabled: ${{ steps.detect.outputs.enabled }}
     steps:
@@ -87,6 +93,7 @@ jobs:
     needs: detect-model-validation
     if: needs.detect-model-validation.outputs.enabled == 'true'
     runs-on: ubuntu-latest
+    timeout-minutes: 60
     env:
       PYTHONPATH: .
       CE_EMBEDDING_MODEL_VERSION: e9b6763023c676ca8431644204f50c2b100d9aab
@@ -111,6 +118,8 @@ jobs:
               transformers==5.21.0 \
               spacy==3.8.18
           fi
+          python -m pip install --disable-pip-version-check huggingface_hub
+          command -v hf
           python -m pip check
       - name: Restore cached model artifacts
         uses: actions/cache@v4
@@ -120,11 +129,14 @@ jobs:
       - name: Provision pinned embedding model for CI validation
         if: hashFiles('scripts/validate_local_embedding_model.py') != ''
         run: |
-          mkdir -p "$HOME/.FlossWare/models/nomic-embed-text-v1.5"
+          export HF_HOME="$HOME/.FlossWare/models/hf-home"
+          mkdir -p "$HF_HOME" "$HOME/.FlossWare/models"
+          echo "HF_HOME=$HF_HOME" >> "$GITHUB_ENV"
+          snapshot="$(hf download nomic-ai/nomic-embed-text-v1.5 --revision "$CE_EMBEDDING_MODEL_VERSION")"
+          test -d "$snapshot"
+          test "$(basename "$snapshot")" = "$CE_EMBEDDING_MODEL_VERSION"
+          ln -sfn "$snapshot" "$HOME/.FlossWare/models/nomic-embed-text-v1.5"
           echo "CE_EMBEDDING_MODEL_PATH=$HOME/.FlossWare/models/nomic-embed-text-v1.5" >> "$GITHUB_ENV"
-          hf download nomic-ai/nomic-embed-text-v1.5 \
-            --revision "$CE_EMBEDDING_MODEL_VERSION" \
-            --local-dir "$HOME/.FlossWare/models/nomic-embed-text-v1.5"
       - name: Validate real embedding inference offline on CPU
         if: hashFiles('scripts/validate_local_embedding_model.py') != ''
         env:
@@ -134,11 +146,14 @@ jobs:
       - name: Provision pinned reranking model for CI validation
         if: hashFiles('scripts/evaluate_local_reranking.py') != ''
         run: |
-          mkdir -p "$HOME/.FlossWare/models/ms-marco-MiniLM-L6-v2"
+          export HF_HOME="$HOME/.FlossWare/models/hf-home"
+          mkdir -p "$HF_HOME" "$HOME/.FlossWare/models"
+          echo "HF_HOME=$HF_HOME" >> "$GITHUB_ENV"
+          snapshot="$(hf download cross-encoder/ms-marco-MiniLM-L6-v2 --revision "$CE_RERANKING_MODEL_VERSION")"
+          test -d "$snapshot"
+          test "$(basename "$snapshot")" = "$CE_RERANKING_MODEL_VERSION"
+          ln -sfn "$snapshot" "$HOME/.FlossWare/models/ms-marco-MiniLM-L6-v2"
           echo "CE_RERANKING_MODEL_PATH=$HOME/.FlossWare/models/ms-marco-MiniLM-L6-v2" >> "$GITHUB_ENV"
-          hf download cross-encoder/ms-marco-MiniLM-L6-v2 \
-            --revision "$CE_RERANKING_MODEL_VERSION" \
-            --local-dir "$HOME/.FlossWare/models/ms-marco-MiniLM-L6-v2"
       - name: Evaluate real reranking inference offline on CPU
         if: hashFiles('scripts/evaluate_local_reranking.py') != ''
         env:
