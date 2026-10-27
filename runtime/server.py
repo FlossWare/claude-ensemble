@@ -14,6 +14,7 @@ from .tokenization import PROFILE_NAME, PROFILE_VERSION, NORMALIZATION_VERSION, 
 from .embedding import EmbeddingError, PROFILE_NAME as EMBEDDING_PROFILE_NAME, PROFILE_VERSION as EMBEDDING_PROFILE_VERSION, get_engine as get_embedding_engine, validate_index_profile as validate_embedding_index_profile, validate_text as validate_embedding_text
 from .ranking import RankingError, rank as rank_candidates
 from .intent_classification import IntentClassificationError, classify as classify_intent
+from .entity_extraction import EntityExtractionError, PROFILE_NAME as ENTITY_PROFILE_NAME, PROFILE_VERSION as ENTITY_PROFILE_VERSION, get_extractor as get_entity_extractor
 from .chunking import (
     MAX_CONTENT_BYTES, MAX_CHUNKS, DEFAULT_POLICY, ChunkingError, Policy, chunk_document, chunk_spans, validate_index_profile,
 )
@@ -26,6 +27,7 @@ MAX_PROFILE_REQUEST_BYTES = 2_097_152
 MAX_TOKENIZATION_BATCH_REQUEST_BYTES = 524_288
 MAX_RANKING_REQUEST_BYTES = 1_048_576
 MAX_INTENT_REQUEST_BYTES = 1_048_576
+MAX_ENTITY_REQUEST_BYTES = 1_048_576
 DEFAULT_REQUEST_TIMEOUT_SECONDS = 30.0
 SUPPORTED_PROFILES = {"markdown-default": {"0.1"}}
 
@@ -358,6 +360,10 @@ class Handler(BaseHTTPRequestHandler):
         elif self.path == "/api/v1/intent-classification/ready":
             self._send(200, {"service": "intent-classification", "status": "ready", "ready": True,
                              "checks": [{"name": "default-intents@0.1", "status": "ok"}]}, request_id)
+        elif self.path == "/api/v1/entity-extraction/health":
+            self._send(200, {"service": "entity-extraction", "status": "alive"}, request_id)
+        elif self.path == "/api/v1/entity-extraction/ready":
+            self._send(200, get_entity_extractor().readiness(), request_id)
         else:
             self._send(404, _error("endpoint_not_found", "endpoint not found"), request_id)
 
@@ -374,7 +380,7 @@ class Handler(BaseHTTPRequestHandler):
             "/api/v1/chunking/chunks", "/api/v1/chunking/preflight",
             "/api/v1/tokenization/lexical", "/api/v1/tokenization/lexical/batch",
             "/api/v1/embeddings", "/api/v1/ranking/rank",
-            "/api/v1/intent-classification/classify",
+            "/api/v1/intent-classification/classify", "/api/v1/entity-extraction/extract",
         ):
             self._send(404, _error("endpoint_not_found", "endpoint not found"), request_id)
             return
@@ -398,6 +404,8 @@ class Handler(BaseHTTPRequestHandler):
                 limit = MAX_RANKING_REQUEST_BYTES
             elif self.path == "/api/v1/intent-classification/classify":
                 limit = MAX_INTENT_REQUEST_BYTES
+            elif self.path == "/api/v1/entity-extraction/extract":
+                limit = MAX_ENTITY_REQUEST_BYTES
             else:
                 limit = MAX_REQUEST_BYTES
             if length > limit:
@@ -425,6 +433,8 @@ class Handler(BaseHTTPRequestHandler):
                 response = self._rank(request)
             elif self.path == "/api/v1/intent-classification/classify":
                 response = self._classify_intent(request)
+            elif self.path == "/api/v1/entity-extraction/extract":
+                response = self._extract_entities(request)
             else:
                 response = self._chunks(request)
             if (deadline_error := self._deadline_error()) is not None:
@@ -447,6 +457,8 @@ class Handler(BaseHTTPRequestHandler):
             self._send(exc.status, _error(exc.code, str(exc)), request_id)
         except IntentClassificationError as exc:
             self._send(exc.status, _error(exc.code, str(exc)), request_id)
+        except EntityExtractionError as exc:
+            self._send(exc.status, _error(exc.code, str(exc)), request_id)
         except Exception:
             self._send(500, _error("internal_error", "request could not be processed"), request_id)
 
@@ -455,6 +467,21 @@ class Handler(BaseHTTPRequestHandler):
 
     def _classify_intent(self, value: Any) -> dict[str, Any]:
         return classify_intent(value)
+
+    def _extract_entities(self, value: Any) -> dict[str, Any]:
+        request = _require_object(
+            value, "request", {"request_id", "text", "profile"},
+            {"request_id", "text", "profile"},
+        )
+        if not isinstance(request["request_id"], str) or not 1 <= len(request["request_id"]) <= 128:
+            raise EntityExtractionError("invalid_parameter", "request_id must be a string of 1 to 128 characters", status=400)
+        profile = _require_object(request["profile"], "profile", {"name", "version"}, {"name", "version"})
+        if profile != {"name": ENTITY_PROFILE_NAME, "version": ENTITY_PROFILE_VERSION}:
+            raise EntityExtractionError("unsupported_profile", "entity extraction profile or version is not supported")
+        return {
+            "profile": {"name": ENTITY_PROFILE_NAME, "version": ENTITY_PROFILE_VERSION},
+            "entities": get_entity_extractor().extract(request["text"]),
+        }
 
     def _embed(self, value: Any) -> dict[str, Any]:
         request = _require_object(
