@@ -29,9 +29,9 @@ class FakeModel:
         return 3
 
     def encode(self, texts, **kwargs):
-        if "raise-inference-error" in texts:
+        if any("raise-inference-error" in text for text in texts):
             raise RuntimeError("deliberately private test error")
-        return [[1.0, 2.0, 2.0] if text != "bad-dimension" else [1.0, 2.0] for text in texts]
+        return [[1.0, 2.0, 2.0] if "bad-dimension" not in text else [1.0, 2.0] for text in texts]
 
 
 class EmbeddingUnitTests(unittest.TestCase):
