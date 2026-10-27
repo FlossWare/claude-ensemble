@@ -62,7 +62,22 @@ Gateway decides whether reranking is needed, selects the candidate set, applies 
 }
 ~~~
 
-## V1 implementation policy
+## Local model provisioning
+
+The default model root is `~/.FlossWare/models`. Unless overridden, the service looks for the reranker at `~/.FlossWare/models/ms-marco-MiniLM-L6-v2` and assumes the expected model ID `cross-encoder/ms-marco-MiniLM-L6-v2`. Set `CE_RERANKING_MODEL_PATH` to override the directory. `CE_RERANKING_MODEL_VERSION` remains required and must identify the exact revision provisioned locally.
+
+Example one-time provisioning (run with network access; never run as part of CE startup):
+
+```sh
+mkdir -p "$HOME/.FlossWare/models/ms-marco-MiniLM-L6-v2"
+hf download cross-encoder/ms-marco-MiniLM-L6-v2 \\
+  --revision "$RERANKING_REVISION" \\
+  --local-dir "$HOME/.FlossWare/models/ms-marco-MiniLM-L6-v2"
+export CE_RERANKING_MODEL_VERSION="$RERANKING_REVISION"
+```
+
+Set `RERANKING_REVISION` to the reviewed, immutable model revision chosen for the deployment, and record that revision with its license and checksum. Do not use a moving branch name as the deployment pin. Model files remain outside Git.
+
 
 The initial `default-reranker@0.1` profile uses the locally provisioned
 `cross-encoder/ms-marco-MiniLM-L6-v2` cross-encoder. This is a lightweight English
