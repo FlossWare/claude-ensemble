@@ -78,6 +78,16 @@ class RerankingUnitTests(unittest.TestCase):
         self.assertEqual(len(result["candidates"]), 2)
         self.assertEqual(result["candidates"][0]["matched_exact_identifiers"], ["RFC-456"])
 
+    def test_default_model_location_uses_flossware_model_root(self):
+        with patch.dict("os.environ", {"CE_RERANKING_MODEL_PATH": "", "CE_RERANKING_MODEL_ID": "", "CE_RERANKING_MODEL_VERSION": ""}):
+            engine = RerankingEngine()
+        self.assertEqual(
+            Path(engine.model_path),
+            Path.home() / ".FlossWare" / "models" / "ms-marco-MiniLM-L6-v2",
+        )
+        self.assertEqual(engine.model_id, EXPECTED_MODEL_ID)
+        self.assertIsNone(engine.model_version)
+
     def test_duplicate_candidate_identity_is_rejected(self):
         engine = RerankingEngine(model=FakeCrossEncoder([0.1, 0.2]), model_id=EXPECTED_MODEL_ID, model_version="r1")
         item = candidate("a")
