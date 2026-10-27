@@ -88,10 +88,10 @@ class EmbeddingUnitTests(unittest.TestCase):
                 calls["path"] = path
                 calls.update(kwargs)
             def get_sentence_embedding_dimension(self):
-                return 3
+                return 768
         fake_package = types.SimpleNamespace(SentenceTransformer=FakeSentenceTransformer)
         with tempfile.TemporaryDirectory() as model_dir, patch.dict("sys.modules", {"sentence_transformers": fake_package}):
-            engine = EmbeddingEngine(model_path=model_dir, model_id="local-model", model_version="v1")
+            engine = EmbeddingEngine(model_path=model_dir, model_id="nomic-ai/nomic-embed-text-v1.5", model_version="v1")
             engine.readiness()
         self.assertEqual(calls["device"], "cpu")
         self.assertIs(calls["local_files_only"], True)
