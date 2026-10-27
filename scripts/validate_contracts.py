@@ -170,7 +170,9 @@ def main() -> int:
             elif len(error_statuses) != len(set(error_statuses)):
                 errors.append(f"{where}: duplicate error status")
 
-            # Keep declared endpoint errors aligned with the shared REST dispatcher.
+            # This encodes the current CE shared REST dispatcher convention, not a universal HTTP rule.
+            # If dispatcher middleware/body-reading behavior changes (or a binding opts out), update this policy
+            # and its tests together rather than declaring statuses the runtime cannot emit.
             if isinstance(error_statuses, list):
                 if 405 not in error_statuses:
                     errors.append(f"{where}: shared dispatcher policy requires 405 method_not_allowed")
