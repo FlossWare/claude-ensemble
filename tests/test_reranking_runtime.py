@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import json
 import threading
+from pathlib import Path
 import unittest
 from unittest.mock import patch
 from urllib.request import Request, urlopen
@@ -95,6 +96,15 @@ class RerankingUnitTests(unittest.TestCase):
         request["model"] = "caller-selected-model"
         with self.assertRaises(RerankingError):
             engine.rerank(request)
+
+    def test_versioned_evaluation_fixture_has_unique_candidates_and_relevant_ids(self):
+        fixture_path = Path(__file__).resolve().parents[1] / "docs" / "evaluation" / "reranking-fixtures.json"
+        fixture = json.loads(fixture_path.read_text(encoding="utf-8"))
+        chunk_ids = [item["chunk_id"] for item in fixture["candidates"]]
+        self.assertEqual(len(chunk_ids), 20)
+        self.assertEqual(len(set(chunk_ids)), 20)
+        self.assertTrue(set(fixture["relevant_chunk_ids"]).issubset(set(chunk_ids)))
+        self.assertEqual(sorted(item["prior_rank"] for item in fixture["candidates"]), list(range(1, 21)))
 
     def test_local_model_loader_is_cpu_only_and_offline(self):
         calls = {}
