@@ -107,7 +107,7 @@ Use the common error envelope. Distinguish invalid candidate set, unknown profil
 
 ## Evaluation gate
 
-Before enabling this profile in the Gateway's default path, evaluate NDCG@10 / MRR@10 and exact-identifier retention against a versioned CE query/candidate fixture set. Compare against the pre-reranked Ranking order and record CPU latency at 1, 5, 10, and 20 candidates. Keep Gateway reranking optional until that evaluation is reviewed.
+Before enabling this profile in the Gateway's default path, evaluate NDCG@10 / MRR@10 and exact-identifier retention against the versioned fixture at `docs/evaluation/reranking-fixtures.json`. Run `python scripts/evaluate_local_reranking.py` after provisioning the pinned local model. The report compares against the pre-reranked order and records median CPU latency at 1, 5, 10, and 20 candidates. This single fixture is a smoke/evaluation baseline, not enough evidence for a production quality claim. Keep Gateway reranking optional until broader CE evaluation results are reviewed.
 
 
 Candidate identity follows the shared REST rules: source ID, revision sequence, chunk ID, and chunker profile/version. Do not add, merge, or silently substitute candidates from distinct source revisions.
