@@ -1,7 +1,7 @@
 {
   "fixture_version": "1",
   "query_id": "index-stale-revision",
-  "query": "How does Index stop stale source revisions from overwriting newer indexed data?",
+  "query": "How does Index enforce `revision_sequence` to prevent stale source revisions from overwriting newer indexed data?",
   "relevant_chunk_ids": [
     "index-revision-fencing",
     "index-tombstone-high-water",
@@ -114,7 +114,10 @@
         "version": "0.1"
       },
       "text": "Index rejects upserts whose revision_sequence is older than the latest indexed revision. Revision sequences are monotonic per source, and opaque source revision IDs are never ordered lexicographically.",
-      "prior_rank": 9
+      "prior_rank": 9,
+      "matched_exact_identifiers": [
+        "revision_sequence"
+      ]
     },
     {
       "chunk_id": "index-rebuild",
@@ -222,7 +225,10 @@
         "version": "0.1"
       },
       "text": "Index stores a durable source-wide tombstone high-water mark and rejects upserts whose revision_sequence is at or below that mark, including delayed operations after restart or during rebuild.",
-      "prior_rank": 18
+      "prior_rank": 18,
+      "matched_exact_identifiers": [
+        "revision_sequence"
+      ]
     },
     {
       "chunk_id": "deadline-budgets",
@@ -246,7 +252,10 @@
         "version": "0.1"
       },
       "text": "Index upsert operations are idempotent per target generation, source_id, revision_sequence, and index profile digest. Reusing the same operation identity with a conflicting canonical payload is rejected.",
-      "prior_rank": 20
+      "prior_rank": 20,
+      "matched_exact_identifiers": [
+        "revision_sequence"
+      ]
     }
   ]
 }
