@@ -167,7 +167,7 @@ class LexicalRetrievalService:
             raise RetrievalError("profile_mismatch", "Tokenization returned a different Index profile", 409)
         if tokenized.get("profile") != expected_tokenization.get("profile") or tokenized.get("version") != expected_tokenization.get("version"):
             raise RetrievalError("incompatible_representation", "Tokenization returned an incompatible profile", 422)
-        terms = [t.get("normalized", t.get("term")) for t in tokenized.get("tokens", []) if isinstance(t, dict)]
+        terms = [t.get("term") for t in tokenized.get("tokens", []) if isinstance(t, dict)]
         terms = [term for term in terms if isinstance(term, str) and term]
         if not terms:
             return {
@@ -203,8 +203,7 @@ def vector_rank(
         raise RetrievalError("incompatible_representation", "unsupported vector metric", 422)
     result = [dict(c) for c in candidates]
     for c in result:
-        value_key = "distance" if metric == "euclidean" else "similarity"
-        value = c.get(value_key)
+        value = c.get("distance", c.get("similarity"))
         if not isinstance(value, (int, float)) or not math.isfinite(float(value)):
             raise RetrievalError("dependency_unavailable", f"Index candidate has invalid {value_key}", 503)
         c["distance"] = float(value)
