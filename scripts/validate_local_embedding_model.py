@@ -14,10 +14,24 @@ import sys
 os.environ["HF_HUB_OFFLINE"] = "1"
 os.environ["TRANSFORMERS_OFFLINE"] = "1"
 
+from pathlib import Path
+
 from runtime.embedding import EXPECTED_DIMENSIONS, EXPECTED_MODEL_ID, EmbeddingEngine
 
 
 def main() -> int:
+    expected_revision = os.environ.get("CE_EMBEDDING_MODEL_VERSION", "")
+    model_path = Path(os.environ.get(
+        "CE_EMBEDDING_MODEL_PATH",
+        str(Path.home() / ".FlossWare" / "models" / "nomic-embed-text-v1.5"),
+    )).expanduser()
+    if len(expected_revision) != 40 or any(ch not in "0123456789abcdef" for ch in expected_revision):
+        print("FAIL: CE_EMBEDDING_MODEL_VERSION must be an immutable 40-character commit SHA", file=sys.stderr)
+        return 1
+    if model_path.resolve().name != expected_revision:
+        print("FAIL: resolved model snapshot directory does not match the pinned revision", file=sys.stderr)
+        return 1
+
     engine = EmbeddingEngine()
     try:
         model, results = engine.embed(
@@ -35,6 +49,9 @@ def main() -> int:
 
     if model.get("model_id") != EXPECTED_MODEL_ID:
         print("FAIL: loaded model identity does not match the configured Nomic profile", file=sys.stderr)
+        return 1
+    if model.get("model_version") != expected_revision:
+        print("FAIL: loaded model metadata does not match the pinned revision", file=sys.stderr)
         return 1
     if model.get("dimensions") != EXPECTED_DIMENSIONS:
         print("FAIL: loaded model does not produce 768-dimensional vectors", file=sys.stderr)
@@ -58,7 +75,7 @@ def main() -> int:
 
     print("PASS: Nomic model loaded from local files in offline CPU mode.")
     print("PASS: query/document inference completed with 768-dimensional finite L2-normalized vectors.")
-    print(f"Configured model revision: {model.get('model_version')}")
+    print(f"PASS: resolved local model snapshot matches pinned revision {expected_revision}.")
     return 0
 
 
