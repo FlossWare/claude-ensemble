@@ -73,8 +73,6 @@
       "required": [
         "term",
         "surface",
-        "start_offset",
-        "end_offset",
         "kind"
       ],
       "properties": {
@@ -187,9 +185,7 @@
           "const": "0.1"
         },
         "normalization_version": {
-          "type": "string",
-          "minLength": 1,
-          "maxLength": 64
+          "const": "0.1"
         },
         "index_profile": {
           "$ref": "#/$defs/indexProfile"
@@ -279,9 +275,7 @@
           "const": "0.1"
         },
         "normalization_version": {
-          "type": "string",
-          "minLength": 1,
-          "maxLength": 64
+          "const": "0.1"
         },
         "index_profile": {
           "$ref": "#/$defs/indexProfile"
@@ -312,7 +306,31 @@
               "error": {
                 "$ref": "#/$defs/itemError"
               }
-            }
+            },
+            "oneOf": [
+              {
+                "required": [
+                  "input_id",
+                  "tokens"
+                ],
+                "not": {
+                  "required": [
+                    "error"
+                  ]
+                }
+              },
+              {
+                "required": [
+                  "input_id",
+                  "error"
+                ],
+                "not": {
+                  "required": [
+                    "tokens"
+                  ]
+                }
+              }
+            ]
           }
         }
       }
