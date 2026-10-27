@@ -179,7 +179,7 @@ class TokenizationHttpTests(unittest.TestCase):
         self.assertEqual(body["request_id"], "tokenization-test-1")
         self.assertEqual(headers["X-CE-Request-ID"], "tokenization-test-1")
         self.assertTrue(body["tokens"])
-        Draft202012Validator(SCHEMA["$defs"]["response"]).validate(body)
+        Draft202012Validator(SCHEMA).validate(body)
 
     def test_noncanonical_profile_or_version_is_rejected_without_fallback(self):
         for field, value in (("profile", "other-profile"), ("profile_version", "9.9")):
@@ -198,7 +198,7 @@ class TokenizationHttpTests(unittest.TestCase):
         for surface in text.split():
             exact = next(item for item in body["tokens"] if item["surface"] == surface and item["term"] == surface)
             self.assertEqual(text[exact["start_offset"]:exact["end_offset"]], surface)
-        Draft202012Validator(SCHEMA["$defs"]["response"]).validate(body)
+        Draft202012Validator(SCHEMA).validate(body)
 
     def test_options_without_offsets_are_valid_over_http(self):
         body = self.single_body("HTTP2 foo")
@@ -209,7 +209,7 @@ class TokenizationHttpTests(unittest.TestCase):
         self.assertTrue(all("start_offset" not in item and "end_offset" not in item for item in result["tokens"]))
         self.assertTrue(any(item["term"] == "HTTP2" for item in result["tokens"]))
         self.assertFalse(any(item["term"] == "http2" for item in result["tokens"]))
-        Draft202012Validator(SCHEMA["$defs"]["response"]).validate(result)
+        Draft202012Validator(SCHEMA).validate(result)
 
     def test_invalid_body_request_id_is_rejected_for_single_and_batch(self):
         for value in (7, "", "x" * 129):
@@ -257,7 +257,7 @@ class TokenizationHttpTests(unittest.TestCase):
         self.assertTrue({"HTTP2", "sha256sum", "utf8"} <= exact_digit_terms)
         self.assertEqual(result["results"][2]["error"]["code"], "source_too_large")
         self.assertEqual(result["results"][3]["error"]["code"], "source_too_large")
-        Draft202012Validator(SCHEMA["$defs"]["batchResponse"]).validate(result)
+        Draft202012Validator(SCHEMA).validate(result)
 
     def test_duplicate_batch_ids_are_rejected(self):
         body = {
@@ -280,12 +280,12 @@ class TokenizationHttpTests(unittest.TestCase):
         self.assertEqual(status, 200)
         self.assertEqual(health["service"], "tokenization")
         self.assertEqual(health["status"], "alive")
-        Draft202012Validator(SCHEMA["$defs"]["healthResponse"]).validate(health)
+        Draft202012Validator(SCHEMA).validate(health)
         status, _, ready = self.request("GET", "/api/v1/tokenization/ready")
         self.assertEqual(status, 200)
         self.assertTrue(ready["ready"])
         self.assertIn("technical-default@0.1", [item["name"] for item in ready["checks"]])
-        Draft202012Validator(SCHEMA["$defs"]["readinessResponse"]).validate(ready)
+        Draft202012Validator(SCHEMA).validate(ready)
 
 
 if __name__ == "__main__":
