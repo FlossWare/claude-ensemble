@@ -69,7 +69,6 @@ jobs:
     env:
       CE_EMBEDDING_MODEL_VERSION: e9b6763023c676ca8431644204f50c2b100d9aab
       CE_RERANKING_MODEL_VERSION: 233902d25c440f23af6f7d6e94d2946bac0bee0a
-      CE_RERANKING_MODEL_PATH: ~/.FlossWare/models/ms-marco-MiniLM-L6-v2
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
@@ -114,9 +113,9 @@ jobs:
       - name: Provision pinned embedding model for CI validation
         if: steps.detect.outputs.enabled == 'true' && hashFiles('scripts/validate_local_embedding_model.py') != ''
         env:
-          CE_EMBEDDING_MODEL_PATH: ~/.FlossWare/models/nomic-embed-text-v1.5
         run: |
           mkdir -p "$HOME/.FlossWare/models/nomic-embed-text-v1.5"
+          echo "CE_EMBEDDING_MODEL_PATH=$HOME/.FlossWare/models/nomic-embed-text-v1.5" >> "$GITHUB_ENV"
           hf download nomic-ai/nomic-embed-text-v1.5 \
             --revision "$CE_EMBEDDING_MODEL_VERSION" \
             --local-dir "$HOME/.FlossWare/models/nomic-embed-text-v1.5"
@@ -131,6 +130,7 @@ jobs:
         if: steps.detect.outputs.enabled == 'true' && hashFiles('scripts/evaluate_local_reranking.py') != ''
         run: |
           mkdir -p "$HOME/.FlossWare/models/ms-marco-MiniLM-L6-v2"
+          echo "CE_RERANKING_MODEL_PATH=$HOME/.FlossWare/models/ms-marco-MiniLM-L6-v2" >> "$GITHUB_ENV"
           hf download cross-encoder/ms-marco-MiniLM-L6-v2 \
             --revision "$CE_RERANKING_MODEL_VERSION" \
             --local-dir "$HOME/.FlossWare/models/ms-marco-MiniLM-L6-v2"
