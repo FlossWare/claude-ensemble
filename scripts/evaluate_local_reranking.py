@@ -48,7 +48,7 @@ def build_request(fixture: dict[str, Any], candidates: list[dict[str, Any]], lim
     prepared = []
     for raw in candidates:
         candidate = dict(raw)
-        candidate["matched_exact_identifiers"] = []
+        candidate.setdefault("matched_exact_identifiers", [])
         candidate["provenance"] = {"origin": "versioned-reranking-evaluation-fixture"}
         prepared.append(candidate)
     return {
@@ -68,6 +68,11 @@ def main() -> int:
         relevant = set(fixture["relevant_chunk_ids"])
         if len(candidates) != 20 or len(relevant) < 1:
             raise ValueError("fixture must contain exactly 20 candidates and at least one relevant chunk")
+        exact_candidates = [
+            item for item in candidates if item.get("matched_exact_identifiers")
+        ]
+        if not exact_candidates:
+            raise ValueError("fixture must include at least one exact-identifier candidate")
         engine = RerankingEngine()
         # Load local weights before measuring per-request latency.
         engine._load()
@@ -82,6 +87,19 @@ def main() -> int:
         print(f"FAIL: local reranking inference failed ({type(exc).__name__})", file=sys.stderr)
         return 1
     reranked_ids = [item["chunk_id"] for item in full_result["candidates"]]
+    exact_probe = engine.rerank(build_request(fixture, candidates, 1))
+    exact_candidate_ids = {item["chunk_id"] for item in exact_candidates}
+    exact_retained_ids = {
+        item["chunk_id"] for item in exact_probe["candidates"]
+        if item.get("matched_exact_identifiers")
+    }
+    exact_identifier_retention = {
+        "requested_limit": 1,
+        "exact_candidate_count": len(exact_candidate_ids),
+        "retained_exact_candidate_count": len(exact_retained_ids),
+        "all_exact_candidates_retained": exact_candidate_ids == exact_retained_ids,
+        "output_count": len(exact_probe["candidates"]),
+    }
     quality = {
         "baseline_ndcg_at_10": round(ndcg_at_k(baseline_ids, relevant), 6),
         "reranked_ndcg_at_10": round(ndcg_at_k(reranked_ids, relevant), 6),
@@ -110,6 +128,7 @@ def main() -> int:
         "device": "cpu",
         "sequence_length": 512,
         "quality": quality,
+        "exact_identifier_retention": exact_identifier_retention,
         "median_latency_ms_by_candidate_count": latency,
         "baseline_order": baseline_ids,
         "reranked_order": reranked_ids,
