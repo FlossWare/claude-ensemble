@@ -39,6 +39,17 @@ class TokenizationUnitTests(unittest.TestCase):
         exact_terms = {token["term"] for token in identifiers}
         self.assertTrue({"snake_case", "FOO_BAR", "HTTPServer", "URL", "myVariable"} <= exact_terms)
 
+    def test_unicode_normalization_case_punctuation_and_numbers(self):
+        tokens = tokenize("CAFÉ Cafe\\u0301, 42!")
+        surfaces = [token["surface"] for token in tokens]
+        terms = [token["term"] for token in tokens]
+        self.assertIn("CAFÉ", surfaces)
+        self.assertIn("Cafe\\u0301", surfaces)
+        self.assertIn("café", terms)
+        self.assertIn("42", terms)
+        self.assertIn(",", surfaces)
+        self.assertIn("!", surfaces)
+
     def test_offsets_are_half_open_unicode_code_point_offsets(self):
         tokens = tokenize("é FooBar")
         token = next(item for item in tokens if item["surface"] == "FooBar")
