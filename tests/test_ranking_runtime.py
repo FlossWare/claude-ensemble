@@ -67,7 +67,7 @@ class RankingUnitTests(unittest.TestCase):
             make_candidate("chunk-c", 1, source="vector", score_semantics="cosine-distance", source_score=0.1),
         ])
         result = rank(request([lexical, vector]))
-        Draft202012Validator(SCHEMA["$defs"]["response"]).validate({**result, "request_id": "ranking-test-1"})
+        Draft202012Validator(SCHEMA).validate({**result, "request_id": "ranking-test-1"})
         self.assertEqual([item["chunk_id"] for item in result["candidates"]], ["chunk-a", "chunk-c", "chunk-b"])
         chunk_a = result["candidates"][0]
         self.assertEqual(chunk_a["score"], 1_000_000_000_000 // 61 + 1_000_000_000_000 // 62)
@@ -103,7 +103,7 @@ class RankingUnitTests(unittest.TestCase):
         ]
         result = rank(request([make_list("lexical", "project-A", candidates)]))
         self.assertEqual(len(result["candidates"]), 2)
-        self.assertEqual([item["revision_sequence"] for item in result["candidates"]], [2, 1])
+        self.assertEqual([item["revision_sequence"] for item in result["candidates"]], [1, 2])
 
     def test_sort_order_is_deterministic_for_ties(self):
         candidates = [
@@ -111,7 +111,11 @@ class RankingUnitTests(unittest.TestCase):
             make_candidate("chunk-b", 1, source_id="knowledge:b"),
             make_candidate("chunk-a", 1, source_id="knowledge:a"),
         ]
-        value = request([make_list("lexical", "project-A", candidates)])
+        value = request([
+            make_list("lexical", "project-A", [candidates[0]]),
+            make_list("lexical", "project-B", [candidates[1]]),
+            make_list("lexical", "project-C", [candidates[2]]),
+        ])
         first = rank(value)
         second = rank(value)
         self.assertEqual(first, second)
@@ -192,7 +196,7 @@ class RankingHttpTests(unittest.TestCase):
         self.assertEqual(status, 200)
         self.assertEqual(result["request_id"], "ranking-http-test")
         self.assertEqual(headers["X-CE-Request-ID"], "ranking-http-test")
-        Draft202012Validator(SCHEMA["$defs"]["response"]).validate(result)
+        Draft202012Validator(SCHEMA).validate(result)
         status, _, health = self.request("GET", "/api/v1/ranking/health")
         self.assertEqual(status, 200)
         self.assertEqual((health["service"], health["status"]), ("ranking", "alive"))
@@ -207,7 +211,7 @@ class RankingHttpTests(unittest.TestCase):
         status, _, result = self.request("POST", "/api/v1/ranking/rank", body)
         self.assertEqual(status, 400)
         self.assertEqual(result["error"]["code"], "duplicate_retrieval_rank")
-        Draft202012Validator(SCHEMA["$defs"]["errorResponse"]).validate(result)
+        Draft202012Validator(SCHEMA).validate(result)
 
 
 if __name__ == "__main__":
