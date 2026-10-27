@@ -97,6 +97,16 @@ class EmbeddingUnitTests(unittest.TestCase):
         self.assertIs(calls["local_files_only"], True)
         self.assertIs(calls["trust_remote_code"], False)
 
+    def test_default_model_location_uses_flossware_model_root(self):
+        with patch.dict(os.environ, {"CE_EMBEDDING_MODEL_PATH": "", "CE_EMBEDDING_MODEL_ID": "", "CE_EMBEDDING_MODEL_VERSION": ""}):
+            engine = EmbeddingEngine()
+        self.assertEqual(
+            Path(engine.model_path),
+            Path.home() / ".FlossWare" / "models" / "nomic-embed-text-v1.5",
+        )
+        self.assertEqual(engine.model_id, "nomic-ai/nomic-embed-text-v1.5")
+        self.assertIsNone(engine.model_version)
+
     def test_missing_model_fails_readiness_without_downloading(self):
         with patch.dict(os.environ, {"CE_EMBEDDING_MODEL_PATH": "", "CE_EMBEDDING_MODEL_VERSION": ""}):
             engine = EmbeddingEngine(model_path="", model_version="")
