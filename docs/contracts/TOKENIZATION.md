@@ -1,6 +1,6 @@
 # Tokenization Service Contract (Draft)
 
-Status: proposed contract for architecture review. No implementation or tokenizer library is prescribed.
+Status: initial runtime implementation. The canonical lexical profile is `technical-default@0.1`; model-specific tokenization remains out of scope.
 
 ## Responsibility
 
@@ -14,7 +14,7 @@ Base path: `/api/v1`
 
 ### `POST /tokenization/lexical`
 
-Tokenize and normalize one text input using an explicit profile. Requests carry the pinned Index profile identity and component tokenizer profile/version. Tokenization resolves that immutable bundle through Index's versioned profile REST endpoint, verifies the digest and component identity, and never silently falls back to a local or current profile.
+Tokenize and normalize one text input using the canonical `technical-default@0.1` profile. Requests carry the pinned Index profile identity and the component profile/version. Tokenization validates the identity shape and supported component version, then echoes the Index identity for correlation. Index owns resolution and verification of its bundle digest; Tokenization does not call a registry or select a current profile.
 
 ### `POST /tokenization/lexical/batch`
 
@@ -37,7 +37,7 @@ Request:
 }
 ```
 
-For indexing workflows, callers supply the immutable Index-owned bundle identity `{name, version, digest}` and exact Tokenization component profile/version from that bundle. A default is not selected independently by Tokenization. The response echoes the effective profile/version and bundle digest.
+For indexing workflows, callers supply the immutable Index-owned bundle identity `{name, version, digest}` and the exact Tokenization component profile/version pinned by that bundle. Tokenization supports only `technical-default@0.1`; it never selects an alternate profile. The response echoes the effective profile/version and Index identity. The Index owner is responsible for ensuring that the supplied identity and component settings match its canonical bundle.
 
 Response:
 
@@ -73,7 +73,7 @@ Offsets are zero-based, half-open Unicode code-point offsets into the exact subm
 
 - Index-time and query-time callers use compatible profile/version combinations. The service exposes identity/version so incompatible indexes can be detected rather than silently queried.
 - Preserve original surface text and offsets when requested. Normalized terms are additional representations, not replacements for source evidence.
-- Profiles define Unicode handling, case behavior, punctuation, path handling, code identifiers, error strings, and language-specific behavior explicitly.
+- The canonical profile defines Unicode handling, case behavior, punctuation, path handling, code identifiers, and stable error behavior explicitly. Additional profiles are not supported until a concrete use case requires them.
 - Preserve exact identifier/name/error/path/code-symbol forms when configured. Optional subterms may be emitted alongside the exact form; do not replace the exact form with lossy splitting.
 - Token order is deterministic. Repeated identical requests with the same profile/version/options return equivalent results.
 - Empty input returns an empty token list, not an error.
@@ -91,7 +91,7 @@ Use the shared CE REST error envelope. At minimum distinguish malformed request,
 
 ## Readiness and diagnostics
 
-Expose `GET /api/v1/tokenization/health` and `GET /api/v1/tokenization/ready`. Readiness reports whether configured profiles are available. Diagnostics include profile/version and duration, but not submitted text or emitted terms by default.
+Expose `GET /api/v1/tokenization/health` and `GET /api/v1/tokenization/ready`. Readiness reports whether `technical-default@0.1` and normalization `0.1` are available. Diagnostics include profile/version and duration, but not submitted text or emitted terms by default.
 
 ## Acceptance tests
 
@@ -100,6 +100,6 @@ Expose `GET /api/v1/tokenization/health` and `GET /api/v1/tokenization/ready`. R
 - Tests cover case, punctuation, accents, Unicode normalization, paths, filenames, code symbols, mixedCase identifiers, acronyms, error messages, numbers, empty input, and large inputs.
 - Exact technical identifiers remain searchable even when optional normalized subterms are emitted.
 - Index-time/query-time profile compatibility is explicit and mismatches are observable.
-- Unknown profiles and invalid requests return stable client errors.
+- Non-canonical profile names/versions and invalid requests return stable client errors.
 - Tests prove this service does not silently pretend to provide model-specific token IDs or context-window counts.
 - Contract tests run without requiring a particular programming language or deployment topology.
