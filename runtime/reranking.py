@@ -50,8 +50,11 @@ class RerankingEngine:
 
     def __init__(self, *, model_path: str | None = None, model_id: str | None = None,
                  model_version: str | None = None, model: Any = None):
-        self.model_path = model_path if model_path is not None else os.environ.get("CE_RERANKING_MODEL_PATH")
-        self.model_id = model_id or os.environ.get("CE_RERANKING_MODEL_ID")
+        self.model_path = model_path if model_path is not None else (
+            os.environ.get("CE_RERANKING_MODEL_PATH")
+            or str(Path.home() / ".FlossWare" / "models" / "ms-marco-MiniLM-L6-v2")
+        )
+        self.model_id = model_id or os.environ.get("CE_RERANKING_MODEL_ID") or EXPECTED_MODEL_ID
         self.model_version = model_version or os.environ.get("CE_RERANKING_MODEL_VERSION")
         self._model = model
 
