@@ -75,6 +75,10 @@
         "surface",
         "kind"
       ],
+      "dependentRequired": {
+        "start_offset": ["end_offset"],
+        "end_offset": ["start_offset"]
+      },
       "properties": {
         "term": {
           "type": "string",
