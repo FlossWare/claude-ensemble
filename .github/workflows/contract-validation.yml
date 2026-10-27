@@ -95,11 +95,10 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v4
       - name: Set up Python
-                uses: actions/setup-python@v5
+        uses: actions/setup-python@v5
         with:
           python-version: "3.12"
       - name: Install model runtime dependencies
-        if: steps.detect.outputs.enabled == 'true'
         run: |
           python -m pip install --disable-pip-version-check -r requirements-test.txt
           if [ -f requirements-runtime.txt ]; then
@@ -128,7 +127,7 @@ jobs:
             --revision "$CE_EMBEDDING_MODEL_VERSION" \
             --local-dir "$HOME/.FlossWare/models/nomic-embed-text-v1.5"
       - name: Validate real embedding inference offline on CPU
-        if: steps.detect.outputs.enabled == 'true' && hashFiles('scripts/validate_local_embedding_model.py') != ''
+        if: hashFiles('scripts/validate_local_embedding_model.py') != ''
         env:
           HF_HUB_OFFLINE: "1"
           TRANSFORMERS_OFFLINE: "1"
