@@ -1,6 +1,6 @@
 # Reranking Service Contract (Draft)
 
-Status: proposed language-neutral REST contract for architecture review. Not implementation approval.
+Status: v1 implementation policy selected. The local model weights remain deployment-provisioned; no runtime download is permitted.
 
 ## Responsibility
 
@@ -62,6 +62,20 @@ Gateway decides whether reranking is needed, selects the candidate set, applies 
 }
 ~~~
 
+## V1 implementation policy
+
+The initial `default-reranker@0.1` profile uses the locally provisioned
+`cross-encoder/ms-marco-MiniLM-L6-v2` cross-encoder. This is a lightweight English
+retrieval reranker baseline, not a claim of technical-domain optimality. It must be
+evaluated against CE's own retrieval fixtures before any quality claim is made.
+
+- Model identity is pinned to `cross-encoder/ms-marco-MiniLM-L6-v2`; deployment records the exact revision, license, and checksum.
+- Configure `CE_RERANKING_MODEL_PATH`, `CE_RERANKING_MODEL_ID`, and `CE_RERANKING_MODEL_VERSION`.
+- Load only from the local path with `device="cpu"`, `local_files_only=True`, and `trust_remote_code=False`. Missing weights cause readiness failure, never a download.
+- Maximum pair sequence length is 512 model tokens and inference batch size is at most 8. Inputs are truncated by the model tokenizer to the configured sequence bound.
+- Score each candidate independently against the query. Round scores to 9 decimal places using round-half-to-even; sort by score descending, then prior rank ascending, then the canonical candidate identity tuple.
+- The model is a second-stage scorer. It does not add, merge, retrieve, or mutate candidates.
+
 ## Semantics
 
 - Candidate count, query length, per-candidate text, total input tokens, output count, and wall-clock time are bounded by the configured profile.
@@ -91,9 +105,9 @@ Use the common error envelope. Distinguish invalid candidate set, unknown profil
 7. Service makes no direct CE service/storage calls.
 8. Provider policy is enforced and test doubles are separated from integration tests.
 
-## Approval gate
+## Evaluation gate
 
-Review with Ranking, Gateway budgets/fallback, candidate provenance, provider policy, and end-to-end retrieval workflows before implementation.
+Before enabling this profile in the Gateway's default path, evaluate NDCG@10 / MRR@10 and exact-identifier retention against a versioned CE query/candidate fixture set. Compare against the pre-reranked Ranking order and record CPU latency at 1, 5, 10, and 20 candidates. Keep Gateway reranking optional until that evaluation is reviewed.
 
 
 Candidate identity follows the shared REST rules: source ID, revision sequence, chunk ID, and chunker profile/version. Do not add, merge, or silently substitute candidates from distinct source revisions.
