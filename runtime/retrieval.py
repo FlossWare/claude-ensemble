@@ -214,6 +214,10 @@ def vector_rank(
         result.sort(key=lambda c: (-c["distance"], *_identity(c)))
     for rank, candidate in enumerate(result, 1):
         candidate["retrieval_rank"] = rank
+        # The retrieval response schema is deliberately smaller than Index's
+        # low-level representation; do not leak Index-only metadata.
+        for key in ("similarity", "embedding", "term_frequency_evidence"):
+            candidate.pop(key, None)
     return result
 
 
