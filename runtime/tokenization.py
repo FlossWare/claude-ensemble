@@ -30,14 +30,16 @@ class TokenizationError(ValueError):
 
 
 def _bounded_string(value: Any, field: str, maximum: int) -> str:
-    if not isinstance(value, str) or len(value) > maximum:
-        raise TokenizationError("invalid_parameter", f"{field} must be a string of at most {maximum} characters", status=400)
+    if not isinstance(value, str):
+        raise TokenizationError("invalid_parameter", f"{field} must be a string", status=400)
+    if len(value) > maximum:
+        raise TokenizationError("source_too_large", f"{field} exceeds the character limit", status=413)
     try:
         encoded = value.encode("utf-8")
     except UnicodeEncodeError as exc:
         raise TokenizationError("invalid_parameter", f"{field} contains invalid Unicode", status=400) from exc
     if len(encoded) > MAX_TEXT_BYTES:
-        raise TokenizationError("source_too_large", f"{field} exceeds the UTF-8 byte limit")
+        raise TokenizationError("source_too_large", f"{field} exceeds the UTF-8 byte limit", status=413)
     return value
 
 
@@ -90,5 +92,5 @@ def tokenize(text: str, *, preserve_identifiers: bool = True,
                 token["end_offset"] = match.end()
             result.append(token)
             if len(result) > MAX_TOKENS:
-                raise TokenizationError("source_too_large", f"text produces more than {MAX_TOKENS} lexical tokens")
+                raise TokenizationError("source_too_large", f"text produces more than {MAX_TOKENS} lexical tokens", status=413)
     return result
