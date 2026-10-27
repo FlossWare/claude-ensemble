@@ -12,7 +12,7 @@ MAX_TEXT_BYTES = 262_144
 MAX_TOKENS = 512
 _TOKEN_RE = re.compile(
     r"""(?P<path>(?:[\w.@+~-]+[/\\])+[\w.@+~-]+)|"""
-    r"""(?P<identifier>(?=[\w$]*[A-Za-z_\u0080-\U0010ffff])(?=[\w$]*[A-Z])(?=[\w$]*[a-z])[\w$]+)|"""
+    r"""(?P<identifier>(?=[\w$]*(?:[_$]|[a-z][A-Z]|[A-Z][a-z]+[A-Z]|[A-Z]{2,}[a-z]|[A-Z]{2,}(?:\W|$)))[\w$]+)|"""
     r"""(?P<number>\d+(?:[.,]\d+)*)|"""
     r"""(?P<word>[^\W\d_]+)|"""
     r"""(?P<punctuation>[^\w\s])""",
