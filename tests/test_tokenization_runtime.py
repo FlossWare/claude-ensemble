@@ -31,6 +31,14 @@ class TokenizationUnitTests(unittest.TestCase):
         self.assertTrue(any(token["term"] == "src/FooBar.java" for token in paths))
         self.assertTrue(any(token["term"] == "src/foobar.java" for token in paths))
 
+        fix = next(token for token in tokens if token["surface"] == "Fix")
+        self.assertEqual(fix["kind"], "word")
+
+        technical = tokenize("snake_case FOO_BAR HTTPServer URL myVariable")
+        identifiers = [token for token in technical if token["kind"] == "identifier"]
+        exact_terms = {token["term"] for token in identifiers}
+        self.assertTrue({"snake_case", "FOO_BAR", "HTTPServer", "URL", "myVariable"} <= exact_terms)
+
     def test_offsets_are_half_open_unicode_code_point_offsets(self):
         tokens = tokenize("é FooBar")
         token = next(item for item in tokens if item["surface"] == "FooBar")
