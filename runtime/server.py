@@ -11,7 +11,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from typing import Any
 
 from .tokenization import PROFILE_NAME, PROFILE_VERSION, NORMALIZATION_VERSION, TokenizationError, tokenize
-from .retrieval import RetrievalError, configured_retrieval_services
+from .retrieval import RetrievalError, configured_retrieval_services, retrieval_readiness
 from .chunking import (
     MAX_CONTENT_BYTES, MAX_CHUNKS, DEFAULT_POLICY, ChunkingError, Policy, chunk_document, chunk_spans, validate_index_profile,
 )
@@ -345,8 +345,8 @@ class Handler(BaseHTTPRequestHandler):
             self._send(200, {"service": service, "status": "alive"}, request_id)
         elif self.path in ("/api/v1/lexical-retrieval/ready", "/api/v1/vector-retrieval/ready"):
             service = "lexical-retrieval" if "lexical-retrieval" in self.path else "vector-retrieval"
-            self._send(503, {"service": service, "status": "not_ready", "ready": False,
-                             "checks": [{"name": "rest_dependencies", "status": "unknown"}]}, request_id)
+            response = retrieval_readiness(service)
+            self._send(200 if response["ready"] else 503, response, request_id)
         else:
             self._send(404, _error("endpoint_not_found", "endpoint not found"), request_id)
 
