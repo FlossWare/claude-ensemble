@@ -12,7 +12,7 @@ from urllib.request import Request, urlopen
 
 from jsonschema import Draft202012Validator
 
-from runtime.embedding import EmbeddingEngine, EmbeddingError, PROFILE_NAME, PROFILE_VERSION
+from runtime.embedding import EmbeddingEngine, PROFILE_NAME, PROFILE_VERSION
 from runtime.server import BoundedThreadingHTTPServer, Handler
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -83,8 +83,6 @@ class EmbeddingUnitTests(unittest.TestCase):
 
     def test_model_loader_forces_cpu_and_offline_local_only_mode(self):
         calls = {}
-        class LoaderModel(FakeModel):
-            pass
         class FakeSentenceTransformer:
             def __init__(self, path, **kwargs):
                 calls["path"] = path
