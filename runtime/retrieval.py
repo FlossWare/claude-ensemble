@@ -5,7 +5,12 @@ as REST-call functions so tests can exercise the algorithms without persistence.
 """
 from __future__ import annotations
 
+import json
 import math
+import os
+from urllib.error import HTTPError, URLError
+from urllib.parse import quote
+from urllib.request import Request, urlopen
 from typing import Any, Callable, Iterable
 
 
@@ -311,3 +316,76 @@ class VectorRetrievalService:
             "metric": metric, "candidates": candidates[:limit],
             "truncated": bool(lookup.get("truncated", False)),
         }
+
+
+
+def _rest_json(base_url: str, path: str, *, payload: dict[str, Any] | None = None,
+               request_id: str = "retrieval", timeout: float = 15.0) -> dict[str, Any]:
+    """Call another CE logical service over REST; never fall back to local imports."""
+    body = None if payload is None else json.dumps(payload, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
+    headers = {"Accept": "application/json", "X-CE-Request-ID": request_id}
+    if body is not None:
+        headers["Content-Type"] = "application/json"
+    request = Request(base_url.rstrip("/") + path, data=body, headers=headers,
+                      method="GET" if payload is None else "POST")
+    try:
+        with urlopen(request, timeout=timeout) as response:
+            decoded = json.loads(response.read().decode("utf-8"))
+    except HTTPError as exc:
+        try:
+            error_body = json.loads(exc.read().decode("utf-8"))
+            detail = error_body.get("error", {})
+            code = detail.get("code", "dependency_unavailable")
+            message = detail.get("message", "CE dependency returned an HTTP error")
+        except (ValueError, UnicodeDecodeError):
+            code, message = "dependency_unavailable", "CE dependency returned an unreadable HTTP error"
+        raise RetrievalError(code, message, exc.code) from exc
+    except (URLError, TimeoutError, OSError, ValueError, UnicodeDecodeError) as exc:
+        raise RetrievalError("dependency_unavailable", "required CE REST dependency is unavailable", 503) from exc
+    if not isinstance(decoded, dict):
+        raise RetrievalError("dependency_unavailable", "CE REST dependency returned a non-object response", 503)
+    return decoded
+
+
+def configured_retrieval_services() -> tuple[LexicalRetrievalService, VectorRetrievalService]:
+    """Build retrieval services whose dependencies are addressed only over REST."""
+    index_url = os.environ.get("CE_INDEX_BASE_URL", "http://127.0.0.1:8080")
+    tokenization_url = os.environ.get("CE_TOKENIZATION_BASE_URL", "http://127.0.0.1:8080")
+    embedding_url = os.environ.get("CE_EMBEDDING_BASE_URL", "http://127.0.0.1:8080")
+
+    def resolve(request: dict[str, Any]) -> dict[str, Any]:
+        profile = request["index_profile"]
+        response = _rest_json(
+            index_url,
+            f"/api/v1/index/profiles/{quote(profile['name'], safe='')}/versions/{quote(profile['version'], safe='')}",
+            request_id=request.get("request_id", "retrieval"),
+        )
+        bundle = response.get("profile_bundle", response.get("bundle"))
+        if bundle is None:
+            bundle = response
+        if bundle.get("name") != profile["name"] or bundle.get("version") != profile["version"] or bundle.get("digest") != profile["digest"]:
+            raise RetrievalError("profile_mismatch", "Index profile registry did not return the exact pinned profile", 409)
+        return {"profile_bundle": bundle}
+
+    def tokenize_call(payload: dict[str, Any]) -> dict[str, Any]:
+        return _rest_json(tokenization_url, "/api/v1/tokenization/lexical", payload=payload,
+                          request_id=payload.get("request_id", "retrieval"))
+
+    def embed_call(payload: dict[str, Any]) -> dict[str, Any]:
+        return _rest_json(embedding_url, "/api/v1/embeddings", payload=payload,
+                          request_id=payload.get("request_id", "retrieval"))
+
+    def lexical_lookup(payload: dict[str, Any]) -> dict[str, Any]:
+        return _rest_json(index_url, "/api/v1/index/lexical/lookup", payload=payload,
+                          request_id=payload.get("request_id", "retrieval"))
+
+    def vector_neighbors(payload: dict[str, Any]) -> dict[str, Any]:
+        payload = dict(payload)
+        payload["input_type"] = "query"
+        return _rest_json(index_url, "/api/v1/index/vector-neighbors", payload=payload,
+                          request_id=payload.get("request_id", "retrieval"))
+
+    return (
+        LexicalRetrievalService(tokenize_call, lexical_lookup, resolve),
+        VectorRetrievalService(embed_call, vector_neighbors, resolve),
+    )
