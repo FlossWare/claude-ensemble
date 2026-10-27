@@ -450,7 +450,7 @@ class Handler(BaseHTTPRequestHandler):
                 raise EmbeddingError("invalid_parameter", "input_id values must be unique", status=400)
             seen_ids.add(input_id)
             input_type = item["input_type"]
-            if input_type not in {"query", "document"}:
+            if not isinstance(input_type, str) or input_type not in {"query", "document"}:
                 raise EmbeddingError("invalid_parameter", "input_type must be query or document", status=400)
             text = validate_embedding_text(item["text"], f"inputs[{input_id}].text")
             normalized_inputs.append({"input_id": input_id, "input_type": input_type, "text": text})
