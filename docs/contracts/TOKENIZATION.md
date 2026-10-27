@@ -57,7 +57,7 @@ Response:
       "kind": "word"
     },
     {
-      "term": "foobarException",
+      "term": "foobarexception",
       "surface": "FooBarException",
       "start_offset": 4,
       "end_offset": 19,
