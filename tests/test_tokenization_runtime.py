@@ -107,13 +107,15 @@ class TokenizationHttpTests(unittest.TestCase):
         self.assertEqual(headers["X-CE-Request-ID"], "tokenization-test-1")
         self.assertTrue(body["tokens"])
 
-    def test_noncanonical_profile_is_rejected_without_fallback(self):
-        body = self.single_body()
-        body["profile"] = "other-profile"
-        status, headers, result = self.request("POST", "/api/v1/tokenization/lexical", body)
-        self.assertEqual(status, 422)
-        self.assertEqual(result["error"]["code"], "unsupported_profile")
-        self.assertEqual(headers["X-CE-Request-ID"], "tokenization-test-1")
+    def test_noncanonical_profile_or_version_is_rejected_without_fallback(self):
+        for field, value in (("profile", "other-profile"), ("profile_version", "9.9")):
+            with self.subTest(field=field):
+                body = self.single_body()
+                body[field] = value
+                status, headers, result = self.request("POST", "/api/v1/tokenization/lexical", body)
+                self.assertEqual(status, 422)
+                self.assertEqual(result["error"]["code"], "unsupported_profile")
+                self.assertEqual(headers["X-CE-Request-ID"], "tokenization-test-1")
 
     def test_invalid_index_identity_is_rejected(self):
         body = self.single_body()
