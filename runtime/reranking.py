@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import math
 import os
+import re
 from pathlib import Path
 from typing import Any
 
@@ -111,8 +112,8 @@ class RerankingEngine:
             }
 
     def rerank(self, request: Any) -> dict[str, Any]:
-        if not isinstance(request, dict):
-            raise RerankingError("invalid_request", "request must be an object")
+        if not isinstance(request, dict) or set(request) - {"request_id", "query", "profile", "candidates", "limit"}:
+            raise RerankingError("invalid_request", "request must be an object with only documented fields")
         request_id = request.get("request_id", "reranking-request")
         if not isinstance(request_id, str) or not 1 <= len(request_id) <= 128:
             raise RerankingError("invalid_request", "request_id must contain 1 to 128 characters")
@@ -130,12 +131,19 @@ class RerankingEngine:
         validated: list[dict[str, Any]] = []
         identities: set[tuple[Any, ...]] = set()
         for index, raw in enumerate(candidates):
-            if not isinstance(raw, dict):
-                raise RerankingError("invalid_request", f"candidates[{index}] must be an object")
-            for key in ("source_id", "source_revision", "chunk_id", "text"):
-                _bounded_text(raw.get(key), f"candidates[{index}].{key}",
-                              MAX_CANDIDATE_CHARS if key == "text" else 512)
-            if type(raw.get("revision_sequence")) is not int or raw["revision_sequence"] < 1:
+            allowed_candidate_fields = {
+                "source_id", "source_revision", "revision_sequence", "chunk_id", "chunker",
+                "text", "prior_rank", "prior_score", "matched_exact_identifiers", "provenance",
+            }
+            if not isinstance(raw, dict) or set(raw) - allowed_candidate_fields:
+                raise RerankingError("invalid_request", f"candidates[{index}] must contain only documented fields")
+            _bounded_text(raw.get("source_id"), f"candidates[{index}].source_id", 138)
+            if not re.fullmatch(r"(memory|knowledge):[A-Za-z0-9._~-]{1,128}", raw["source_id"]):
+                raise RerankingError("invalid_request", f"candidates[{index}].source_id is invalid")
+            _bounded_text(raw.get("source_revision"), f"candidates[{index}].source_revision", 256)
+            _bounded_text(raw.get("chunk_id"), f"candidates[{index}].chunk_id", 512)
+            _bounded_text(raw.get("text"), f"candidates[{index}].text", MAX_CANDIDATE_CHARS)
+            if type(raw.get("revision_sequence")) is not int or not 1 <= raw["revision_sequence"] <= 9007199254740991:
                 raise RerankingError("invalid_request", f"candidates[{index}].revision_sequence is invalid")
             if type(raw.get("prior_rank")) is not int or not 1 <= raw["prior_rank"] <= 100:
                 raise RerankingError("invalid_request", f"candidates[{index}].prior_rank is invalid")
@@ -143,10 +151,16 @@ class RerankingEngine:
             if (not isinstance(chunker, dict) or set(chunker) != {"profile", "version"}
                     or not all(isinstance(chunker[k], str) and chunker[k] for k in ("profile", "version"))):
                 raise RerankingError("invalid_request", f"candidates[{index}].chunker is invalid")
+            if "prior_score" in raw and (
+                    not isinstance(raw["prior_score"], (int, float))
+                    or not math.isfinite(float(raw["prior_score"]))):
+                raise RerankingError("invalid_request", f"candidates[{index}].prior_score is invalid")
             exact = raw.get("matched_exact_identifiers")
             if (not isinstance(exact, list) or len(exact) > 32
                     or any(not isinstance(value, str) or not value or len(value) > 256 for value in exact)):
                 raise RerankingError("invalid_request", f"candidates[{index}].matched_exact_identifiers is invalid")
+            if "provenance" in raw and not isinstance(raw["provenance"], dict):
+                raise RerankingError("invalid_request", f"candidates[{index}].provenance must be an object")
             candidate = dict(raw)
             identity = _candidate_identity(candidate)
             if identity in identities:
