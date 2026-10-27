@@ -61,7 +61,7 @@ def build_request(fixture: dict[str, Any], candidates: list[dict[str, Any]], lim
 
 
 def main() -> int:
-    fixture_path = Path(sys.argv[1]) if len(sys.argv) > 1 else DEFAULT_FIXTURE
+    fixture_path = DEFAULT_FIXTURE
     try:
         fixture = json.loads(fixture_path.read_text(encoding="utf-8"))
         candidates = sorted(fixture["candidates"], key=lambda item: item["prior_rank"])
