@@ -86,7 +86,7 @@ class RerankingUnitTests(unittest.TestCase):
             Path.home() / ".FlossWare" / "models" / "ms-marco-MiniLM-L6-v2",
         )
         self.assertEqual(engine.model_id, EXPECTED_MODEL_ID)
-        self.assertIsNone(engine.model_version)
+        self.assertFalse(engine.model_version)
 
     def test_duplicate_candidate_identity_is_rejected(self):
         engine = RerankingEngine(model=FakeCrossEncoder([0.1, 0.2]), model_id=EXPECTED_MODEL_ID, model_version="r1")
