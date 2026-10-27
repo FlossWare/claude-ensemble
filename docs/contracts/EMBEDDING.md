@@ -45,7 +45,7 @@ Model files and runtime dependencies must be provisioned before CE starts. A mis
 }
 ~~~
 
-The Index profile identity is validated for shape and echoed for correlation; it is not resolved through a profile registry. The effective model is selected by local deployment configuration, not by caller-controlled model IDs. The supported component profile is \`technical-default@0.1\`. Each input's type is \`query\` or \`document\`; the initial model uses the same encoder for both.
+The Index profile identity is validated for shape and echoed for correlation; it is not resolved through a profile registry. The effective model is selected by local deployment configuration, not by caller-controlled model IDs. The supported component profile is \`technical-default@0.1\`, backed by the locally provisioned \`nomic-ai/nomic-embed-text-v1.5\` model (768 dimensions). The request text must be unprefixed. For \`input_type: query\`, the service prepends \`search_query: \`; for \`input_type: document\`, it prepends \`search_document: \`. These task prefixes are part of the profile semantics and must not be added by callers. The runtime must reject or clearly report an incompatible configured model rather than silently claiming Nomic profile compatibility.
 
 ## Response
 
