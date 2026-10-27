@@ -1,0 +1,30 @@
+# Local model runtime
+
+Claude Ensemble's core inference must run locally. Runtime services must not call
+hosted inference APIs or download model files while serving requests.
+
+## Embedding
+
+The Embedding service uses a locally installed Sentence Transformers model and
+forces inference onto the CPU. Install the runtime dependency separately from
+the contract-test dependencies:
+
+```sh
+python -m pip install -r requirements-runtime.txt
+```
+
+Provision model files before starting CE, then configure:
+
+- `CE_EMBEDDING_MODEL_PATH`: filesystem path to the complete local model directory.
+- `CE_EMBEDDING_MODEL_VERSION`: deployment-pinned version or revision identifier.
+- `CE_EMBEDDING_MODEL_ID`: optional stable model name; defaults to the directory name.
+
+The configured path must be a local directory. Model loading uses
+`local_files_only=True`, `trust_remote_code=False`, and `device="cpu"`.
+Missing files or dependencies cause the service readiness check to report
+`ready: false`; serving requests never triggers a model download. Do not set
+the model path to a remote repository ID.
+
+Keep model files outside the source repository and provision them through the
+machine's controlled setup process. Record the model name, version, dimension,
+license, and checksum in the deployment's local configuration documentation.
