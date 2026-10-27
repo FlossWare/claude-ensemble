@@ -104,6 +104,16 @@ class RerankingUnitTests(unittest.TestCase):
         self.assertEqual(len(set(chunk_ids)), 20)
         self.assertTrue(set(fixture["relevant_chunk_ids"]).issubset(set(chunk_ids)))
         self.assertEqual(sorted(item["prior_rank"] for item in fixture["candidates"]), list(range(1, 21)))
+        exact_candidates = {
+            item["chunk_id"]: item.get("matched_exact_identifiers", [])
+            for item in fixture["candidates"]
+            if item.get("matched_exact_identifiers")
+        }
+        self.assertEqual(
+            set(exact_candidates),
+            {"index-revision-fencing", "index-tombstone-high-water", "index-idempotent-upsert"},
+        )
+        self.assertTrue(all("revision_sequence" in values for values in exact_candidates.values()))
 
     def test_local_model_loader_is_cpu_only_and_offline(self):
         calls = {}
