@@ -66,9 +66,9 @@ def bm25_v1(
         raise RetrievalError("invalid_request", "tokenization produced no searchable terms")
 
     try:
-        n = int(corpus_statistics["N"])
-        avgdl = float(corpus_statistics["avgdl"])
-        dfs = corpus_statistics["df"]
+        n = int(corpus_statistics["document_count"])
+        avgdl = float(corpus_statistics["average_document_length"])
+        dfs = corpus_statistics["document_frequency"]
     except (KeyError, TypeError, ValueError) as exc:
         raise RetrievalError("dependency_unavailable", "Index returned invalid lexical corpus statistics", 503) from exc
     if n < 0 or not math.isfinite(avgdl) or avgdl < 0 or not isinstance(dfs, dict):
@@ -80,10 +80,11 @@ def bm25_v1(
     k1, b = 1.2, 0.75
     for raw in candidates:
         c = dict(raw)
-        tf = c.get("term_frequencies")
+        tf_items = c.get("term_frequency_evidence")
         dl = c.get("document_length")
-        if not isinstance(tf, dict) or type(dl) is not int or dl < 0:
+        if not isinstance(tf_items, list) or type(dl) is not int or dl < 0:
             raise RetrievalError("dependency_unavailable", "Index candidate is missing term-frequency evidence", 503)
+        tf = {item.get("term"): item.get("term_frequency") for item in tf_items if isinstance(item, dict)}
         score = 0.0
         matched: list[str] = []
         for term in terms:
@@ -182,8 +183,8 @@ class LexicalRetrievalService:
             "source_revisions": request.get("source_revisions", []),
         }
         lookup = self._index_lookup_call(lookup_request)
-        if lookup.get("index_generation") != generation or lookup.get("index_profile") != index_profile:
-            raise RetrievalError("profile_mismatch", "Index lookup returned a different pinned generation or profile", 409)
+        if lookup.get("index_generation") != generation:
+            raise RetrievalError("profile_mismatch", "Index lookup returned a different pinned generation", 409)
         stats = lookup.get("corpus_statistics", {})
         candidates = lookup.get("candidates", [])
         ranked = bm25_v1(terms, candidates, stats)
@@ -295,11 +296,11 @@ class VectorRetrievalService:
             "source_ids": request.get("filters", {}).get("source_ids", []),
             "source_revisions": request.get("filters", {}).get("source_revisions", []),
         })
-        if lookup.get("index_generation") != generation or lookup.get("index_profile") != index_profile:
-            raise RetrievalError("profile_mismatch", "Index lookup returned a different pinned generation or profile", 409)
-        if lookup.get("metric") != metric:
-            raise RetrievalError("incompatible_representation", "Index returned a different vector metric", 422)
+        if lookup.get("index_generation") != generation:
+            raise RetrievalError("profile_mismatch", "Index lookup returned a different pinned generation", 409)
         candidates = vector_rank(lookup.get("candidates", []), metric)
+        for candidate in candidates:
+            candidate["provenance"] = {"index_generation": generation, "embedding_model": model_id, "embedding_model_version": model_version}
         return {
             "query_id": query_id, "request_id": request_id, "index_generation": generation,
             "index_profile": index_profile, "embedding_profile": embedding_profile,
