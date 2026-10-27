@@ -12,6 +12,7 @@ from typing import Any
 
 from .tokenization import PROFILE_NAME, PROFILE_VERSION, NORMALIZATION_VERSION, TokenizationError, tokenize
 from .embedding import EmbeddingError, PROFILE_NAME as EMBEDDING_PROFILE_NAME, PROFILE_VERSION as EMBEDDING_PROFILE_VERSION, get_engine as get_embedding_engine, validate_index_profile as validate_embedding_index_profile, validate_text as validate_embedding_text
+from .ranking import RankingError, rank as rank_candidates
 from .chunking import (
     MAX_CONTENT_BYTES, MAX_CHUNKS, DEFAULT_POLICY, ChunkingError, Policy, chunk_document, chunk_spans, validate_index_profile,
 )
@@ -22,6 +23,7 @@ SOURCE_ID = re.compile(r"^(memory|knowledge):[A-Za-z0-9._~-]{1,128}$")
 MAX_REQUEST_BYTES = 300_000
 MAX_PROFILE_REQUEST_BYTES = 2_097_152
 MAX_TOKENIZATION_BATCH_REQUEST_BYTES = 524_288
+MAX_RANKING_REQUEST_BYTES = 1_048_576
 DEFAULT_REQUEST_TIMEOUT_SECONDS = 30.0
 SUPPORTED_PROFILES = {"markdown-default": {"0.1"}}
 
@@ -344,6 +346,11 @@ class Handler(BaseHTTPRequestHandler):
             self._send(200, {"service": "embedding", "status": "alive"}, request_id)
         elif self.path == "/api/v1/embedding/ready":
             self._send(200, get_embedding_engine().readiness(), request_id)
+        elif self.path == "/api/v1/ranking/health":
+            self._send(200, {"service": "ranking", "status": "alive"}, request_id)
+        elif self.path == "/api/v1/ranking/ready":
+            self._send(200, {"service": "ranking", "status": "ready", "ready": True,
+                             "checks": [{"name": "rrf-v1@1", "status": "ok"}]}, request_id)
         else:
             self._send(404, _error("endpoint_not_found", "endpoint not found"), request_id)
 
@@ -359,7 +366,7 @@ class Handler(BaseHTTPRequestHandler):
         if self.path not in (
             "/api/v1/chunking/chunks", "/api/v1/chunking/preflight",
             "/api/v1/tokenization/lexical", "/api/v1/tokenization/lexical/batch",
-            "/api/v1/embeddings",
+            "/api/v1/embeddings", "/api/v1/ranking/rank",
         ):
             self._send(404, _error("endpoint_not_found", "endpoint not found"), request_id)
             return
@@ -379,6 +386,8 @@ class Handler(BaseHTTPRequestHandler):
                 limit = MAX_TOKENIZATION_BATCH_REQUEST_BYTES
             elif self.path == "/api/v1/embeddings":
                 limit = MAX_TOKENIZATION_BATCH_REQUEST_BYTES
+            elif self.path == "/api/v1/ranking/rank":
+                limit = MAX_RANKING_REQUEST_BYTES
             else:
                 limit = MAX_REQUEST_BYTES
             if length > limit:
@@ -402,6 +411,8 @@ class Handler(BaseHTTPRequestHandler):
                 response = self._tokenize_batch(request)
             elif self.path == "/api/v1/embeddings":
                 response = self._embed(request)
+            elif self.path == "/api/v1/ranking/rank":
+                response = self._rank(request)
             else:
                 response = self._chunks(request)
             if (deadline_error := self._deadline_error()) is not None:
@@ -420,8 +431,13 @@ class Handler(BaseHTTPRequestHandler):
             self._send(exc.status, _error(exc.code, str(exc)), request_id)
         except EmbeddingError as exc:
             self._send(exc.status, _error(exc.code, str(exc)), request_id)
+        except RankingError as exc:
+            self._send(exc.status, _error(exc.code, str(exc)), request_id)
         except Exception:
             self._send(500, _error("internal_error", "request could not be processed"), request_id)
+
+    def _rank(self, value: Any) -> dict[str, Any]:
+        return rank_candidates(value)
 
     def _embed(self, value: Any) -> dict[str, Any]:
         request = _require_object(
