@@ -11,6 +11,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from typing import Any
 
 from .tokenization import PROFILE_NAME, PROFILE_VERSION, NORMALIZATION_VERSION, TokenizationError, tokenize
+from .retrieval import RetrievalError, configured_retrieval_services
 from .chunking import (
     MAX_CONTENT_BYTES, MAX_CHUNKS, DEFAULT_POLICY, ChunkingError, Policy, chunk_document, chunk_spans, validate_index_profile,
 )
@@ -339,6 +340,13 @@ class Handler(BaseHTTPRequestHandler):
                 "checks": [{"name": "technical-default@0.1", "status": "ok"},
                            {"name": "normalization@0.1", "status": "ok"}],
             }, request_id)
+        elif self.path in ("/api/v1/lexical-retrieval/health", "/api/v1/vector-retrieval/health"):
+            service = "lexical-retrieval" if "lexical-retrieval" in self.path else "vector-retrieval"
+            self._send(200, {"service": service, "status": "alive"}, request_id)
+        elif self.path in ("/api/v1/lexical-retrieval/ready", "/api/v1/vector-retrieval/ready"):
+            service = "lexical-retrieval" if "lexical-retrieval" in self.path else "vector-retrieval"
+            self._send(503, {"service": service, "status": "not_ready", "ready": False,
+                             "checks": [{"name": "rest_dependencies", "status": "unknown"}]}, request_id)
         else:
             self._send(404, _error("endpoint_not_found", "endpoint not found"), request_id)
 
@@ -354,6 +362,7 @@ class Handler(BaseHTTPRequestHandler):
         if self.path not in (
             "/api/v1/chunking/chunks", "/api/v1/chunking/preflight",
             "/api/v1/tokenization/lexical", "/api/v1/tokenization/lexical/batch",
+            "/api/v1/lexical-retrieval/search", "/api/v1/vector-retrieval/search",
         ):
             self._send(404, _error("endpoint_not_found", "endpoint not found"), request_id)
             return
@@ -365,9 +374,7 @@ class Handler(BaseHTTPRequestHandler):
             if length_text is None or not length_text.isdecimal():
                 raise ChunkingError("invalid_request", "a valid Content-Length is required", status=400)
             length = int(length_text)
-            if self.path == "/api/v1/chunking/chunks":
-                limit = MAX_REQUEST_BYTES
-            elif self.path == "/api/v1/chunking/preflight":
+            if self.path == "/api/v1/chunking/preflight":
                 limit = MAX_PROFILE_REQUEST_BYTES
             elif self.path == "/api/v1/tokenization/lexical/batch":
                 limit = MAX_TOKENIZATION_BATCH_REQUEST_BYTES
@@ -392,6 +399,12 @@ class Handler(BaseHTTPRequestHandler):
                 response = self._tokenize(request)
             elif self.path == "/api/v1/tokenization/lexical/batch":
                 response = self._tokenize_batch(request)
+            elif self.path in ("/api/v1/lexical-retrieval/search", "/api/v1/vector-retrieval/search"):
+                lexical_service, vector_service = configured_retrieval_services()
+                if self.path == "/api/v1/lexical-retrieval/search":
+                    response = lexical_service.search(request)
+                else:
+                    response = vector_service.search(request)
             else:
                 response = self._chunks(request)
             if (deadline_error := self._deadline_error()) is not None:
@@ -408,6 +421,8 @@ class Handler(BaseHTTPRequestHandler):
             self._fail(exc, request_id)
         except TokenizationError as exc:
             self._send(exc.status, _error(exc.code, str(exc)), request_id)
+        except RetrievalError as exc:
+            self._send(exc.status, _error(exc.code, str(exc), retryable=exc.status >= 500), request_id)
         except Exception:
             self._send(500, _error("internal_error", "request could not be processed"), request_id)
 
