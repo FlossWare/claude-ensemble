@@ -121,7 +121,7 @@ def classify(value: Any) -> dict[str, Any]:
     else:
         matches.sort(key=lambda item: (-item[0], item[1]))
         confidence, chosen, _ = matches[0]
-        uncertain = confidence < 0.60 or (len(matches) > 1 and confidence - matches[1][0] <= 0.04)
+        uncertain = confidence < 0.60 or (len(matches) > 1 and confidence - matches[1][0] <= 0.05)
         evidence = [
             {"kind": f"keyword-rule:{intent}", "version": PROFILE_VERSION}
             for _, intent, _ in matches
