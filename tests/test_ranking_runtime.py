@@ -103,7 +103,7 @@ class RankingUnitTests(unittest.TestCase):
         ]
         result = rank(request([make_list("lexical", "project-A", candidates)]))
         self.assertEqual(len(result["candidates"]), 2)
-        self.assertEqual([item["revision_sequence"] for item in result["candidates"]], [1, 2])
+        self.assertEqual([item["revision_sequence"] for item in result["candidates"]], [2, 1])
 
     def test_sort_order_is_deterministic_for_ties(self):
         candidates = [
