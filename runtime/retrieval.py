@@ -397,3 +397,32 @@ def configured_retrieval_services() -> tuple[LexicalRetrievalService, VectorRetr
         LexicalRetrievalService(tokenize_call, lexical_lookup, resolve),
         VectorRetrievalService(embed_call, vector_neighbors, resolve),
     )
+
+
+def retrieval_readiness(service: str) -> dict[str, Any]:
+    """Report readiness only when all required logical REST dependencies are ready."""
+    if service not in {"lexical-retrieval", "vector-retrieval"}:
+        raise ValueError("unknown retrieval service")
+    index_url = os.environ.get("CE_INDEX_BASE_URL", "http://127.0.0.1:8080")
+    tokenization_url = os.environ.get("CE_TOKENIZATION_BASE_URL", "http://127.0.0.1:8080")
+    checks = []
+    dependencies = [("index", index_url, "/api/v1/index/ready")]
+    if service == "lexical-retrieval":
+        dependencies.append(("tokenization", tokenization_url, "/api/v1/tokenization/ready"))
+    else:
+        embedding_url = os.environ.get("CE_EMBEDDING_BASE_URL", "http://127.0.0.1:8080")
+        dependencies.append(("embedding", embedding_url, "/api/v1/embedding/ready"))
+    for name, base_url, path in dependencies:
+        try:
+            response = _rest_json(base_url, path, request_id=f"{service}-readiness")
+            ready = response.get("ready") is True and response.get("status") == "ready"
+            checks.append({"name": name, "status": "ok" if ready else "not_ready"})
+        except RetrievalError:
+            checks.append({"name": name, "status": "unavailable"})
+    ready = all(item["status"] == "ok" for item in checks)
+    return {
+        "service": service,
+        "status": "ready" if ready else "not_ready",
+        "ready": ready,
+        "checks": checks,
+    }
