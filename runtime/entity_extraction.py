@@ -125,7 +125,6 @@ def _pattern_candidates(text: str) -> list[dict[str, Any]]:
 
 def _alias_candidates(text: str) -> list[dict[str, Any]]:
     found: list[dict[str, Any]] = []
-    folded = text.casefold()
     for alias, kind, canonical in _ALIASES:
         pattern = re.compile(r"(?<!\w)" + re.escape(alias) + r"(?!\w)", re.IGNORECASE)
         for match in pattern.finditer(text):
@@ -220,10 +219,12 @@ class EntityExtractor:
             item["kind"], item["text"],
         ))
         accepted: list[dict[str, Any]] = []
+        occupied = bytearray(max((item["end_offset"] for item in candidates), default=0))
         for candidate in candidates:
-            if any(candidate["start_offset"] < prior["end_offset"]
-                   and prior["start_offset"] < candidate["end_offset"] for prior in accepted):
+            start, end = candidate["start_offset"], candidate["end_offset"]
+            if any(occupied[start:end]):
                 continue
+            occupied[start:end] = b"\\x01" * (end - start)
             accepted.append(candidate)
         accepted.sort(key=lambda item: (item["start_offset"], item["end_offset"], item["kind"]))
         output = [{key: value for key, value in item.items() if key != "_priority"} for item in accepted]
