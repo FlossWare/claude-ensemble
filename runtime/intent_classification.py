@@ -94,8 +94,10 @@ def classify(value: Any) -> dict[str, Any]:
     allowed = request["allowed_intents"]
     if not isinstance(allowed, list) or not 1 <= len(allowed) <= len(INTENTS):
         raise IntentClassificationError("invalid_parameter", "allowed_intents must contain between 1 and 7 labels", status=400)
-    if len(set(allowed)) != len(allowed) or any(not isinstance(item, str) or item not in INTENTS for item in allowed):
-        raise IntentClassificationError("invalid_parameter", "allowed_intents contains a duplicate or unsupported label", status=400)
+    if any(not isinstance(item, str) or item not in INTENTS for item in allowed):
+        raise IntentClassificationError("invalid_parameter", "allowed_intents contains an unsupported label", status=400)
+    if len(set(allowed)) != len(allowed):
+        raise IntentClassificationError("invalid_parameter", "allowed_intents contains a duplicate label", status=400)
 
     normalized = text.casefold()
     matches: list[tuple[float, str, tuple[str, ...]]] = []
