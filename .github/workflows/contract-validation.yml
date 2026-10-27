@@ -113,7 +113,6 @@ jobs:
           fi
           python -m pip check
       - name: Restore cached model artifacts
-        if: steps.detect.outputs.enabled == 'true'
         uses: actions/cache@v4
         with:
           path: ~/.FlossWare/models
@@ -133,7 +132,7 @@ jobs:
           TRANSFORMERS_OFFLINE: "1"
         run: python scripts/validate_local_embedding_model.py
       - name: Provision pinned reranking model for CI validation
-        if: steps.detect.outputs.enabled == 'true' && hashFiles('scripts/evaluate_local_reranking.py') != ''
+        if: hashFiles('scripts/evaluate_local_reranking.py') != ''
         run: |
           mkdir -p "$HOME/.FlossWare/models/ms-marco-MiniLM-L6-v2"
           echo "CE_RERANKING_MODEL_PATH=$HOME/.FlossWare/models/ms-marco-MiniLM-L6-v2" >> "$GITHUB_ENV"
