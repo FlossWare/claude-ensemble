@@ -13,11 +13,19 @@ the contract-test dependencies:
 python -m pip install -r requirements-runtime.txt
 ```
 
-Provision model files before starting CE, then configure:
+The default model directory is `~/.FlossWare/models/nomic-embed-text-v1.5`; the expected model ID defaults to `nomic-ai/nomic-embed-text-v1.5`. Override the directory with `CE_EMBEDDING_MODEL_PATH` if needed. Set `CE_EMBEDDING_MODEL_VERSION` to the reviewed immutable revision provisioned locally; it is intentionally required so deployment metadata cannot silently omit the revision.
 
-- `CE_EMBEDDING_MODEL_PATH`: filesystem path to the complete local model directory.
-- `CE_EMBEDDING_MODEL_VERSION`: deployment-pinned version or revision identifier.
-- `CE_EMBEDDING_MODEL_ID`: required value `nomic-ai/nomic-embed-text-v1.5`.
+One-time provisioning example (run manually with network access, never during service startup):
+
+```sh
+mkdir -p "$HOME/.FlossWare/models/nomic-embed-text-v1.5"
+hf download nomic-ai/nomic-embed-text-v1.5 \\
+  --revision "$NOMIC_EMBEDDING_REVISION" \\
+  --local-dir "$HOME/.FlossWare/models/nomic-embed-text-v1.5"
+export CE_EMBEDDING_MODEL_VERSION="$NOMIC_EMBEDDING_REVISION"
+```
+
+Set `NOMIC_EMBEDDING_REVISION` to an immutable revision selected and reviewed for the deployment, and record its license and checksum. Keep model files outside Git.
 
 The configured path must be a local directory. Model loading uses
 `local_files_only=True`, `trust_remote_code=False`, and `device="cpu"`.
