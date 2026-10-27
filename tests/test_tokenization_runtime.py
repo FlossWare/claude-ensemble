@@ -7,6 +7,7 @@ from urllib.request import Request, urlopen
 
 from runtime.server import BoundedThreadingHTTPServer, Handler
 from runtime.tokenization import (
+    MAX_TEXT_BYTES,
     NORMALIZATION_VERSION,
     PROFILE_NAME,
     PROFILE_VERSION,
@@ -81,6 +82,12 @@ class TokenizationUnitTests(unittest.TestCase):
         with self.assertRaises(TokenizationError) as caught:
             tokenize("word " * 513)
         self.assertEqual(caught.exception.code, "source_too_large")
+
+    def test_oversized_text_uses_payload_too_large_status(self):
+        with self.assertRaises(TokenizationError) as caught:
+            tokenize("x" * (MAX_TEXT_BYTES + 1))
+        self.assertEqual(caught.exception.code, "source_too_large")
+        self.assertEqual(caught.exception.status, 413)
 
 
 class TokenizationHttpTests(unittest.TestCase):
