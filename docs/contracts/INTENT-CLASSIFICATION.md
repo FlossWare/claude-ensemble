@@ -40,7 +40,7 @@ Classify a user request into bounded, versioned intent labels with confidence, e
 ## Semantics
 
 - The initial intent vocabulary is `memory_recall`, `knowledge_lookup`, `relationship_exploration`, `troubleshooting`, `explanation`, `decision_support`, and `general`. Labels and definitions are versioned. Unknown or ambiguous requests return `general` with `uncertain: true` or an explicit unknown result rather than forcing a confident label. Gateway must use the same vocabulary and fallback.
-- Confidence is calibrated only to the declared profile and must not be presented as certainty. If multiple intents are returned, order and maximum count are explicit.
+- The initial implementation uses deterministic keyword rules on the CPU; it makes no model or external service calls. Confidence is a profile-specific rule-strength indicator, not a statistical probability or certainty. The v1 implementation returns one best label. Ambiguous matches and fallback classifications set `uncertain: true`.
 - Gateway treats classification as a planning signal only; it never changes the selected scope partition or required local access restrictions.
 - The service does not call retrieval, source, or graph services. No hidden side effects.
 - Input size, output labels, processing time, and downstream model calls are bounded. Propagate deadlines/cancellation and use bounded retries for transient provider errors.
@@ -52,7 +52,7 @@ The normative request/response schema is [`schemas/intent-classification.schema.
 
 ## Errors
 
-Use the common error envelope. Distinguish invalid request/profile, unsupported label set, provider unavailable/rate-limited, deadline exceeded, and internal failure. Uncertain classification is a valid response, not an error.
+Use the common error envelope. Distinguish invalid request/profile, unsupported label set, oversized input, deadline exceeded, and internal failure. Uncertain classification is a valid response, not an error. The initial rules-based implementation has no model provider dependency.
 
 ## Acceptance tests
 
