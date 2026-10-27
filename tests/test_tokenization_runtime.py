@@ -2,6 +2,9 @@
 import json
 import threading
 import unittest
+from pathlib import Path
+
+from jsonschema import Draft202012Validator
 from urllib.error import HTTPError
 from urllib.request import Request, urlopen
 
@@ -14,6 +17,9 @@ from runtime.tokenization import (
     TokenizationError,
     tokenize,
 )
+
+ROOT = Path(__file__).resolve().parents[1]
+SCHEMA = json.loads((ROOT / "docs/contracts/schemas/tokenization.schema.json").read_text())
 
 INDEX_PROFILE = {
     "name": "default",
@@ -51,6 +57,22 @@ class TokenizationUnitTests(unittest.TestCase):
         self.assertIn(",", surfaces)
         self.assertIn("!", surfaces)
 
+    def test_digit_bearing_identifiers_preserve_exact_terms_and_offsets(self):
+        text = "HTTP2 sha256sum utf8 HTTP2Client version2Name ID42 A1B"
+        tokens = tokenize(text)
+        expected = ["HTTP2", "sha256sum", "utf8", "HTTP2Client", "version2Name", "ID42", "A1B"]
+        for surface in expected:
+            with self.subTest(surface=surface):
+                exact = next(item for item in tokens if item["surface"] == surface and item["term"] == surface)
+                self.assertEqual(exact["kind"], "identifier")
+                self.assertEqual(text[exact["start_offset"]:exact["end_offset"]], surface)
+                self.assertIn(surface.casefold(), [item["term"] for item in tokens if item["surface"] == surface])
+
+    def test_number_punctuation_does_not_merge_comma_separated_values(self):
+        tokens = tokenize("1,2 3,4")
+        self.assertEqual([item["term"] for item in tokens if item["kind"] == "number"], ["1", "2", "3", "4"])
+        self.assertEqual([item["surface"] for item in tokens if item["kind"] == "punctuation"], [",", ","])
+
     def test_acronyms_preserve_exact_and_normalized_terms(self):
         tokens = tokenize("NASA HTTP API")
         exact = {token["term"] for token in tokens if token["kind"] == "identifier"}
@@ -77,6 +99,18 @@ class TokenizationUnitTests(unittest.TestCase):
         with self.assertRaises(TokenizationError) as caught:
             tokenize("hello", include_offsets=1)
         self.assertEqual(caught.exception.code, "invalid_parameter")
+
+    def test_overlong_terms_and_surfaces_are_rejected_not_silently_dropped(self):
+        for text, should_fail in (("x" * 128, False), ("x" * 129, True),
+                                  ("x" * 512, True), ("x" * 513, True), ("ﬃ" * 43, True)):
+            with self.subTest(length=len(text), should_fail=should_fail):
+                if should_fail:
+                    with self.assertRaises(TokenizationError) as caught:
+                        tokenize(text)
+                    self.assertEqual(caught.exception.code, "source_too_large")
+                    self.assertEqual(caught.exception.status, 413)
+                else:
+                    self.assertTrue(tokenize(text))
 
     def test_token_count_is_bounded(self):
         with self.assertRaises(TokenizationError) as caught:
@@ -129,6 +163,10 @@ class TokenizationHttpTests(unittest.TestCase):
             },
         }
 
+    def assert_error_schema(self, payload, headers):
+        Draft202012Validator(SCHEMA["$defs"]["errorResponse"]).validate(payload)
+        self.assertEqual(payload["request_id"], headers["X-CE-Request-ID"])
+
     def test_single_endpoint_echoes_pinned_identity_and_profile(self):
         status, headers, body = self.request(
             "POST", "/api/v1/tokenization/lexical", self.single_body()
@@ -141,6 +179,7 @@ class TokenizationHttpTests(unittest.TestCase):
         self.assertEqual(body["request_id"], "tokenization-test-1")
         self.assertEqual(headers["X-CE-Request-ID"], "tokenization-test-1")
         self.assertTrue(body["tokens"])
+        Draft202012Validator(SCHEMA["$defs"]["response"]).validate(body)
 
     def test_noncanonical_profile_or_version_is_rejected_without_fallback(self):
         for field, value in (("profile", "other-profile"), ("profile_version", "9.9")):
@@ -152,12 +191,49 @@ class TokenizationHttpTests(unittest.TestCase):
                 self.assertEqual(result["error"]["code"], "unsupported_profile")
                 self.assertEqual(headers["X-CE-Request-ID"], "tokenization-test-1")
 
+    def test_single_endpoint_preserves_digit_bearing_identifiers(self):
+        text = "HTTP2 sha256sum utf8 HTTP2Client version2Name ID42 A1B"
+        status, _, body = self.request("POST", "/api/v1/tokenization/lexical", self.single_body(text))
+        self.assertEqual(status, 200)
+        for surface in text.split():
+            exact = next(item for item in body["tokens"] if item["surface"] == surface and item["term"] == surface)
+            self.assertEqual(text[exact["start_offset"]:exact["end_offset"]], surface)
+        Draft202012Validator(SCHEMA["$defs"]["response"]).validate(body)
+
+    def test_options_without_offsets_are_valid_over_http(self):
+        body = self.single_body("HTTP2 foo")
+        body["options"]["include_offsets"] = False
+        body["options"]["include_normalized_terms"] = False
+        status, _, result = self.request("POST", "/api/v1/tokenization/lexical", body)
+        self.assertEqual(status, 200)
+        self.assertTrue(all("start_offset" not in item and "end_offset" not in item for item in result["tokens"]))
+        self.assertTrue(any(item["term"] == "HTTP2" for item in result["tokens"]))
+        self.assertFalse(any(item["term"] == "http2" for item in result["tokens"]))
+        Draft202012Validator(SCHEMA["$defs"]["response"]).validate(result)
+
+    def test_invalid_body_request_id_is_rejected_for_single_and_batch(self):
+        for value in (7, "", "x" * 129):
+            for path, body in (
+                ("/api/v1/tokenization/lexical", self.single_body()),
+                ("/api/v1/tokenization/lexical/batch", {
+                    "index_profile": dict(INDEX_PROFILE), "profile": PROFILE_NAME,
+                    "profile_version": PROFILE_VERSION, "inputs": [{"input_id": "one", "text": "hello"}],
+                }),
+            ):
+                with self.subTest(value=repr(value), path=path):
+                    body["request_id"] = value
+                    status, headers, result = self.request("POST", path, body)
+                    self.assertEqual(status, 400)
+                    self.assertEqual(result["error"]["code"], "invalid_parameter")
+                    self.assert_error_schema(result, headers)
+
     def test_invalid_index_identity_is_rejected(self):
         body = self.single_body()
         body["index_profile"]["digest"] = "not-a-digest"
-        status, _, result = self.request("POST", "/api/v1/tokenization/lexical", body)
+        status, headers, result = self.request("POST", "/api/v1/tokenization/lexical", body)
         self.assertEqual(status, 400)
         self.assertEqual(result["error"]["code"], "invalid_parameter")
+        self.assert_error_schema(result, headers)
 
     def test_batch_correlates_each_result_by_input_id_and_keeps_item_errors_local(self):
         body = {
@@ -166,16 +242,22 @@ class TokenizationHttpTests(unittest.TestCase):
             "profile_version": PROFILE_VERSION,
             "inputs": [
                 {"input_id": "valid", "text": "hello"},
+                {"input_id": "digit-id", "text": "HTTP2 sha256sum utf8"},
                 {"input_id": "too-many", "text": "word " * 513},
+                {"input_id": "overlong-term", "text": "x" * 129},
             ],
         }
         status, _, result = self.request(
             "POST", "/api/v1/tokenization/lexical/batch", body
         )
         self.assertEqual(status, 200)
-        self.assertEqual([item["input_id"] for item in result["results"]], ["valid", "too-many"])
+        self.assertEqual([item["input_id"] for item in result["results"]], ["valid", "digit-id", "too-many", "overlong-term"])
         self.assertIn("tokens", result["results"][0])
-        self.assertEqual(result["results"][1]["error"]["code"], "source_too_large")
+        exact_digit_terms = {item["term"] for item in result["results"][1]["tokens"]}
+        self.assertTrue({"HTTP2", "sha256sum", "utf8"} <= exact_digit_terms)
+        self.assertEqual(result["results"][2]["error"]["code"], "source_too_large")
+        self.assertEqual(result["results"][3]["error"]["code"], "source_too_large")
+        Draft202012Validator(SCHEMA["$defs"]["batchResponse"]).validate(result)
 
     def test_duplicate_batch_ids_are_rejected(self):
         body = {
@@ -198,10 +280,12 @@ class TokenizationHttpTests(unittest.TestCase):
         self.assertEqual(status, 200)
         self.assertEqual(health["service"], "tokenization")
         self.assertEqual(health["status"], "alive")
+        Draft202012Validator(SCHEMA["$defs"]["healthResponse"]).validate(health)
         status, _, ready = self.request("GET", "/api/v1/tokenization/ready")
         self.assertEqual(status, 200)
         self.assertTrue(ready["ready"])
         self.assertIn("technical-default@0.1", [item["name"] for item in ready["checks"]])
+        Draft202012Validator(SCHEMA["$defs"]["readinessResponse"]).validate(ready)
 
 
 if __name__ == "__main__":

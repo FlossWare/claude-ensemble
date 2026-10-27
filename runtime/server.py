@@ -20,6 +20,7 @@ DEADLINE_TIMESTAMP = re.compile(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?
 SOURCE_ID = re.compile(r"^(memory|knowledge):[A-Za-z0-9._~-]{1,128}$")
 MAX_REQUEST_BYTES = 300_000
 MAX_PROFILE_REQUEST_BYTES = 2_097_152
+MAX_TOKENIZATION_BATCH_REQUEST_BYTES = 524_288
 DEFAULT_REQUEST_TIMEOUT_SECONDS = 30.0
 SUPPORTED_PROFILES = {"markdown-default": {"0.1"}}
 
@@ -369,7 +370,7 @@ class Handler(BaseHTTPRequestHandler):
             elif self.path == "/api/v1/chunking/preflight":
                 limit = MAX_PROFILE_REQUEST_BYTES
             elif self.path == "/api/v1/tokenization/lexical/batch":
-                limit = 524_288
+                limit = MAX_TOKENIZATION_BATCH_REQUEST_BYTES
             else:
                 limit = MAX_REQUEST_BYTES
             if length > limit:
@@ -420,6 +421,9 @@ class Handler(BaseHTTPRequestHandler):
         else:
             allowed.add("text")
         body = _require_object(request, "request", allowed, required)
+        if "request_id" in body and (not isinstance(body["request_id"], str)
+                or not 1 <= len(body["request_id"]) <= 128):
+            raise TokenizationError("invalid_parameter", "request.request_id must be a string of 1 to 128 characters", status=400)
         identity = validate_index_profile(body["index_profile"])
         if body["profile"] != PROFILE_NAME or body["profile_version"] != PROFILE_VERSION:
             raise TokenizationError("unsupported_profile", "tokenization profile or version is not supported")

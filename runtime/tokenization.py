@@ -12,8 +12,8 @@ MAX_TEXT_BYTES = 262_144
 MAX_TOKENS = 512
 _TOKEN_RE = re.compile(
     r"""(?P<path>(?:[\w.@+~-]+[/\\])+[\w.@+~-]+)|"""
-    r"""(?P<identifier>(?=[\w$]*(?:[_$]|[a-z][A-Z]|[A-Z][a-z]+[A-Z]|[A-Z]{2,}[a-z]|[A-Z]{2,}(?:\W|$)))[\w$]+)|"""
-    r"""(?P<number>\d+(?:[.,]\d+)*)|"""
+    r"""(?P<identifier>(?=[\w$]*(?:[_$]|[a-z][A-Z]|[A-Z][a-z]+[A-Z]|[A-Z]{2,}[a-z]|[A-Z]{2,}(?:\W|$))|(?=[\w$]*[^\W\d_])(?=[\w$]*\d))[\w$]+)|"""
+    r"""(?P<number>\d+(?:\.\d+)?)|"""
     r"""(?P<word>[^\W\d_](?:[^\W\d_]|[\u0300-\u036f])*)|"""
     r"""(?P<punctuation>[^\w\s])""",
     re.UNICODE,
@@ -63,9 +63,6 @@ def tokenize(text: str, *, preserve_identifiers: bool = True,
         kind = match.lastgroup or "other"
         if kind == "identifier" and not preserve_identifiers:
             kind = "word"
-        if kind == "punctuation" and surface.isspace():
-            continue
-
         candidates: list[str] = []
         normalized = unicodedata.normalize("NFKC", surface).casefold()
         if kind in {"path", "identifier"} and preserve_identifiers:
@@ -76,8 +73,14 @@ def tokenize(text: str, *, preserve_identifiers: bool = True,
             candidates.append(normalized if include_normalized_terms else surface)
 
         for term in candidates:
-            if not term or len(term) > 128 or len(surface) > 512:
+            if not term:
                 continue
+            if len(term) > 128 or len(surface) > 512:
+                raise TokenizationError(
+                    "source_too_large",
+                    "a lexical term exceeds the 128-character term or 512-character surface limit",
+                    status=413,
+                )
             identity = (term, match.start(), match.end(), kind)
             if identity in seen:
                 continue

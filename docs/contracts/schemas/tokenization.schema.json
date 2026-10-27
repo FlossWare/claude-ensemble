@@ -76,8 +76,12 @@
         "kind"
       ],
       "dependentRequired": {
-        "start_offset": ["end_offset"],
-        "end_offset": ["start_offset"]
+        "start_offset": [
+          "end_offset"
+        ],
+        "end_offset": [
+          "start_offset"
+        ]
       },
       "properties": {
         "term": {
@@ -389,6 +393,7 @@
                 "invalid_request",
                 "invalid_scope",
                 "local_access_denied",
+                "method_not_allowed",
                 "missing_endpoint_node",
                 "not_found",
                 "not_ready",
@@ -401,6 +406,7 @@
                 "profile_retired",
                 "rate_limited",
                 "reconciliation_required",
+                "request_timeout",
                 "request_too_large",
                 "revision_conflict",
                 "revision_sequence_regression",
@@ -533,6 +539,8 @@
       "error_statuses": [
         400,
         404,
+        405,
+        408,
         409,
         413,
         415,
@@ -556,6 +564,8 @@
       "error_statuses": [
         400,
         404,
+        405,
+        408,
         409,
         413,
         415,
@@ -576,9 +586,12 @@
       "success_status": 200,
       "error_response": "#/$defs/errorResponse",
       "error_statuses": [
+        400,
+        405,
         429,
         500,
-        503
+        503,
+        504
       ],
       "x-callers": [
         "health-probe"
@@ -589,9 +602,12 @@
       "success_status": 200,
       "error_response": "#/$defs/errorResponse",
       "error_statuses": [
+        400,
+        405,
         429,
         500,
-        503
+        503,
+        504
       ],
       "x-callers": [
         "health-probe"
