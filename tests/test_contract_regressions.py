@@ -79,7 +79,7 @@ class ContractGateTests(unittest.TestCase):
         schema = json.loads(path.read_text(encoding="utf-8"))
         codes = schema["$defs"]["errorResponse"]["properties"]["error"]["properties"]["code"]["enum"]
         codes.remove("method_not_allowed")
-        path.write_text(json.dumps(schema, indent=2) + "\\n", encoding="utf-8")
+        path.write_text(json.dumps(schema, indent=2) + "\n", encoding="utf-8")
         result = subprocess.run([sys.executable, str(base / "scripts" / VALIDATOR_PATH.name)], cwd=base, text=True, capture_output=True)
         self.assertNotEqual(result.returncode, 0, result.stdout + result.stderr)
         self.assertIn("405 status requires method_not_allowed", result.stderr)
@@ -91,7 +91,7 @@ class ContractGateTests(unittest.TestCase):
         schema = json.loads(path.read_text(encoding="utf-8"))
         endpoint_key = next(key for key in schema["x-endpoints"] if key.startswith("GET "))
         schema["x-endpoints"][endpoint_key]["error_statuses"].remove(405)
-        path.write_text(json.dumps(schema, indent=2) + "\\n", encoding="utf-8")
+        path.write_text(json.dumps(schema, indent=2) + "\n", encoding="utf-8")
         result = subprocess.run([sys.executable, str(base / "scripts" / VALIDATOR_PATH.name)], cwd=base, text=True, capture_output=True)
         self.assertNotEqual(result.returncode, 0, result.stdout + result.stderr)
         self.assertIn("shared dispatcher policy requires 405", result.stderr)
@@ -106,7 +106,7 @@ class ContractGateTests(unittest.TestCase):
         self.assertIn(405, endpoint["error_statuses"])
         if 408 in endpoint["error_statuses"]:
             endpoint["error_statuses"].remove(408)
-            path.write_text(json.dumps(schema, indent=2) + "\\n", encoding="utf-8")
+            path.write_text(json.dumps(schema, indent=2) + "\n", encoding="utf-8")
         result = subprocess.run([sys.executable, str(base / "scripts" / VALIDATOR_PATH.name)], cwd=base, text=True, capture_output=True)
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
     def test_schema_invalid_annotated_example_fails(self):
