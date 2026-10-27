@@ -62,8 +62,11 @@ class EmbeddingEngine:
 
     def __init__(self, *, model_path: str | None = None, model_id: str | None = None,
                  model_version: str | None = None, model: Any = None):
-        self.model_path = model_path if model_path is not None else os.environ.get("CE_EMBEDDING_MODEL_PATH")
-        self.model_id = model_id or os.environ.get("CE_EMBEDDING_MODEL_ID")
+        self.model_path = model_path if model_path is not None else (
+            os.environ.get("CE_EMBEDDING_MODEL_PATH")
+            or str(Path.home() / ".FlossWare" / "models" / "nomic-embed-text-v1.5")
+        )
+        self.model_id = model_id or os.environ.get("CE_EMBEDDING_MODEL_ID") or EXPECTED_MODEL_ID
         self.model_version = model_version or os.environ.get("CE_EMBEDDING_MODEL_VERSION")
         self._model = model
         self._dimensions: int | None = None
