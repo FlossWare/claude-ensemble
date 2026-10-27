@@ -75,7 +75,10 @@ class EmbeddingEngine:
 
     @staticmethod
     def _read_dimensions(model: Any) -> int:
-        getter = getattr(model, "get_sentence_embedding_dimension", None)
+        # Prefer the current API, retaining compatibility with older Sentence Transformers.
+        getter = getattr(model, "get_embedding_dimension", None)
+        if not callable(getter):
+            getter = getattr(model, "get_sentence_embedding_dimension", None)
         dimensions = getter() if callable(getter) else None
         if type(dimensions) is not int or not 1 <= dimensions <= MAX_DIMENSIONS:
             raise EmbeddingError("service_unavailable", "local model has invalid or unknown embedding dimensions", status=503)
