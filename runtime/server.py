@@ -14,6 +14,7 @@ from .tokenization import PROFILE_NAME, PROFILE_VERSION, NORMALIZATION_VERSION, 
 from .chunking import (
     MAX_CONTENT_BYTES, MAX_CHUNKS, DEFAULT_POLICY, ChunkingError, Policy, chunk_document, chunk_spans, validate_index_profile,
 )
+from .reranking import RerankingError, get_engine as get_reranking_engine
 
 REQUEST_ID = re.compile(r"^[A-Za-z0-9._:-]{1,128}$")
 DEADLINE_TIMESTAMP = re.compile(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z$")
@@ -339,6 +340,11 @@ class Handler(BaseHTTPRequestHandler):
                 "checks": [{"name": "technical-default@0.1", "status": "ok"},
                            {"name": "normalization@0.1", "status": "ok"}],
             }, request_id)
+        elif self.path == "/api/v1/reranking/health":
+            self._send(200, {"service": "reranking", "status": "alive"}, request_id)
+        elif self.path == "/api/v1/reranking/ready":
+            response = get_reranking_engine().readiness()
+            self._send(200 if response["ready"] else 503, response, request_id)
         else:
             self._send(404, _error("endpoint_not_found", "endpoint not found"), request_id)
 
@@ -354,6 +360,7 @@ class Handler(BaseHTTPRequestHandler):
         if self.path not in (
             "/api/v1/chunking/chunks", "/api/v1/chunking/preflight",
             "/api/v1/tokenization/lexical", "/api/v1/tokenization/lexical/batch",
+            "/api/v1/reranking/rerank",
         ):
             self._send(404, _error("endpoint_not_found", "endpoint not found"), request_id)
             return
@@ -392,6 +399,8 @@ class Handler(BaseHTTPRequestHandler):
                 response = self._tokenize(request)
             elif self.path == "/api/v1/tokenization/lexical/batch":
                 response = self._tokenize_batch(request)
+            elif self.path == "/api/v1/reranking/rerank":
+                response = get_reranking_engine().rerank(request)
             else:
                 response = self._chunks(request)
             if (deadline_error := self._deadline_error()) is not None:
@@ -408,6 +417,8 @@ class Handler(BaseHTTPRequestHandler):
             self._fail(exc, request_id)
         except TokenizationError as exc:
             self._send(exc.status, _error(exc.code, str(exc)), request_id)
+        except RerankingError as exc:
+            self._send(exc.status, _error(exc.code, str(exc), retryable=exc.status >= 500), request_id)
         except Exception:
             self._send(500, _error("internal_error", "request could not be processed"), request_id)
 
