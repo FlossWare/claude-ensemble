@@ -142,7 +142,12 @@ class EmbeddingEngine:
         if not isinstance(normalization, str) or normalization not in {"none", "l2"}:
             raise EmbeddingError("invalid_parameter", "normalize must be profile-default, none, or l2", status=400)
 
-        texts = [item["text"] for item in inputs]
+        # The selected technical-default profile is Nomic Embed Text v1.5.
+        # Nomic requires different task prefixes for retrieval queries and documents.
+        texts = [
+            ("search_query: " if item["input_type"] == "query" else "search_document: ") + item["text"]
+            for item in inputs
+        ]
         try:
             encoded = model.encode(
                 texts,
