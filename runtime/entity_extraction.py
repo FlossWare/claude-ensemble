@@ -224,7 +224,7 @@ class EntityExtractor:
             start, end = candidate["start_offset"], candidate["end_offset"]
             if any(occupied[start:end]):
                 continue
-            occupied[start:end] = b"\\x01" * (end - start)
+            occupied[start:end] = b"\x01" * (end - start)
             accepted.append(candidate)
         accepted.sort(key=lambda item: (item["start_offset"], item["end_offset"], item["kind"]))
         output = [{key: value for key, value in item.items() if key != "_priority"} for item in accepted]
