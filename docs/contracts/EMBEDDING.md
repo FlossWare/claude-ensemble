@@ -22,7 +22,9 @@ Required environment settings:
 
 - \`CE_EMBEDDING_MODEL_PATH\`: path to the complete local model directory.
 - \`CE_EMBEDDING_MODEL_VERSION\`: deployment-pinned model revision/version.
-- \`CE_EMBEDDING_MODEL_ID\`: optional stable model name; defaults to the local directory name.
+- \`CE_EMBEDDING_MODEL_ID\`: must be \`nomic-ai/nomic-embed-text-v1.5\`; requests are not served if the configured identity is missing or differs.
+
+The loaded model must report exactly 768 dimensions or readiness fails. The identity and dimension checks validate deployment configuration and model shape; they do not independently verify the model files' provenance.
 
 Model files and runtime dependencies must be provisioned before CE starts. A missing or invalid model causes readiness to report \`ready: false\` and requests to fail with \`503 service_unavailable\`. Serving requests never trigger downloads. Model files are not committed to the repository.
 
