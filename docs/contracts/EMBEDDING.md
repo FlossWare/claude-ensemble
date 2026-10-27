@@ -16,6 +16,20 @@ Embedding does not own source records, chunking, lexical tokenization, index sto
 
 ## Local configuration
 
+The default model root is `~/.FlossWare/models`. Unless overridden, the service looks for the Nomic model at `~/.FlossWare/models/nomic-embed-text-v1.5` and assumes the expected model ID `nomic-ai/nomic-embed-text-v1.5`. Set `CE_EMBEDDING_MODEL_PATH` to override the directory and `CE_EMBEDDING_MODEL_ID` only when explicitly configuring the supported expected ID. `CE_EMBEDDING_MODEL_VERSION` remains required and must identify the exact revision provisioned locally.
+
+Example one-time provisioning (run with network access; never run as part of CE startup):
+
+```sh
+mkdir -p "$HOME/.FlossWare/models/nomic-embed-text-v1.5"
+hf download nomic-ai/nomic-embed-text-v1.5 \\
+  --revision "$NOMIC_EMBEDDING_REVISION" \\
+  --local-dir "$HOME/.FlossWare/models/nomic-embed-text-v1.5"
+export CE_EMBEDDING_MODEL_VERSION="$NOMIC_EMBEDDING_REVISION"
+```
+
+Set `NOMIC_EMBEDDING_REVISION` to the reviewed, immutable model revision chosen for the deployment, and record that revision with its license and checksum. Do not use a moving branch name as the deployment pin. Model files remain outside Git.
+
 The runtime uses Sentence Transformers with \`device="cpu"\`, \`local_files_only=True\`, and \`trust_remote_code=False\`.
 
 Required environment settings:
