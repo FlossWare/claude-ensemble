@@ -455,7 +455,7 @@ class Handler(BaseHTTPRequestHandler):
             text = validate_embedding_text(item["text"], f"inputs[{input_id}].text")
             normalized_inputs.append({"input_id": input_id, "input_type": input_type, "text": text})
         normalization = request.get("normalize", "profile-default")
-        if normalization not in {"profile-default", "none", "l2"}:
+        if not isinstance(normalization, str) or normalization not in {"profile-default", "none", "l2"}:
             raise EmbeddingError("invalid_parameter", "normalize must be profile-default, none, or l2", status=400)
         model, results = get_embedding_engine().embed(normalized_inputs, normalization)
         return {
