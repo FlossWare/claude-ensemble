@@ -53,9 +53,9 @@ Gateway decides whether reranking is needed, selects the candidate set, applies 
     "text": "Bounded candidate evidence",
     "rerank": 1,
     "score": 0.91,
-    "score_semantics": "reranker-profile-score",
+    "score_semantics": "cross-encoder-profile-score-v1",
     "matched_exact_identifiers": [],
-    "evidence": {"kind": "model-assessment", "version": "model-revision"},
+    "evidence": {"kind": "model-assessment", "model_id": "cross-encoder/ms-marco-MiniLM-L6-v2", "model_version": "model-revision", "sequence_length": 512, "scoring_policy": "cross-encoder-profile-score-v1"},
     "provenance": {"ranking_policy_version": "rrf-v1"}
   }],
   "request_id": "correlation-id"
