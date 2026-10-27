@@ -88,7 +88,10 @@ def _validate_candidate(value: Any, exact_identifiers: set[str]) -> dict[str, An
     rank = candidate["retrieval_rank"]
     if type(rank) is not int or not 1 <= rank <= 100:
         raise RankingError("invalid_candidate", "candidate.retrieval_rank must be between 1 and 100")
-    if "retrieval_source" in candidate and candidate["retrieval_source"] not in {"lexical", "vector"}:
+    if "retrieval_source" in candidate and (
+        not isinstance(candidate["retrieval_source"], str)
+        or candidate["retrieval_source"] not in {"lexical", "vector"}
+    ):
         raise RankingError("invalid_candidate", "candidate.retrieval_source is invalid")
     if "source_score" in candidate:
         score = candidate["source_score"]
@@ -113,6 +116,10 @@ def _validate_candidate(value: Any, exact_identifiers: set[str]) -> dict[str, An
         or any(not isinstance(item, str) or len(item) > 512 for item in provenance["evidence_ids"])
     ):
         raise RankingError("invalid_candidate", "candidate.provenance.evidence_ids is invalid")
+    try:
+        _canonical_json(provenance)
+    except (TypeError, ValueError, OverflowError) as exc:
+        raise RankingError("invalid_candidate", "candidate.provenance must contain finite JSON values") from exc
     return candidate
 
 
@@ -133,6 +140,7 @@ def rank(request: Any) -> dict[str, Any]:
         raise RankingError("invalid_parameter", "exact_identifiers must contain at most 32 values")
     for item in exact_values:
         _string(item, "exact_identifiers[]", 256)
+    exact_values = list(dict.fromkeys(exact_values))
     exact_set = set(exact_values)
 
     lists = request["lists"]
@@ -176,12 +184,19 @@ def rank(request: Any) -> dict[str, Any]:
             seen_ranks.add(retrieval_rank)
             key = _candidate_key(candidate)
             previous_in_list = within_list.get(key)
-            if previous_in_list is None or retrieval_rank < previous_in_list["retrieval_rank"]:
-                within_list[key] = candidate
-            elif (previous_in_list["source_revision"] != candidate["source_revision"]
-                  or previous_in_list["text"] != candidate["text"]
-                  or _canonical_json(previous_in_list["provenance"]) != _canonical_json(candidate["provenance"])):
+            if previous_in_list is None:
+                within_list[key] = dict(candidate)
+                continue
+            if (previous_in_list["source_revision"] != candidate["source_revision"]
+                    or previous_in_list["text"] != candidate["text"]
+                    or _canonical_json(previous_in_list["provenance"]) != _canonical_json(candidate["provenance"])):
                 raise RankingError("candidate_identity_conflict", "duplicate candidate identity has conflicting source data", status=409)
+            merged_matches = list(dict.fromkeys(
+                previous_in_list["matched_exact_identifiers"] + candidate["matched_exact_identifiers"]
+            ))
+            if retrieval_rank < previous_in_list["retrieval_rank"]:
+                within_list[key] = dict(candidate)
+            within_list[key]["matched_exact_identifiers"] = merged_matches
 
         for key, candidate in within_list.items():
             entry = candidates.get(key)
