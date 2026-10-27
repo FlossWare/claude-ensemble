@@ -46,6 +46,32 @@ class ContractGateTests(unittest.TestCase):
         shutil.copy2(GRAPH_PATH, base / "scripts" / GRAPH_PATH.name)
         return tmp, base
 
+    def test_dispatcher_policy_requires_405_and_post_408(self):
+        tmp, base = self._temporary_contract_tree()
+        self.addCleanup(tmp.cleanup)
+        path = base / "docs" / "contracts" / "schemas" / "embedding.schema.json"
+        schema = json.loads(path.read_text(encoding="utf-8"))
+        endpoint = schema["x-endpoints"]["POST /api/v1/embeddings"]
+        endpoint["error_statuses"].remove(405)
+        endpoint["error_statuses"].remove(408)
+        path.write_text(json.dumps(schema, indent=2) + "\n", encoding="utf-8")
+        result = subprocess.run([sys.executable, str(base / "scripts" / VALIDATOR_PATH.name)], cwd=base, text=True, capture_output=True)
+        self.assertNotEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertIn("shared dispatcher policy requires 405", result.stderr)
+        self.assertIn("shared dispatcher policy requires 408", result.stderr)
+
+    def test_dispatcher_statuses_require_matching_error_codes(self):
+        tmp, base = self._temporary_contract_tree()
+        self.addCleanup(tmp.cleanup)
+        path = base / "docs" / "contracts" / "schemas" / "embedding.schema.json"
+        schema = json.loads(path.read_text(encoding="utf-8"))
+        codes = schema["$defs"]["errorResponse"]["properties"]["error"]["properties"]["code"]["enum"]
+        codes.remove("request_timeout")
+        path.write_text(json.dumps(schema, indent=2) + "\n", encoding="utf-8")
+        result = subprocess.run([sys.executable, str(base / "scripts" / VALIDATOR_PATH.name)], cwd=base, text=True, capture_output=True)
+        self.assertNotEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertIn("408 status requires request_timeout", result.stderr)
+
     def test_schema_invalid_annotated_example_fails(self):
         tmp, base = self._temporary_contract_tree()
         self.addCleanup(tmp.cleanup)

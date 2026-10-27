@@ -170,6 +170,22 @@ def main() -> int:
             elif len(error_statuses) != len(set(error_statuses)):
                 errors.append(f"{where}: duplicate error status")
 
+            # Keep declared endpoint errors aligned with the shared REST dispatcher.
+            if isinstance(error_statuses, list):
+                if 405 not in error_statuses:
+                    errors.append(f"{where}: shared dispatcher policy requires 405 method_not_allowed")
+                if method == "POST" and 408 not in error_statuses:
+                    errors.append(f"{where}: shared dispatcher policy requires 408 request_timeout for POST body reads")
+                try:
+                    error_definition = resolve_ref(path, binding.get("error_response", ""), schemas)
+                    error_codes = error_definition.get("properties", {}).get("error", {}).get("properties", {}).get("code", {}).get("enum", [])
+                except Exception:
+                    error_codes = []
+                if 405 in error_statuses and "method_not_allowed" not in error_codes:
+                    errors.append(f"{where}: 405 status requires method_not_allowed in the error code enum")
+                if 408 in error_statuses and "request_timeout" not in error_codes:
+                    errors.append(f"{where}: 408 status requires request_timeout in the error code enum")
+
             callers = binding.get("x-callers")
             if not isinstance(callers, list) or not callers or any(not isinstance(c, str) or not c.strip() for c in callers):
                 errors.append(f"{where}: x-callers must be a non-empty string array")
