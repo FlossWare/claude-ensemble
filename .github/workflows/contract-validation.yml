@@ -28,7 +28,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.event.pull_request.head.ref || github.ref }}
+  group: ${{ github.workflow }}-${{ github.event.pull_request.head.ref || github.ref_name }}
   cancel-in-progress: true
 
 jobs:
@@ -125,7 +125,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/.FlossWare/models
-          key: ce-models-${{ runner.os }}-nomic-e9b6763023c676ca8431644204f50c2b100d9aab-reranker-233902d25c440f23af6f7d6e94d2946bac0bee0a-${{ hashFiles('scripts/validate_local_embedding_model.py', 'scripts/evaluate_local_reranking.py') }}
+          key: ce-models-${{ runner.os }}-nomic-${{ env.CE_EMBEDDING_MODEL_VERSION }}-reranker-${{ env.CE_RERANKING_MODEL_VERSION }}-${{ hashFiles('scripts/validate_local_embedding_model.py', 'scripts/evaluate_local_reranking.py') }}
       - name: Provision pinned embedding model for CI validation
         if: hashFiles('scripts/validate_local_embedding_model.py') != ''
         run: |
