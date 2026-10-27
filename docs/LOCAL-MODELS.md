@@ -17,7 +17,7 @@ Provision model files before starting CE, then configure:
 
 - `CE_EMBEDDING_MODEL_PATH`: filesystem path to the complete local model directory.
 - `CE_EMBEDDING_MODEL_VERSION`: deployment-pinned version or revision identifier.
-- `CE_EMBEDDING_MODEL_ID`: optional stable model name; defaults to the directory name.
+- `CE_EMBEDDING_MODEL_ID`: required value `nomic-ai/nomic-embed-text-v1.5`.
 
 The configured path must be a local directory. Model loading uses
 `local_files_only=True`, `trust_remote_code=False`, and `device="cpu"`.
