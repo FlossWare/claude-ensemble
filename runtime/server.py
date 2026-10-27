@@ -13,6 +13,7 @@ from typing import Any
 from .tokenization import PROFILE_NAME, PROFILE_VERSION, NORMALIZATION_VERSION, TokenizationError, tokenize
 from .embedding import EmbeddingError, PROFILE_NAME as EMBEDDING_PROFILE_NAME, PROFILE_VERSION as EMBEDDING_PROFILE_VERSION, get_engine as get_embedding_engine, validate_index_profile as validate_embedding_index_profile, validate_text as validate_embedding_text
 from .ranking import RankingError, rank as rank_candidates
+from .intent_classification import IntentClassificationError, classify as classify_intent
 from .chunking import (
     MAX_CONTENT_BYTES, MAX_CHUNKS, DEFAULT_POLICY, ChunkingError, Policy, chunk_document, chunk_spans, validate_index_profile,
 )
@@ -24,6 +25,7 @@ MAX_REQUEST_BYTES = 300_000
 MAX_PROFILE_REQUEST_BYTES = 2_097_152
 MAX_TOKENIZATION_BATCH_REQUEST_BYTES = 524_288
 MAX_RANKING_REQUEST_BYTES = 1_048_576
+MAX_INTENT_REQUEST_BYTES = 1_048_576
 DEFAULT_REQUEST_TIMEOUT_SECONDS = 30.0
 SUPPORTED_PROFILES = {"markdown-default": {"0.1"}}
 
@@ -351,6 +353,11 @@ class Handler(BaseHTTPRequestHandler):
         elif self.path == "/api/v1/ranking/ready":
             self._send(200, {"service": "ranking", "status": "ready", "ready": True,
                              "checks": [{"name": "rrf-v1@1", "status": "ok"}]}, request_id)
+        elif self.path == "/api/v1/intent-classification/health":
+            self._send(200, {"service": "intent-classification", "status": "alive"}, request_id)
+        elif self.path == "/api/v1/intent-classification/ready":
+            self._send(200, {"service": "intent-classification", "status": "ready", "ready": True,
+                             "checks": [{"name": "default-intents@0.1", "status": "ok"}]}, request_id)
         else:
             self._send(404, _error("endpoint_not_found", "endpoint not found"), request_id)
 
@@ -367,6 +374,7 @@ class Handler(BaseHTTPRequestHandler):
             "/api/v1/chunking/chunks", "/api/v1/chunking/preflight",
             "/api/v1/tokenization/lexical", "/api/v1/tokenization/lexical/batch",
             "/api/v1/embeddings", "/api/v1/ranking/rank",
+            "/api/v1/intent-classification/classify",
         ):
             self._send(404, _error("endpoint_not_found", "endpoint not found"), request_id)
             return
@@ -388,6 +396,8 @@ class Handler(BaseHTTPRequestHandler):
                 limit = MAX_TOKENIZATION_BATCH_REQUEST_BYTES
             elif self.path == "/api/v1/ranking/rank":
                 limit = MAX_RANKING_REQUEST_BYTES
+            elif self.path == "/api/v1/intent-classification/classify":
+                limit = MAX_INTENT_REQUEST_BYTES
             else:
                 limit = MAX_REQUEST_BYTES
             if length > limit:
@@ -413,6 +423,8 @@ class Handler(BaseHTTPRequestHandler):
                 response = self._embed(request)
             elif self.path == "/api/v1/ranking/rank":
                 response = self._rank(request)
+            elif self.path == "/api/v1/intent-classification/classify":
+                response = self._classify_intent(request)
             else:
                 response = self._chunks(request)
             if (deadline_error := self._deadline_error()) is not None:
@@ -433,11 +445,16 @@ class Handler(BaseHTTPRequestHandler):
             self._send(exc.status, _error(exc.code, str(exc)), request_id)
         except RankingError as exc:
             self._send(exc.status, _error(exc.code, str(exc)), request_id)
+        except IntentClassificationError as exc:
+            self._send(exc.status, _error(exc.code, str(exc)), request_id)
         except Exception:
             self._send(500, _error("internal_error", "request could not be processed"), request_id)
 
     def _rank(self, value: Any) -> dict[str, Any]:
         return rank_candidates(value)
+
+    def _classify_intent(self, value: Any) -> dict[str, Any]:
+        return classify_intent(value)
 
     def _embed(self, value: Any) -> dict[str, Any]:
         request = _require_object(
