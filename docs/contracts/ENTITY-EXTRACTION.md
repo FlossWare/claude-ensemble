@@ -42,9 +42,10 @@ Span offsets are zero-based, half-open Unicode code-point offsets into the exact
 ## Semantics
 
 - Preserve exact surface text and span. Normalization never overwrites the original value.
-- Distinguish exact syntactic extraction from inferred/linked entity interpretation. Confidence and uncertainty are explicit; do not fabricate identifiers or silently repair paths/names.
+- Distinguish exact syntactic extraction from inferred/linked entity interpretation. Pattern matches carry confidence 1.0 and `exact: true`; known alias mappings carry `exact: false` because they map a surface form to a canonical name. Optional spaCy results carry `exact: false` and confidence 0.5 as an explicit unscored sentinel because spaCy's standard NER API does not expose calibrated per-span probabilities. Consumers must not interpret that sentinel as a model probability.
 - Preserve punctuation and case where meaningful for paths, symbols, IDs, versions, and technical terms. Normalization rules are versioned by profile.
 - The service does not resolve identifiers against repositories, Graph, Memory, Knowledge, or external systems. Resolution/search remains an explicitly orchestrated downstream action.
+- Exact workers use local patterns and a small explicit alias table. An optional spaCy NER worker may be enabled with `CE_ENTITY_NER_MODEL_PATH`; it loads a pre-provisioned local model, requires CPU execution, and never downloads model files. If no NER model is configured, exact extraction remains available and readiness reports a degraded-but-usable state.
 - Bound input length, entity count, execution time, and provider calls. Propagate request correlation, deadline, and cancellation.
 - Avoid logging raw input text by default.
 
@@ -54,7 +55,7 @@ The normative request/response schema is [`schemas/entity-extraction.schema.json
 
 ## Errors
 
-Use the common error envelope. Distinguish invalid input/profile, unsupported text size, deadline exceeded, provider unavailable, and internal failure. No entities found is a valid response.
+Use the common error envelope. Distinguish invalid input/profile, unsupported text size, deadline exceeded, local NER model unavailable, and internal failure. No entities found is a valid response.
 
 ## Acceptance tests
 
@@ -68,4 +69,4 @@ Use the common error envelope. Distinguish invalid input/profile, unsupported te
 
 ## Approval gate
 
-Review with Gateway query planning, Intent Classification, Tokenization, and retrieval workflow acceptance tests before implementation.
+Review with Gateway query planning, Intent Classification, Tokenization, and retrieval workflow acceptance tests. The initial runtime uses deterministic local workers and an overlap arbiter; it makes no external inference calls.
