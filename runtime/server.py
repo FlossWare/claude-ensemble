@@ -11,6 +11,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from typing import Any
 
 from .tokenization import PROFILE_NAME, PROFILE_VERSION, NORMALIZATION_VERSION, TokenizationError, tokenize
+from .embedding import EmbeddingError, PROFILE_NAME as EMBEDDING_PROFILE_NAME, PROFILE_VERSION as EMBEDDING_PROFILE_VERSION, get_engine as get_embedding_engine, validate_index_profile as validate_embedding_index_profile, validate_text as validate_embedding_text
 from .chunking import (
     MAX_CONTENT_BYTES, MAX_CHUNKS, DEFAULT_POLICY, ChunkingError, Policy, chunk_document, chunk_spans, validate_index_profile,
 )
@@ -339,6 +340,10 @@ class Handler(BaseHTTPRequestHandler):
                 "checks": [{"name": "technical-default@0.1", "status": "ok"},
                            {"name": "normalization@0.1", "status": "ok"}],
             }, request_id)
+        elif self.path == "/api/v1/embedding/health":
+            self._send(200, {"service": "embedding", "status": "alive"}, request_id)
+        elif self.path == "/api/v1/embedding/ready":
+            self._send(200, get_embedding_engine().readiness(), request_id)
         else:
             self._send(404, _error("endpoint_not_found", "endpoint not found"), request_id)
 
@@ -354,6 +359,7 @@ class Handler(BaseHTTPRequestHandler):
         if self.path not in (
             "/api/v1/chunking/chunks", "/api/v1/chunking/preflight",
             "/api/v1/tokenization/lexical", "/api/v1/tokenization/lexical/batch",
+            "/api/v1/embeddings",
         ):
             self._send(404, _error("endpoint_not_found", "endpoint not found"), request_id)
             return
@@ -370,6 +376,8 @@ class Handler(BaseHTTPRequestHandler):
             elif self.path == "/api/v1/chunking/preflight":
                 limit = MAX_PROFILE_REQUEST_BYTES
             elif self.path == "/api/v1/tokenization/lexical/batch":
+                limit = MAX_TOKENIZATION_BATCH_REQUEST_BYTES
+            elif self.path == "/api/v1/embeddings":
                 limit = MAX_TOKENIZATION_BATCH_REQUEST_BYTES
             else:
                 limit = MAX_REQUEST_BYTES
@@ -392,6 +400,8 @@ class Handler(BaseHTTPRequestHandler):
                 response = self._tokenize(request)
             elif self.path == "/api/v1/tokenization/lexical/batch":
                 response = self._tokenize_batch(request)
+            elif self.path == "/api/v1/embeddings":
+                response = self._embed(request)
             else:
                 response = self._chunks(request)
             if (deadline_error := self._deadline_error()) is not None:
@@ -408,8 +418,53 @@ class Handler(BaseHTTPRequestHandler):
             self._fail(exc, request_id)
         except TokenizationError as exc:
             self._send(exc.status, _error(exc.code, str(exc)), request_id)
+        except EmbeddingError as exc:
+            self._send(exc.status, _error(exc.code, str(exc)), request_id)
         except Exception:
             self._send(500, _error("internal_error", "request could not be processed"), request_id)
+
+    def _embed(self, value: Any) -> dict[str, Any]:
+        request = _require_object(
+            value, "request",
+            {"request_id", "index_profile", "profile", "profile_version", "inputs", "normalize"},
+            {"index_profile", "profile", "profile_version", "inputs"},
+        )
+        if "request_id" in request and (
+            not isinstance(request["request_id"], str) or not 1 <= len(request["request_id"]) <= 128
+        ):
+            raise EmbeddingError("invalid_parameter", "request.request_id must be a string of 1 to 128 characters", status=400)
+        identity = validate_embedding_index_profile(request["index_profile"])
+        if request["profile"] != EMBEDDING_PROFILE_NAME or request["profile_version"] != EMBEDDING_PROFILE_VERSION:
+            raise EmbeddingError("unsupported_profile", "embedding profile or version is not supported")
+        inputs = request["inputs"]
+        if not isinstance(inputs, list) or not 1 <= len(inputs) <= 64:
+            raise EmbeddingError("invalid_parameter", "inputs must contain between 1 and 64 items", status=400)
+        normalized_inputs: list[dict[str, str]] = []
+        seen_ids: set[str] = set()
+        for item in inputs:
+            item = _require_object(item, "inputs[]", {"input_id", "input_type", "text"}, {"input_id", "input_type", "text"})
+            input_id = item["input_id"]
+            if not isinstance(input_id, str) or not 1 <= len(input_id) <= 128:
+                raise EmbeddingError("invalid_parameter", "input_id must be a string of 1 to 128 characters", status=400)
+            if input_id in seen_ids:
+                raise EmbeddingError("invalid_parameter", "input_id values must be unique", status=400)
+            seen_ids.add(input_id)
+            input_type = item["input_type"]
+            if input_type not in {"query", "document"}:
+                raise EmbeddingError("invalid_parameter", "input_type must be query or document", status=400)
+            text = validate_embedding_text(item["text"], f"inputs[{input_id}].text")
+            normalized_inputs.append({"input_id": input_id, "input_type": input_type, "text": text})
+        normalization = request.get("normalize", "profile-default")
+        if normalization not in {"profile-default", "none", "l2"}:
+            raise EmbeddingError("invalid_parameter", "normalize must be profile-default, none, or l2", status=400)
+        model, results = get_embedding_engine().embed(normalized_inputs, normalization)
+        return {
+            "index_profile": identity,
+            "profile": EMBEDDING_PROFILE_NAME,
+            "profile_version": EMBEDDING_PROFILE_VERSION,
+            "model": model,
+            "results": results,
+        }
 
     def _tokenization_context(self, request: Any, *, batch: bool) -> tuple[dict[str, Any], dict[str, bool]]:
         allowed = {"request_id", "index_profile", "profile", "profile_version", "options"}
