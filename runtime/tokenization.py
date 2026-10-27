@@ -14,7 +14,7 @@ _TOKEN_RE = re.compile(
     r"""(?P<path>(?:[\w.@+~-]+[/\\])+[\w.@+~-]+)|"""
     r"""(?P<identifier>(?=[\w$]*(?:[_$]|[a-z][A-Z]|[A-Z][a-z]+[A-Z]|[A-Z]{2,}[a-z]|[A-Z]{2,}(?:\W|$)))[\w$]+)|"""
     r"""(?P<number>\d+(?:[.,]\d+)*)|"""
-    r"""(?P<word>[^\W\d_]+)|"""
+    r"""(?P<word>[^\W\d_](?:[^\W\d_]|[\u0300-\u036f])*)|"""
     r"""(?P<punctuation>[^\w\s])""",
     re.UNICODE,
 )
