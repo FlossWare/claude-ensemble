@@ -40,11 +40,11 @@ class TokenizationUnitTests(unittest.TestCase):
         self.assertTrue({"snake_case", "FOO_BAR", "HTTPServer", "URL", "myVariable"} <= exact_terms)
 
     def test_unicode_normalization_case_punctuation_and_numbers(self):
-        tokens = tokenize("CAFÉ Cafe\\u0301, 42!")
+        tokens = tokenize("CAFÉ Cafe\u0301, 42!")
         surfaces = [token["surface"] for token in tokens]
         terms = [token["term"] for token in tokens]
         self.assertIn("CAFÉ", surfaces)
-        self.assertIn("Cafe\\u0301", surfaces)
+        self.assertIn("Cafe\u0301", surfaces)
         self.assertIn("café", terms)
         self.assertIn("42", terms)
         self.assertIn(",", surfaces)
