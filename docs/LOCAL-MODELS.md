@@ -41,3 +41,8 @@ command or resolve remote model names at runtime.
 If the variable is unset, exact technical extraction remains available and readiness
 reports a degraded-but-usable state. If a path is configured but the model cannot be
 loaded, readiness reports \`ready: false\`.
+
+
+## Nomic embedding profile
+
+The intended embedding model is `nomic-ai/nomic-embed-text-v1.5`, configured for 768-dimensional vectors. CE prepends `search_query: ` to query inputs and `search_document: ` to document inputs; callers send raw text without these prefixes. Provision model files outside the source repository through the machine's controlled setup process. Record the exact model revision, dimension, license, and checksum. Real-model integration validation remains outstanding until those exact weights are provisioned and exercised offline.
