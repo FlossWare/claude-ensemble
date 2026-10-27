@@ -116,7 +116,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/.FlossWare/models
-          key: ce-models-${{ runner.os }}-nomic-e9b6763023c676ca8431644204f50c2b100d9aab-reranker-233902d25c440f23af6f7d6e94d2946bac0bee0a
+          key: ce-models-${{ runner.os }}-nomic-e9b6763023c676ca8431644204f50c2b100d9aab-reranker-233902d25c440f23af6f7d6e94d2946bac0bee0a-${{ hashFiles('scripts/validate_local_embedding_model.py', 'scripts/evaluate_local_reranking.py') }}
       - name: Provision pinned embedding model for CI validation
         if: hashFiles('scripts/validate_local_embedding_model.py') != ''
         run: |
@@ -140,7 +140,7 @@ jobs:
             --revision "$CE_RERANKING_MODEL_VERSION" \
             --local-dir "$HOME/.FlossWare/models/ms-marco-MiniLM-L6-v2"
       - name: Evaluate real reranking inference offline on CPU
-        if: steps.detect.outputs.enabled == 'true' && hashFiles('scripts/evaluate_local_reranking.py') != ''
+        if: hashFiles('scripts/evaluate_local_reranking.py') != ''
         env:
           HF_HUB_OFFLINE: "1"
           TRANSFORMERS_OFFLINE: "1"
