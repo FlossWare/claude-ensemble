@@ -112,7 +112,7 @@ def bm25_v1(
     scored.sort(key=lambda c: (-c["score"], *_identity(c)))
     for rank, candidate in enumerate(scored, 1):
         candidate["retrieval_rank"] = rank
-        candidate.pop("term_frequencies", None)
+        candidate.pop("term_frequency_evidence", None)
         candidate.pop("document_length", None)
     return scored
 
@@ -218,7 +218,7 @@ def vector_rank(
     for c in result:
         value = c.get("distance", c.get("similarity"))
         if not isinstance(value, (int, float)) or not math.isfinite(float(value)):
-            raise RetrievalError("dependency_unavailable", f"Index candidate has invalid {value_key}", 503)
+            raise RetrievalError("dependency_unavailable", "Index candidate has invalid vector distance/similarity", 503)
         c["distance"] = float(value)
     if metric == "euclidean":
         result.sort(key=lambda c: (c["distance"], *_identity(c)))
