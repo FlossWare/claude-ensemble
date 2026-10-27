@@ -50,6 +50,13 @@ class TokenizationUnitTests(unittest.TestCase):
         self.assertIn(",", surfaces)
         self.assertIn("!", surfaces)
 
+    def test_acronyms_preserve_exact_and_normalized_terms(self):
+        tokens = tokenize("NASA HTTP API")
+        exact = {token["term"] for token in tokens if token["kind"] == "identifier"}
+        self.assertTrue({"NASA", "HTTP", "API"}.issubset(exact))
+        normalized = {token["term"] for token in tokens}
+        self.assertTrue({"nasa", "http", "api"}.issubset(normalized))
+
     def test_offsets_are_half_open_unicode_code_point_offsets(self):
         tokens = tokenize("é FooBar")
         token = next(item for item in tokens if item["surface"] == "FooBar")
@@ -59,6 +66,8 @@ class TokenizationUnitTests(unittest.TestCase):
         tokens = tokenize("FooBar", preserve_identifiers=False,
                           include_offsets=False, include_normalized_terms=False)
         self.assertEqual(tokens, [{"term": "FooBar", "surface": "FooBar", "kind": "word"}])
+        self.assertNotIn("start_offset", tokens[0])
+        self.assertNotIn("end_offset", tokens[0])
 
     def test_empty_input_is_valid(self):
         self.assertEqual(tokenize(""), [])
