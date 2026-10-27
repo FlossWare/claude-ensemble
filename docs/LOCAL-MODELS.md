@@ -28,3 +28,16 @@ the model path to a remote repository ID.
 Keep model files outside the source repository and provision them through the
 machine's controlled setup process. Record the model name, version, dimension,
 license, and checksum in the deployment's local configuration documentation.
+
+
+## Optional entity-recognition model
+
+Entity Extraction can use an optional locally installed spaCy NER model in addition to
+its deterministic pattern and alias workers. Configure \`CE_ENTITY_NER_MODEL_PATH\`
+to a directory containing the installed model. The service calls \`spacy.load()\`
+on that local path after requiring CPU execution. It does not run a model-download
+command or resolve remote model names at runtime.
+
+If the variable is unset, exact technical extraction remains available and readiness
+reports a degraded-but-usable state. If a path is configured but the model cannot be
+loaded, readiness reports \`ready: false\`.
