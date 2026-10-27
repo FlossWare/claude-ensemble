@@ -112,7 +112,6 @@ jobs:
             ce-models-${{ runner.os }}-
       - name: Provision pinned embedding model for CI validation
         if: steps.detect.outputs.enabled == 'true' && hashFiles('scripts/validate_local_embedding_model.py') != ''
-        env:
         run: |
           mkdir -p "$HOME/.FlossWare/models/nomic-embed-text-v1.5"
           echo "CE_EMBEDDING_MODEL_PATH=$HOME/.FlossWare/models/nomic-embed-text-v1.5" >> "$GITHUB_ENV"
@@ -122,7 +121,6 @@ jobs:
       - name: Validate real embedding inference offline on CPU
         if: steps.detect.outputs.enabled == 'true' && hashFiles('scripts/validate_local_embedding_model.py') != ''
         env:
-          CE_EMBEDDING_MODEL_PATH: ~/.FlossWare/models/nomic-embed-text-v1.5
           HF_HUB_OFFLINE: "1"
           TRANSFORMERS_OFFLINE: "1"
         run: python scripts/validate_local_embedding_model.py
