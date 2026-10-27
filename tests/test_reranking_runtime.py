@@ -12,7 +12,6 @@ from runtime.reranking import (
     EXPECTED_MODEL_ID,
     RerankingEngine,
     RerankingError,
-    reset_engine_for_tests,
 )
 from runtime.server import BoundedThreadingHTTPServer, Handler
 
