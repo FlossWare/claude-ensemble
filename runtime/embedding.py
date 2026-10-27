@@ -12,6 +12,8 @@ from typing import Any
 
 PROFILE_NAME = "technical-default"
 PROFILE_VERSION = "0.1"
+EXPECTED_MODEL_ID = "nomic-ai/nomic-embed-text-v1.5"
+EXPECTED_DIMENSIONS = 768
 MAX_INPUTS = 64
 MAX_TEXT_CHARS = 65_536
 MAX_TEXT_BYTES = 262_144
@@ -79,10 +81,10 @@ class EmbeddingEngine:
     def _load(self) -> Any:
         if self._model is not None:
             return self._model
-        if not self.model_path or not self.model_version:
+        if not self.model_path or not self.model_version or self.model_id != EXPECTED_MODEL_ID:
             raise EmbeddingError(
                 "service_unavailable",
-                "CE_EMBEDDING_MODEL_PATH and CE_EMBEDDING_MODEL_VERSION must identify an installed local model",
+                "configure CE_EMBEDDING_MODEL_PATH, CE_EMBEDDING_MODEL_VERSION, and CE_EMBEDDING_MODEL_ID=nomic-ai/nomic-embed-text-v1.5 for the local Nomic profile",
                 status=503,
             )
         path = Path(self.model_path).expanduser()
@@ -98,8 +100,8 @@ class EmbeddingEngine:
                 trust_remote_code=False,
             )
             self._dimensions = self._read_dimensions(self._model)
-            if not self.model_id:
-                self.model_id = path.name
+            if self._dimensions != EXPECTED_DIMENSIONS:
+                raise EmbeddingError("service_unavailable", "configured model dimensions do not match the Nomic embedding profile", status=503)
             return self._model
         except EmbeddingError:
             self._model = None
