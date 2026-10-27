@@ -154,14 +154,10 @@
           "maxLength": 262144
         },
         "profile": {
-          "type": "string",
-          "minLength": 1,
-          "maxLength": 128
+          "const": "technical-default"
         },
         "profile_version": {
-          "type": "string",
-          "minLength": 1,
-          "maxLength": 64
+          "const": "0.1"
         },
         "options": {
           "$ref": "#/$defs/options"
@@ -185,14 +181,10 @@
           "maxLength": 128
         },
         "profile": {
-          "type": "string",
-          "minLength": 1,
-          "maxLength": 128
+          "const": "technical-default"
         },
         "version": {
-          "type": "string",
-          "minLength": 1,
-          "maxLength": 64
+          "const": "0.1"
         },
         "normalization_version": {
           "type": "string",
@@ -230,14 +222,10 @@
           "$ref": "#/$defs/indexProfile"
         },
         "profile": {
-          "type": "string",
-          "minLength": 1,
-          "maxLength": 128
+          "const": "technical-default"
         },
         "profile_version": {
-          "type": "string",
-          "minLength": 1,
-          "maxLength": 64
+          "const": "0.1"
         },
         "options": {
           "$ref": "#/$defs/options"
@@ -285,14 +273,10 @@
           "maxLength": 128
         },
         "profile": {
-          "type": "string",
-          "minLength": 1,
-          "maxLength": 128
+          "const": "technical-default"
         },
         "version": {
-          "type": "string",
-          "minLength": 1,
-          "maxLength": 64
+          "const": "0.1"
         },
         "normalization_version": {
           "type": "string",
@@ -529,6 +513,7 @@
         404,
         409,
         413,
+        415,
         422,
         429,
         500,
@@ -551,6 +536,7 @@
         404,
         409,
         413,
+        415,
         422,
         429,
         500,
