@@ -64,7 +64,7 @@ class RerankingEngine:
         if not self.model_path or not self.model_version or self.model_id != EXPECTED_MODEL_ID:
             raise RerankingError(
                 "service_unavailable",
-                "configure CE_RERANKING_MODEL_PATH, CE_RERANKING_MODEL_VERSION, and CE_RERANKING_MODEL_ID=cross-encoder/ms-marco-MiniLM-L6-v2",
+                "configure CE_RERANKING_MODEL_VERSION; CE_RERANKING_MODEL_PATH and CE_RERANKING_MODEL_ID have supported defaults",
                 503,
             )
         path = Path(self.model_path).expanduser()
