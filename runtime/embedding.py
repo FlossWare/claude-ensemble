@@ -87,7 +87,7 @@ class EmbeddingEngine:
         if not self.model_path or not self.model_version or self.model_id != EXPECTED_MODEL_ID:
             raise EmbeddingError(
                 "service_unavailable",
-                "configure CE_EMBEDDING_MODEL_PATH, CE_EMBEDDING_MODEL_VERSION, and CE_EMBEDDING_MODEL_ID=nomic-ai/nomic-embed-text-v1.5 for the local Nomic profile",
+                "configure CE_EMBEDDING_MODEL_VERSION for the local Nomic profile; CE_EMBEDDING_MODEL_PATH and CE_EMBEDDING_MODEL_ID have supported defaults",
                 status=503,
             )
         path = Path(self.model_path).expanduser()
