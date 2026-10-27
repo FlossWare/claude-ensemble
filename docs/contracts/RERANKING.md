@@ -1,4 +1,4 @@
-# Reranking Service Contract (Draft)
+# Reranking Service Contract
 
 Status: v1 implementation policy selected. The local model weights remain deployment-provisioned; no runtime download is permitted.
 
