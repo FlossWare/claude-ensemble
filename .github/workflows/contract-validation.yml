@@ -61,14 +61,13 @@ jobs:
       - name: Validate service call graph
         run: python scripts/check_service_call_graph.py
       - name: Run complete pytest suite
-        run: python -m pytest -q
+        run: python -m pytest -q tests -rs
 
-  real-model-validation:
-    name: Offline CPU validation with pinned real models
+  detect-model-validation:
+    name: Detect real-model validation scripts
     runs-on: ubuntu-latest
-    env:
-      CE_EMBEDDING_MODEL_VERSION: e9b6763023c676ca8431644204f50c2b100d9aab
-      CE_RERANKING_MODEL_VERSION: 233902d25c440f23af6f7d6e94d2946bac0bee0a
+    outputs:
+      enabled: ${{ steps.detect.outputs.enabled }}
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
@@ -80,11 +79,23 @@ jobs:
             echo "enabled=true" >> "$GITHUB_OUTPUT"
           else
             echo "enabled=false" >> "$GITHUB_OUTPUT"
-            echo "No real-model validation scripts exist on this branch; skipping model provisioning."
+            echo "No real-model validation scripts exist on this branch."
           fi
+
+  real-model-validation:
+    name: Offline CPU validation with pinned real models
+    needs: detect-model-validation
+    if: needs.detect-model-validation.outputs.enabled == 'true'
+    runs-on: ubuntu-latest
+    env:
+      PYTHONPATH: .
+      CE_EMBEDDING_MODEL_VERSION: e9b6763023c676ca8431644204f50c2b100d9aab
+      CE_RERANKING_MODEL_VERSION: 233902d25c440f23af6f7d6e94d2946bac0bee0a
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
       - name: Set up Python
-        if: steps.detect.outputs.enabled == 'true'
-        uses: actions/setup-python@v5
+                uses: actions/setup-python@v5
         with:
           python-version: "3.12"
       - name: Install model runtime dependencies
@@ -108,10 +119,8 @@ jobs:
         with:
           path: ~/.FlossWare/models
           key: ce-models-${{ runner.os }}-nomic-e9b6763023c676ca8431644204f50c2b100d9aab-reranker-233902d25c440f23af6f7d6e94d2946bac0bee0a
-          restore-keys: |
-            ce-models-${{ runner.os }}-
       - name: Provision pinned embedding model for CI validation
-        if: steps.detect.outputs.enabled == 'true' && hashFiles('scripts/validate_local_embedding_model.py') != ''
+        if: hashFiles('scripts/validate_local_embedding_model.py') != ''
         run: |
           mkdir -p "$HOME/.FlossWare/models/nomic-embed-text-v1.5"
           echo "CE_EMBEDDING_MODEL_PATH=$HOME/.FlossWare/models/nomic-embed-text-v1.5" >> "$GITHUB_ENV"
