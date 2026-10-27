@@ -20,7 +20,7 @@ def request(text, allowed=None, profile=None):
         "request_id": "intent-test-1",
         "text": text,
         "profile": profile or {"name": PROFILE_NAME, "version": PROFILE_VERSION},
-        "allowed_intents": list(allowed or INTENTS),
+        "allowed_intents": list(INTENTS if allowed is None else allowed),
     }
 
 
