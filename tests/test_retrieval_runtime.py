@@ -115,7 +115,7 @@ class RetrievalAlgorithmTests(unittest.TestCase):
         def resolve(req):
             return {"profile_bundle": {
                 "name": "default", "version": "0.1", "digest": "a" * 64,
-                "embedding": {"profile": "technical-default", "version": "0.1", "metric": "cosine"},
+                "embedding": {"profile": "technical-default", "version": "0.1", "metric": "cosine", "model": "local-nomic", "model_version": "r1", "dimensions": 3},
             }}
         def embed(req):
             return {
@@ -125,7 +125,7 @@ class RetrievalAlgorithmTests(unittest.TestCase):
             }
         def neighbors(req):
             self.assertEqual(req["index_generation"], "g1")
-            self.assertEqual(req["input_type"] if "input_type" in req else "query", "query")
+            self.assertEqual(req["input_type"], "query")
             return {"index_generation": "g1", "request_id": "r1", "truncated": False,
                     "candidates": [dict(CANDIDATE, similarity=0.9, embedding={"metric": "cosine"})]}
         service = VectorRetrievalService(embed, neighbors, resolve)
