@@ -61,6 +61,18 @@ def build_request(fixture: dict[str, Any], candidates: list[dict[str, Any]], lim
 
 
 def main() -> int:
+    expected_revision = os.environ.get("CE_RERANKING_MODEL_VERSION", "")
+    model_path = Path(os.environ.get(
+        "CE_RERANKING_MODEL_PATH",
+        str(Path.home() / ".FlossWare" / "models" / "ms-marco-MiniLM-L6-v2"),
+    )).expanduser()
+    if len(expected_revision) != 40 or any(ch not in "0123456789abcdef" for ch in expected_revision):
+        print("FAIL: CE_RERANKING_MODEL_VERSION must be an immutable 40-character commit SHA", file=sys.stderr)
+        return 1
+    if model_path.resolve().name != expected_revision:
+        print("FAIL: resolved model snapshot directory does not match the pinned revision", file=sys.stderr)
+        return 1
+
     fixture_path = DEFAULT_FIXTURE
     try:
         fixture = json.loads(fixture_path.read_text(encoding="utf-8"))
@@ -87,6 +99,12 @@ def main() -> int:
         print(f"FAIL: local reranking inference failed ({type(exc).__name__})", file=sys.stderr)
         return 1
     reranked_ids = [item["chunk_id"] for item in full_result["candidates"]]
+    if full_result["candidates"][0]["evidence"].get("model_version") != expected_revision:
+        print("FAIL: loaded model metadata does not match the pinned revision", file=sys.stderr)
+        return 1
+    if full_result["candidates"][0]["evidence"].get("model_id") != "cross-encoder/ms-marco-MiniLM-L6-v2":
+        print("FAIL: loaded model identity does not match the expected reranker", file=sys.stderr)
+        return 1
     exact_probe = engine.rerank(build_request(fixture, candidates, 1))
     exact_candidate_ids = {item["chunk_id"] for item in exact_candidates}
     exact_retained_ids = {
@@ -100,6 +118,12 @@ def main() -> int:
         "all_exact_candidates_retained": exact_candidate_ids == exact_retained_ids,
         "output_count": len(exact_probe["candidates"]),
     }
+    if exact_candidate_ids != exact_retained_ids:
+        print("FAIL: reranker dropped one or more exact-identifier candidates", file=sys.stderr)
+        return 1
+    if len(exact_probe["candidates"]) != max(1, len(exact_candidate_ids)):
+        print("FAIL: reranker output count does not preserve exact matches and requested limit", file=sys.stderr)
+        return 1
     quality = {
         "baseline_ndcg_at_10": round(ndcg_at_k(baseline_ids, relevant), 6),
         "reranked_ndcg_at_10": round(ndcg_at_k(reranked_ids, relevant), 6),
