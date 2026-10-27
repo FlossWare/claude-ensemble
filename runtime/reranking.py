@@ -38,7 +38,7 @@ def _candidate_identity(candidate: dict[str, Any]) -> tuple[Any, ...]:
     chunker = candidate["chunker"]
     return (
         candidate["source_id"],
-        candidate["revision_sequence"],
+        -candidate["revision_sequence"],
         candidate["chunk_id"],
         chunker["profile"],
         chunker["version"],
