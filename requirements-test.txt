@@ -1,2 +1,3 @@
 # Dependencies required to validate contracts and run the test suite.
 jsonschema>=4.18,<5
+pytest>=8.3,<9

@@ -1,4 +1,4 @@
-name: Contract validation
+name: Contract validation and tests
 
 on:
   pull_request:
@@ -8,6 +8,7 @@ on:
       - "tests/**"
       - "runtime/**"
       - "requirements-test.txt"
+      - "requirements-runtime.txt"
       - ".github/workflows/contract-validation.yml"
   push:
     branches:
@@ -20,26 +21,145 @@ on:
       - "tests/**"
       - "runtime/**"
       - "requirements-test.txt"
+      - "requirements-runtime.txt"
       - ".github/workflows/contract-validation.yml"
 
 permissions:
   contents: read
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.head.ref || github.ref_name }}
+  cancel-in-progress: true
+
 jobs:
-  validate-contracts:
+  validate-and-test:
+    name: Contracts, dependencies, and full test suite
     runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      PYTHONPATH: .
     steps:
       - name: Check out repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
         with:
           python-version: "3.12"
-      - name: Install schema validator
+      - name: Install test dependencies
         run: python -m pip install --disable-pip-version-check -r requirements-test.txt
+      - name: Install runtime dependencies
+        run: |
+          if [ -f requirements-runtime.txt ]; then
+            python -m pip install --disable-pip-version-check -r requirements-runtime.txt
+          else
+            # Temporary compatibility for independent service PRs until the
+            # shared runtime requirements file is present on the base branch.
+            python -m pip install --disable-pip-version-check \
+              sentence-transformers==6.2.0 \
+              transformers==5.21.0 \
+              spacy==3.8.18
+          fi
+      - name: Check installed dependency consistency
+        run: python -m pip check
       - name: Validate contract schemas, references, endpoint bindings, and JSON examples
         run: python scripts/validate_contracts.py
       - name: Validate service call graph
         run: python scripts/check_service_call_graph.py
-      - name: Run contract regression tests
-        run: python -m unittest discover -s tests -v
+      - name: Run complete pytest suite
+        run: python -m pytest -q tests -rs
+
+  detect-model-validation:
+    name: Detect real-model validation scripts
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      enabled: ${{ steps.detect.outputs.enabled }}
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - name: Detect real-model validation scripts
+        id: detect
+        shell: bash
+        run: |
+          if [ -f scripts/validate_local_embedding_model.py ] || [ -f scripts/evaluate_local_reranking.py ]; then
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+            echo "No real-model validation scripts exist on this branch."
+          fi
+
+  real-model-validation:
+    name: Offline CPU validation with pinned real models
+    needs: detect-model-validation
+    if: needs.detect-model-validation.outputs.enabled == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      PYTHONPATH: .
+      CE_EMBEDDING_MODEL_VERSION: e9b6763023c676ca8431644204f50c2b100d9aab
+      CE_RERANKING_MODEL_VERSION: 233902d25c440f23af6f7d6e94d2946bac0bee0a
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - name: Set up Python
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
+        with:
+          python-version: "3.12"
+      - name: Install model runtime dependencies
+        run: |
+          python -m pip install --disable-pip-version-check -r requirements-test.txt
+          if [ -f requirements-runtime.txt ]; then
+            python -m pip install --disable-pip-version-check -r requirements-runtime.txt
+          else
+            # Supports service PRs that add model validation before the shared
+            # runtime requirements file has landed on the base branch.
+            python -m pip install --disable-pip-version-check \
+              sentence-transformers==6.2.0 \
+              transformers==5.21.0 \
+              spacy==3.8.18
+          fi
+          python -m pip install --disable-pip-version-check huggingface_hub
+          command -v hf
+          python -m pip check
+      - name: Restore cached model artifacts
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
+        with:
+          path: ~/.FlossWare/models
+          key: ce-models-${{ runner.os }}-nomic-${{ env.CE_EMBEDDING_MODEL_VERSION }}-reranker-${{ env.CE_RERANKING_MODEL_VERSION }}-${{ hashFiles('scripts/validate_local_embedding_model.py', 'scripts/evaluate_local_reranking.py') }}
+      - name: Provision pinned embedding model for CI validation
+        if: hashFiles('scripts/validate_local_embedding_model.py') != ''
+        run: |
+          export HF_HOME="$HOME/.FlossWare/models/hf-home"
+          mkdir -p "$HF_HOME" "$HOME/.FlossWare/models"
+          echo "HF_HOME=$HF_HOME" >> "$GITHUB_ENV"
+          hf download nomic-ai/nomic-embed-text-v1.5 --revision "$CE_EMBEDDING_MODEL_VERSION"
+          snapshot="$HF_HOME/hub/models--nomic-ai--nomic-embed-text-v1.5/snapshots/$CE_EMBEDDING_MODEL_VERSION"
+          test -d "$snapshot"
+          test "$(basename "$snapshot")" = "$CE_EMBEDDING_MODEL_VERSION"
+          ln -sfn "$snapshot" "$HOME/.FlossWare/models/nomic-embed-text-v1.5"
+          echo "CE_EMBEDDING_MODEL_PATH=$HOME/.FlossWare/models/nomic-embed-text-v1.5" >> "$GITHUB_ENV"
+      - name: Validate real embedding inference offline on CPU
+        if: hashFiles('scripts/validate_local_embedding_model.py') != ''
+        env:
+          HF_HUB_OFFLINE: "1"
+          TRANSFORMERS_OFFLINE: "1"
+        run: python scripts/validate_local_embedding_model.py
+      - name: Provision pinned reranking model for CI validation
+        if: hashFiles('scripts/evaluate_local_reranking.py') != ''
+        run: |
+          export HF_HOME="$HOME/.FlossWare/models/hf-home"
+          mkdir -p "$HF_HOME" "$HOME/.FlossWare/models"
+          echo "HF_HOME=$HF_HOME" >> "$GITHUB_ENV"
+          hf download cross-encoder/ms-marco-MiniLM-L6-v2 --revision "$CE_RERANKING_MODEL_VERSION"
+          snapshot="$HF_HOME/hub/models--cross-encoder--ms-marco-MiniLM-L6-v2/snapshots/$CE_RERANKING_MODEL_VERSION"
+          test -d "$snapshot"
+          test "$(basename "$snapshot")" = "$CE_RERANKING_MODEL_VERSION"
+          ln -sfn "$snapshot" "$HOME/.FlossWare/models/ms-marco-MiniLM-L6-v2"
+          echo "CE_RERANKING_MODEL_PATH=$HOME/.FlossWare/models/ms-marco-MiniLM-L6-v2" >> "$GITHUB_ENV"
+      - name: Evaluate real reranking inference offline on CPU
+        if: hashFiles('scripts/evaluate_local_reranking.py') != ''
+        env:
+          HF_HUB_OFFLINE: "1"
+          TRANSFORMERS_OFFLINE: "1"
+        run: python scripts/evaluate_local_reranking.py
+
