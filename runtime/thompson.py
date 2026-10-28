@@ -19,7 +19,7 @@ from typing import Any
 from urllib.parse import unquote
 
 POLICY = {"name": "beta-bernoulli-v1", "version": "1"}
-_ID = re.compile(r"^[A-Za-z0-9._~-]{1,128}$")
+_ID = re.compile(r"^[A-Za-z0-9._~-]{1,256}$")
 _RANDOM = SystemRandom()
 
 
@@ -72,7 +72,7 @@ class ThompsonService:
               CREATE TABLE IF NOT EXISTS updates(
                 event_id TEXT PRIMARY KEY, selection_id TEXT NOT NULL UNIQUE, idempotency_key TEXT NOT NULL UNIQUE,
                 context_id TEXT NOT NULL, arm_id TEXT NOT NULL, reward INTEGER NOT NULL,
-                payload_hash TEXT NOT NULL, response_json TEXT NOT NULL,
+                evidence_ref TEXT NOT NULL DEFAULT '', payload_hash TEXT NOT NULL, response_json TEXT NOT NULL,
                 created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP);
             """)
 
@@ -203,9 +203,9 @@ class ThompsonService:
             operation_id = "thompson:op:" + secrets.token_hex(16)
             response = {"event_id": event_id, "operation_id": operation_id, "applied": True,
                         "state_version": version, "request_id": request_id}
-            db.execute("""INSERT INTO updates(event_id,selection_id,idempotency_key,context_id,arm_id,reward,payload_hash,response_json)
-                          VALUES(?,?,?,?,?,?,?,?)""",
-                       (event_id, selection_id, key, context, arm, request["reward"], digest,
+            db.execute("""INSERT INTO updates(event_id,selection_id,idempotency_key,context_id,arm_id,reward,evidence_ref,payload_hash,response_json)
+                          VALUES(?,?,?,?,?,?,?,?,?)""",
+                       (event_id, selection_id, key, context, arm, request["reward"], evidence_ref, digest,
                         json.dumps(response, separators=(",", ":"))))
             return response
 

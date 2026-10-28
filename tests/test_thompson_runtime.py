@@ -47,6 +47,9 @@ def test_binary_update_advances_state_once_and_duplicate_is_idempotent(tmp_path)
     assert first["operation_id"] == again["operation_id"]
     assert first["state_version"] == again["state_version"] == 1
     assert svc.state("search-quality", "req-4")["state_version"] == 1
+    import sqlite3
+    with sqlite3.connect(svc.db_path) as db:
+        assert db.execute("SELECT evidence_ref FROM updates WHERE event_id=?", ("feedback-1",)).fetchone()[0] == "feedback-opaque-1"
 
 
 def test_selection_can_only_receive_one_terminal_outcome(tmp_path):
