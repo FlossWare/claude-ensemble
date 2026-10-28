@@ -76,7 +76,13 @@ def main() -> int:
     print("PASS: Nomic model loaded from local files in offline CPU mode.")
     print("PASS: query/document inference completed with 768-dimensional finite L2-normalized vectors.")
     print(f"PASS: resolved local model snapshot matches pinned revision {expected_revision}.")
-    return 0
+
+    # Share the already loaded real model with the REST dispatcher, then prove
+    # the complete Memory -> Index workflow and lexical lookup over HTTP.
+    import runtime.embedding as embedding_module
+    embedding_module._engine = engine
+    from validate_memory_index_e2e import main as validate_memory_index_e2e
+    return validate_memory_index_e2e()
 
 
 if __name__ == "__main__":
