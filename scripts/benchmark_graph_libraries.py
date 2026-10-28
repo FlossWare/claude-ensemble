@@ -28,6 +28,7 @@ MAX_DEPTH = 3
 MAX_VISITED = 500
 MAX_PATHS = 10
 REPEATS = 100
+ROUNDS = 3
 
 
 def workload(node_count: int, edge_count: int, seed: int) -> tuple[list[tuple[int, int]], list[int]]:
@@ -117,7 +118,7 @@ BUILDERS = {
 }
 
 
-def run_one(name: str, builder, node_count: int, edges: list[tuple[int, int]], starts: list[int]) -> dict:
+def run_one(name: str, builder, node_count: int, edges: list[tuple[int, int]], starts: list[int], round_index: int) -> dict:
     tracemalloc.start()
     started = time.perf_counter()
     graph, neighbors = builder(node_count, edges)
@@ -133,6 +134,7 @@ def run_one(name: str, builder, node_count: int, edges: list[tuple[int, int]], s
     tracemalloc.stop()
 
     return {
+        "round": round_index,
         "library": name,
         "nodes": node_count,
         "edges": len(edges),
@@ -150,6 +152,7 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--seed", type=int, default=20261028)
     parser.add_argument("--repeats", type=int, default=REPEATS)
+    parser.add_argument("--rounds", type=int, default=ROUNDS, help="independent measurement rounds per scenario")
     parser.add_argument("--quick", action="store_true", help="run only the smaller workload")
     args = parser.parse_args()
 
@@ -164,6 +167,15 @@ def main() -> int:
     if len(available) != len(BUILDERS):
         print(json.dumps({"error": "incomplete candidate set; no ranking produced", "available": sorted(available)}))
         return 2
+    if args.repeats < 1 or args.rounds < 1:
+        parser.error("--repeats and --rounds must both be positive")
+
+    # Warm up each library before collecting timings to avoid charging one-time
+    # initialization to whichever candidate happens to run first.
+    warmup_edges = [(node, node + 1) for node in range(31)]
+    for builder in available.values():
+        warmup_graph, _ = builder(32, warmup_edges)
+        del warmup_graph
 
     sizes = [(1_000, 5_000)]
     if not args.quick:
@@ -173,24 +185,36 @@ def main() -> int:
     for scenario_index, (node_count, edge_count) in enumerate(sizes):
         edges, starts = workload(node_count, edge_count, args.seed + scenario_index)
         starts = starts[:max(1, args.repeats)]
-        scenario_results = [
-            run_one(name, builder, node_count, edges, starts)
-            for name, builder in available.items()
-        ]
-        signatures = {json.dumps(item["result_signature"], separators=(",", ":")) for item in scenario_results}
-        if len(signatures) != 1:
-            print(json.dumps({"error": "candidate result mismatch", "scenario": [node_count, edge_count]}))
+        for round_index in range(args.rounds):
+            candidates = list(available.items())
+            rotation = round_index % len(candidates)
+            candidates = candidates[rotation:] + candidates[:rotation]
+            scenario_results = [
+                run_one(name, builder, node_count, edges, starts, round_index + 1)
+                for name, builder in candidates
+            ]
+            signatures = {
+                json.dumps(item["result_signature"], separators=(",", ":"))
+                for item in scenario_results
+            }
+            if len(signatures) != 1:
+                print(json.dumps({
+                    "error": "candidate result mismatch",
+                    "scenario": [node_count, edge_count],
+                    "round": round_index + 1,
+                }))
+                for item in scenario_results:
+                    item.pop("result_signature", None)
+                print(json.dumps(scenario_results, indent=2))
+                return 1
             for item in scenario_results:
                 item.pop("result_signature", None)
-            print(json.dumps(scenario_results, indent=2))
-            return 1
-        for item in scenario_results:
-            item.pop("result_signature", None)
-        all_results.extend(scenario_results)
+            all_results.extend(scenario_results)
 
     print(json.dumps({
         "benchmark": "CE bounded directed traversal synthetic load",
         "seed": args.seed,
+        "rounds_per_scenario": args.rounds,
         "limits": {"max_materialized_edges": MAX_EDGES, "max_depth": MAX_DEPTH, "max_visited_nodes": MAX_VISITED, "max_paths": MAX_PATHS},
         "note": "All candidates use identical generated edges and identical bounded traversal logic. tracemalloc captures Python-tracked allocations, not all native memory.",
         "results": all_results,
