@@ -208,7 +208,7 @@ Memory and Knowledge resolve the bundle through Index before accepting a source 
 
 ## Error behavior
 
-Use the shared error envelope. At minimum distinguish `invalid_request` (400), `not_found`/`profile_not_found` (404), `idempotency_conflict`, `revision_conflict`, `generation_not_caught_up`, and `active_generation_cannot_be_abandoned` (409), `request_too_large` (413), `source_too_large`/`unsupported_profile`/`incompatible_representation` (422), `service_unavailable`/`not_ready` (503), `deadline_exceeded` (504), and `internal_error` (500). A valid empty lookup is not an error; unavailable or incompatible index state is.
+Use the shared error envelope. At minimum distinguish `invalid_request` (400), `not_found`/`profile_not_found` (404), `idempotency_conflict`, `revision_conflict`, `scope_conflict`, `generation_not_caught_up`, and `active_generation_cannot_be_abandoned` (409), `request_too_large` (413), `source_too_large`/`unsupported_profile`/`incompatible_representation` (422), `service_unavailable`/`not_ready` (503), `deadline_exceeded` (504), and `internal_error` (500). A valid empty lookup is not an error; unavailable or incompatible index state is.
 
 ## Machine-checkable schemas
 
@@ -236,6 +236,9 @@ The normative Index lifecycle request/response schema is [`schemas/index.schema.
 8. Scope partition filters are enforced server-side for update, delete, status, and lookup; required local access restrictions are separate.
 9. Valid no-match is distinguishable from unavailable/not-ready index.
 10. Scope partition isolation tests prove that queries and corpus statistics for one partition cannot return or be influenced by another partition.
+11. Terminal idempotency bindings remain valid for at least 30 days, then return `idempotency_key_expired`; pending/reconciliation-required operations never expire, and tombstone high-water marks outlive keys.
+12. Active writes and tombstones are dual-applied to compatible building generations and journaled; same-sequence target replay succeeds only for an identical canonical payload. Failed source derivations remain visible and block cutover until corrected or tombstoned.
+13. Owner checkpoints are monotonic, fences require a reached checkpoint and bounded server-validated expiry, lifecycle POSTs require idempotency keys, and cutover remains fail-closed until Memory/Knowledge owner-journal replay is verifiable end-to-end.
 
 ## Contract decisions for architecture review
 

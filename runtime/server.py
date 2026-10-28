@@ -2,11 +2,16 @@
 from __future__ import annotations
 
 import json
+import hmac
+import math
 import re
+import select
+import socket
 import threading
 import time
 import uuid
 from datetime import datetime, timezone
+from urllib.parse import parse_qs, urlsplit
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from typing import Any
 
@@ -17,6 +22,8 @@ from .intent_classification import IntentClassificationError, classify as classi
 from .entity_extraction import EntityExtractionError, PROFILE_NAME as ENTITY_PROFILE_NAME, PROFILE_VERSION as ENTITY_PROFILE_VERSION, get_extractor as get_entity_extractor
 from .reranking import RerankingError, get_engine as get_reranking_engine
 from .retrieval import RetrievalError, configured_retrieval_services, retrieval_readiness
+from .index import IndexError as IndexServiceError, get_index_service
+from .internal_calls import INTERNAL_CALL_TOKEN
 from .chunking import (
     MAX_CONTENT_BYTES, MAX_CHUNKS, DEFAULT_POLICY, ChunkingError, Policy, chunk_document, chunk_spans, validate_index_profile,
 )
@@ -155,6 +162,13 @@ def _unique_json_object(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
 
 def _reject_json_constant(value: str) -> None:
     raise ValueError(f"non-standard JSON numeric constant {value} is not permitted")
+
+
+def _parse_json_float(value: str) -> float:
+    parsed = float(value)
+    if not math.isfinite(parsed):
+        raise ValueError("JSON numeric value is outside the finite floating-point range")
+    return parsed
 
 
 def _validate_json_unicode(value: Any) -> None:
@@ -304,14 +318,58 @@ class Handler(BaseHTTPRequestHandler):
         self.send_header("X-CE-Request-ID", request_id)
         self.end_headers()
 
+    def _dispatch_index_method(self, method: str, read_body: bool) -> None:
+        request_id, invalid_id = self._request_id()
+        if invalid_id:
+            self._send(400, _error("invalid_parameter", "X-CE-Request-ID contains invalid characters or length"), request_id)
+            return
+        if (deadline_error := self._deadline_error()) is not None:
+            self._fail(deadline_error, request_id)
+            return
+        parsed = urlsplit(self.path)
+        if not parsed.path.startswith("/api/v1/index/"):
+            self._method_not_allowed()
+            return
+        body: dict[str, Any] | None = None
+        try:
+            if read_body:
+                if self.headers.get_content_type() != "application/json":
+                    self._send(415, _error("unsupported_media_type", "Content-Type must be application/json"), request_id)
+                    return
+                length_text = self.headers.get("Content-Length")
+                if length_text is None or not length_text.isdecimal():
+                    raise ChunkingError("invalid_request", "a valid Content-Length is required", status=400)
+                length = int(length_text)
+                if length > MAX_PROFILE_REQUEST_BYTES:
+                    self.close_connection = True
+                    raise ChunkingError("request_too_large", "request exceeds configured byte limit", status=413)
+                raw = self._read_body(length)
+                try:
+                    body = json.loads(raw.decode("utf-8"), object_pairs_hook=_unique_json_object,
+                                      parse_constant=_reject_json_constant, parse_float=_parse_json_float)
+                except (UnicodeDecodeError, json.JSONDecodeError, ValueError) as exc:
+                    raise ChunkingError("invalid_request", "request body must be valid UTF-8 JSON without duplicate object keys", status=400) from exc
+                _validate_json_unicode(body)
+                if not isinstance(body, dict):
+                    raise ChunkingError("invalid_request", "request body must be a JSON object", status=400)
+            status, response = get_index_service().handle(method, parsed.path, parse_qs(parsed.query), body, self.headers, request_id)
+            response["request_id"] = request_id
+            self._send(status, response, request_id)
+        except IndexServiceError as exc:
+            self._send(exc.status, _error(exc.code, str(exc), retryable=exc.status >= 500), request_id)
+        except ChunkingError as exc:
+            self._fail(exc, request_id)
+        except Exception:
+            self._send(500, _error("internal_error", "request could not be processed"), request_id)
+
     def do_PUT(self) -> None:
-        self._method_not_allowed()
+        self._dispatch_index_method("PUT", True)
 
     def do_PATCH(self) -> None:
         self._method_not_allowed()
 
     def do_DELETE(self) -> None:
-        self._method_not_allowed()
+        self._dispatch_index_method("DELETE", False)
 
     def do_OPTIONS(self) -> None:
         self._method_not_allowed()
@@ -378,6 +436,16 @@ class Handler(BaseHTTPRequestHandler):
             service = "lexical-retrieval" if "lexical-retrieval" in self.path else "vector-retrieval"
             response = retrieval_readiness(service)
             self._send(200 if response["ready"] else 503, response, request_id)
+        elif urlsplit(self.path).path.startswith("/api/v1/index/"):
+            try:
+                parsed = urlsplit(self.path)
+                status, response = get_index_service().handle("GET", parsed.path, parse_qs(parsed.query), None, self.headers, request_id)
+                response["request_id"] = request_id
+                self._send(status, response, request_id)
+            except IndexServiceError as exc:
+                self._send(exc.status, _error(exc.code, str(exc), retryable=exc.status >= 500), request_id)
+            except Exception:
+                self._send(500, _error("internal_error", "request could not be processed"), request_id)
         else:
             self._send(404, _error("endpoint_not_found", "endpoint not found"), request_id)
 
@@ -390,7 +458,8 @@ class Handler(BaseHTTPRequestHandler):
         if deadline_error is not None:
             self._fail(deadline_error, request_id)
             return
-        if self.path not in (
+        is_index_route = urlsplit(self.path).path.startswith("/api/v1/index/")
+        if not is_index_route and self.path not in (
             "/api/v1/chunking/chunks", "/api/v1/chunking/preflight",
             "/api/v1/tokenization/lexical", "/api/v1/tokenization/lexical/batch",
             "/api/v1/embeddings", "/api/v1/ranking/rank",
@@ -408,7 +477,9 @@ class Handler(BaseHTTPRequestHandler):
             if length_text is None or not length_text.isdecimal():
                 raise ChunkingError("invalid_request", "a valid Content-Length is required", status=400)
             length = int(length_text)
-            if self.path == "/api/v1/chunking/chunks":
+            if is_index_route:
+                limit = MAX_PROFILE_REQUEST_BYTES
+            elif self.path == "/api/v1/chunking/chunks":
                 limit = MAX_REQUEST_BYTES
             elif self.path == "/api/v1/chunking/preflight":
                 limit = MAX_PROFILE_REQUEST_BYTES
@@ -437,6 +508,16 @@ class Handler(BaseHTTPRequestHandler):
             except (UnicodeDecodeError, json.JSONDecodeError, ValueError) as exc:
                 raise ChunkingError("invalid_request", "request body must be valid UTF-8 JSON without duplicate object keys", status=400) from exc
             _validate_json_unicode(request)
+            if is_index_route:
+                parsed = urlsplit(self.path)
+                request["request_id"] = request_id
+                status, response = get_index_service().handle("POST", parsed.path, parse_qs(parsed.query), request, self.headers, request_id)
+                response["request_id"] = request_id
+                if (deadline_error := self._deadline_error()) is not None:
+                    self._fail(deadline_error, request_id)
+                    return
+                self._send(status, response, request_id)
+                return
             if self.path == "/api/v1/chunking/preflight":
                 response = self._preflight(request)
             elif self.path == "/api/v1/tokenization/lexical":
@@ -454,7 +535,7 @@ class Handler(BaseHTTPRequestHandler):
             elif self.path == "/api/v1/reranking/rerank":
                 response = get_reranking_engine().rerank(request)
             elif self.path in ("/api/v1/lexical-retrieval/search", "/api/v1/vector-retrieval/search"):
-                lexical_service, vector_service = configured_retrieval_services()
+                lexical_service, vector_service = configured_retrieval_services(deadline=self.headers.get("X-CE-Deadline"))
                 if self.path == "/api/v1/lexical-retrieval/search":
                     response = lexical_service.search(request)
                 else:
@@ -486,6 +567,8 @@ class Handler(BaseHTTPRequestHandler):
         except RerankingError as exc:
             self._send(exc.status, _error(exc.code, str(exc), retryable=exc.status >= 500), request_id)
         except RetrievalError as exc:
+            self._send(exc.status, _error(exc.code, str(exc), retryable=exc.status >= 500), request_id)
+        except IndexServiceError as exc:
             self._send(exc.status, _error(exc.code, str(exc), retryable=exc.status >= 500), request_id)
         except Exception:
             self._send(500, _error("internal_error", "request could not be processed"), request_id)
@@ -740,44 +823,114 @@ class Handler(BaseHTTPRequestHandler):
 
 
 class BoundedThreadingHTTPServer(ThreadingHTTPServer):
-    """Threaded local server with a hard cap on active handlers.
+    """Bound handlers while reserving capacity for nested in-process REST calls.
 
-    Excess connections receive a correlated 503 instead of creating unbounded
-    request threads. This is a local-runtime guardrail, not deployment admission control.
+    External requests can consume at most 24 of 32 workers. Requests carrying
+    X-CE-Internal-Call: true use the reserved eight-worker pool. This prevents
+    retrieval fan-out from occupying every worker while waiting on sibling REST
+    calls handled by this same server. The marker is capacity classification,
+    not an authentication mechanism.
     """
     max_workers = 32
+    max_internal_workers = 8
+    max_external_workers = max_workers - max_internal_workers
     request_queue_size = 64
     daemon_threads = True
 
     def __init__(self, server_address: Any, RequestHandlerClass: type[BaseHTTPRequestHandler],
                  bind_and_activate: bool = True):
         self._worker_slots = threading.BoundedSemaphore(self.max_workers)
+        self._internal_slots = threading.BoundedSemaphore(self.max_internal_workers)
+        self._external_slots = threading.BoundedSemaphore(self.max_external_workers)
+        self._slot_lock = threading.Lock()
+        self._request_slots: dict[Any, threading.BoundedSemaphore] = {}
         super().__init__(server_address, RequestHandlerClass, bind_and_activate)
 
+    @staticmethod
+    def _is_internal_request(request: Any, wait_seconds: float = 0) -> bool:
+        # Peek only; BaseHTTPRequestHandler still consumes the original bytes.
+        # If external capacity is exhausted, process_request may wait briefly for
+        # the complete header block. TCP accept can precede the client's first
+        # write, so a single zero-timeout peek is not a reliable classifier.
+        # The process-local token prevents ordinary clients from claiming the lane.
+        deadline = time.monotonic() + max(0.0, wait_seconds)
+        try:
+            while True:
+                remaining = max(0.0, deadline - time.monotonic())
+                readable, _, _ = select.select([request], [], [], remaining)
+                if not readable:
+                    return False
+                head = request.recv(16384, socket.MSG_PEEK)
+                if b"\r\n\r\n" in head or len(head) >= 16384:
+                    break
+                if wait_seconds <= 0 or time.monotonic() >= deadline:
+                    return False
+                time.sleep(min(0.001, max(0.0, deadline - time.monotonic())))
+            header_block = head.split(b"\r\n\r\n", 1)[0]
+            headers = {}
+            for line in header_block.split(b"\r\n")[1:]:
+                name, separator, value = line.partition(b":")
+                if separator:
+                    headers[name.strip().lower()] = value.strip()
+            marker = headers.get(b"x-ce-internal-call", b"").lower() == b"true"
+            token = headers.get(b"x-ce-internal-token", b"")
+            expected = INTERNAL_CALL_TOKEN.encode("ascii")
+            return marker and hmac.compare_digest(token, expected)
+        except (OSError, ValueError):
+            return False
+
+    def _reject_capacity(self, request: Any) -> None:
+        request_id = str(uuid.uuid4())
+        body = _error("service_unavailable", "request capacity is temporarily exhausted", retryable=True)
+        body["request_id"] = request_id
+        payload = json.dumps(body, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
+        response = (
+            b"HTTP/1.1 503 Service Unavailable\r\n"
+            b"Content-Type: application/json; charset=utf-8\r\n"
+            + f"Content-Length: {len(payload)}\r\n".encode("ascii")
+            + f"X-CE-Request-ID: {request_id}\r\n".encode("ascii")
+            + b"Connection: close\r\n\r\n"
+            + payload
+        )
+        try:
+            request.sendall(response)
+        except OSError:
+            pass
+        finally:
+            self.shutdown_request(request)
+
     def process_request(self, request: Any, client_address: Any) -> None:
+        if self._is_internal_request(request):
+            slot = self._internal_slots
+            if not slot.acquire(blocking=False):
+                self._reject_capacity(request)
+                return
+        else:
+            slot = self._external_slots
+            if not slot.acquire(blocking=False):
+                # Only wait for headers when the external lane is full. This
+                # avoids stalling the accept loop during normal traffic while
+                # closing the accept-before-write race for nested REST calls.
+                if self._is_internal_request(request, wait_seconds=0.25):
+                    slot = self._internal_slots
+                    if not slot.acquire(blocking=False):
+                        self._reject_capacity(request)
+                        return
+                else:
+                    self._reject_capacity(request)
+                    return
         if not self._worker_slots.acquire(blocking=False):
-            request_id = str(uuid.uuid4())
-            body = _error("service_unavailable", "request capacity is temporarily exhausted", retryable=True)
-            body["request_id"] = request_id
-            payload = json.dumps(body, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
-            response = (
-                b"HTTP/1.1 503 Service Unavailable\r\n"
-                b"Content-Type: application/json; charset=utf-8\r\n"
-                + f"Content-Length: {len(payload)}\r\n".encode("ascii")
-                + f"X-CE-Request-ID: {request_id}\r\n".encode("ascii")
-                + b"Connection: close\r\n\r\n"
-                + payload
-            )
-            try:
-                request.sendall(response)
-            except OSError:
-                pass
-            finally:
-                self.shutdown_request(request)
+            slot.release()
+            self._reject_capacity(request)
             return
+        with self._slot_lock:
+            self._request_slots[request] = slot
         try:
             super().process_request(request, client_address)
         except Exception:
+            with self._slot_lock:
+                self._request_slots.pop(request, None)
+            slot.release()
             self._worker_slots.release()
             raise
 
@@ -785,6 +938,10 @@ class BoundedThreadingHTTPServer(ThreadingHTTPServer):
         try:
             super().process_request_thread(request, client_address)
         finally:
+            with self._slot_lock:
+                slot = self._request_slots.pop(request, None)
+            if slot is not None:
+                slot.release()
             self._worker_slots.release()
 
 
