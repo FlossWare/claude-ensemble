@@ -30,6 +30,7 @@ from .index import IndexError as IndexServiceError, get_index_service
 from .memory import MemoryError as MemoryServiceError, get_memory_service
 from .graph import GraphError, get_graph_service
 from .thompson import ThompsonError, get_thompson_service
+from .learning import LearningError, get_learning_service
 from .internal_calls import INTERNAL_CALL_TOKEN
 from .chunking import (
     MAX_CONTENT_BYTES, MAX_CHUNKS, DEFAULT_POLICY, ChunkingError, Policy, chunk_document, chunk_spans, validate_index_profile,
@@ -543,6 +544,13 @@ class Handler(BaseHTTPRequestHandler):
                 self._send(200, response, request_id)
             except MemoryServiceError as exc:
                 self._send(exc.status, _error(exc.code, str(exc), retryable=exc.status >= 500), request_id)
+        elif urlsplit(self.path).path.startswith("/api/v1/learning/"):
+            try:
+                parsed = urlsplit(self.path)
+                status, response = get_learning_service().handle("GET", parsed.path, None, self.headers, request_id)
+                self._send(status, response, request_id)
+            except LearningError as exc:
+                self._send(exc.status, _error(exc.code, str(exc), retryable=exc.status >= 500), request_id)
         elif urlsplit(self.path).path.startswith("/api/v1/thompson/"):
             try:
                 parsed = urlsplit(self.path)
@@ -585,7 +593,8 @@ class Handler(BaseHTTPRequestHandler):
             memory_path.startswith("/api/v1/memories/") and memory_path.endswith("/revisions"))
         is_graph_route = memory_path.startswith("/api/v1/graph/")
         is_thompson_route = memory_path.startswith("/api/v1/thompson/")
-        if not is_index_route and not is_memory_route and not is_graph_route and not is_thompson_route and self.path not in (
+        is_learning_route = memory_path.startswith("/api/v1/learning/")
+        if not is_index_route and not is_memory_route and not is_graph_route and not is_thompson_route and not is_learning_route and self.path not in (
             "/api/v1/chunking/chunks", "/api/v1/chunking/preflight",
             "/api/v1/tokenization/lexical", "/api/v1/tokenization/lexical/batch",
             "/api/v1/embeddings", "/api/v1/ranking/rank",
@@ -636,6 +645,11 @@ class Handler(BaseHTTPRequestHandler):
             except (UnicodeDecodeError, json.JSONDecodeError, ValueError) as exc:
                 raise ChunkingError("invalid_request", "request body must be valid UTF-8 JSON without duplicate object keys", status=400) from exc
             _validate_json_unicode(request)
+            if is_learning_route:
+                parsed = urlsplit(self.path)
+                status, response = get_learning_service().handle("POST", parsed.path, request, self.headers, request_id)
+                self._send(status, response, request_id)
+                return
             if is_thompson_route:
                 parsed = urlsplit(self.path)
                 status, response = get_thompson_service().handle("POST", parsed.path, parse_qs(parsed.query), request, self.headers, request_id)
