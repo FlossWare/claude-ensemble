@@ -40,6 +40,6 @@ All mutating POST calls require `Idempotency-Key`. Lexical and vector retrieval 
 
 ## Deliberate limitations
 
-This is the first implementation slice, not the full Index contract acceptance claim. The broader lifecycle still needs explicit verification of owner journals and replay acknowledgments, stable manifest snapshots, idempotency-key retention/expiry, complete profile-schema validation, source-failure accounting, cutover failure recovery, and HTTP-level deadline/failure injection. The generalized multi-version profile registry in [PR #11](https://github.com/FlossWare/claude-ensemble/pull/11) remains deferred until a real consumer requires it.
+This is the first implementation slice, not the full Index contract acceptance claim. The broader lifecycle still needs explicit verification of owner journals and replay acknowledgments, idempotency-key retention/expiry, source-failure accounting, cutover failure recovery, and HTTP-level deadline/failure injection. Manifest pagination now uses a persisted, expiring snapshot so concurrent mutations do not shift later pages. The profile bundle validator enforces the documented component identities and bounded-size constraints. The generalized multi-version profile registry in [PR #11](https://github.com/FlossWare/claude-ensemble/pull/11) remains deferred until a real consumer requires it.
 
 Keep the PR in draft until the complete test suite and the remaining lifecycle checks pass. Static contract validation alone is not runtime acceptance evidence.
