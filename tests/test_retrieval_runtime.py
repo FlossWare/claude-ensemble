@@ -246,6 +246,27 @@ class RetrievalAlgorithmTests(unittest.TestCase):
             self._run_vector_rerank_contract_test(rerank)
         self.assertEqual(raised.exception.status, 503)
 
+    def test_vector_reranking_rejects_boolean_score(self):
+        def rerank(req):
+            response = self._valid_rerank_response(req)
+            response["candidates"][0]["score"] = True
+            return response
+        with self.assertRaises(RetrievalError) as raised:
+            self._run_vector_rerank_contract_test(rerank)
+        self.assertEqual(raised.exception.status, 503)
+
+    def test_vector_reranking_cannot_overwrite_authoritative_provenance(self):
+        def rerank(req):
+            response = self._valid_rerank_response(req)
+            response["candidates"][0]["provenance"] = {
+                "index_generation": "forged-generation",
+                "reranker_profile": "default-reranker@0.1",
+            }
+            return response
+        result = self._run_vector_rerank_contract_test(rerank)
+        self.assertEqual(result["candidates"][0]["provenance"]["index_generation"], "g1")
+        self.assertEqual(result["candidates"][0]["provenance"]["reranker_profile"], "default-reranker@0.1")
+
     def test_vector_reranking_rejects_invalid_or_duplicate_rank(self):
         for invalid_rank in (0, 3, 1.5, True):
             with self.subTest(rank=invalid_rank):
