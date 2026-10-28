@@ -227,6 +227,10 @@ class MemoryOwnerTests(unittest.TestCase):
                 self.assertEqual(payload["delete_scope"], "source")
                 self.assertEqual(extra_headers["Idempotency-Key"], payload["operation_id"])
                 return {"status": "applied"}
+            if path == "/api/v1/graph/reconciliation/checkpoints":
+                self.assertEqual(payload["owner"], "memory")
+                self.assertGreaterEqual(payload["sealed_projection_sequence"], 1)
+                return {"owner": "memory", "ready": True}
             if path == "/api/v1/index/operations/upsert":
                 self.assertEqual(payload["representations"][0]["lexical"]["terms"], ["remember", "rest"])
                 self.assertEqual(payload["representations"][0]["vector"]["values"], [1.0, 0.0, 0.0])
@@ -294,6 +298,18 @@ class MemoryOwnerTests(unittest.TestCase):
         self.assertEqual(self.service.operation(created["operation_id"], scope_value=SCOPE)["status"], "pending")
         self.service.update_graph_operation(created["operation_id"], "indexed")
         self.assertEqual(self.service.operation(created["operation_id"], scope_value=SCOPE)["status"], "complete")
+
+    def test_graph_checkpoint_watermark_waits_for_all_journal_entries(self):
+        _, created = self.service.create(create_request(), "create-1", "req-1")
+        self.assertIsNone(self.service.graph_projection_checkpoint_sequence())
+
+        self.service.update_graph_operation(created["operation_id"], "indexed")
+        self.assertEqual(self.service.graph_projection_checkpoint_sequence(), 1)
+
+        _, deleted = self.service.delete(created["memory_id"], SCOPE, "source", "delete-1", "req-2")
+        self.assertIsNone(self.service.graph_projection_checkpoint_sequence())
+        self.service.update_graph_operation(deleted["operation_id"], "indexed")
+        self.assertEqual(self.service.graph_projection_checkpoint_sequence(), 2)
 
     def test_concurrent_creates_allocate_unique_contiguous_graph_sequences(self):
         results = []
