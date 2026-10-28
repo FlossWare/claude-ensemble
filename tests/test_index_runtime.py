@@ -175,6 +175,39 @@ class IndexRuntimeTests(unittest.TestCase):
             thread.join(timeout=2)
             reset_index_service_for_tests()
 
+    def test_generation_creation_is_idempotent_and_payload_matches_schema(self):
+        class Headers(dict):
+            def get(self, key, default=None):
+                return super().get(key, default)
+        headers = Headers({"Idempotency-Key": "generation-key"})
+        status, first = self.service.handle(
+            "POST", "/api/v1/index/generations", {}, {"index_profile": self.identity, "request_id": "one"}, headers, "one"
+        )
+        self.assertEqual(status, 202)
+        self.assertEqual(set(first["owner_reconciliation_checkpoints"]), {"memory", "knowledge"})
+        self.assertIn("failed_sources", first["counts"])
+        status, second = self.service.handle(
+            "POST", "/api/v1/index/generations", {}, {"index_profile": self.identity, "request_id": "two"}, headers, "two"
+        )
+        self.assertEqual(status, 200)
+        self.assertEqual(first["generation_id"], second["generation_id"])
+        with self.assertRaisesRegex(IndexError, "idempotency key was reused"):
+            self.service.handle(
+                "POST", "/api/v1/index/generations", {},
+                {"index_profile": self.identity, "unexpected_semantic_change": True}, headers, "three"
+            )
+
+    def test_vector_lookup_honors_source_revision_filter(self):
+        self.service.upsert(self.upsert_request(), "idem-a")
+        request = {
+            "request_id": "req-filter", "scope": SCOPE, "index_profile": self.identity,
+            "embedding_profile": {"name": "technical-default", "version": "0.1"},
+            "query_vector": [1.0, 0.0, 0.0], "input_type": "query", "metric": "cosine", "limit": 5,
+            "index_generation": self.service.active_generation()["generation_id"],
+            "source_revisions": ["not-rev-1"],
+        }
+        self.assertEqual(self.service.vector_neighbors(request)["candidates"], [])
+
     def test_handle_exposes_profile_and_health_routes(self):
         class Headers(dict):
             def get(self, key, default=None):
