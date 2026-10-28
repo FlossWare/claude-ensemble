@@ -12,6 +12,8 @@ import os
 import sqlite3
 import threading
 import uuid
+from datetime import datetime, timezone
+from urllib.parse import unquote, parse_qs
 from pathlib import Path
 from typing import Any
 
@@ -430,6 +432,202 @@ class IndexService:
                 c["distance" if metric == "euclidean" else "similarity"] = score
                 candidates.append(c)
             return {"candidates": candidates, "truncated": len(scored) > limit, "index_generation": gen["generation_id"], "request_id": request.get("request_id", "index")}
+
+
+    def handle(self, method: str, path: str, query: dict[str, list[str]], body: dict[str, Any] | None,
+               headers: Any, request_id: str) -> tuple[int, dict[str, Any]]:
+        """Dispatch one Index REST request. This is called only by the shared HTTP server."""
+        parts = [unquote(p) for p in path.strip("/").split("/")]
+        if parts[:3] != ["api", "v1", "index"]:
+            raise _error("endpoint_not_found", "Index endpoint not found", 404)
+        tail = parts[3:]
+        payload = dict(body or {})
+        payload["request_id"] = payload.get("request_id", request_id)
+
+        if method == "GET" and tail == ["health"]:
+            return 200, {"service": "index", "status": "alive", "request_id": request_id}
+        if method == "GET" and tail == ["ready"]:
+            try:
+                active = self.active_generation()
+                return 200, {"service": "index", "status": "ready", "ready": True,
+                             "checks": [{"name": "profile_bundle", "status": "ok"},
+                                        {"name": "active_generation", "status": "ok"}],
+                             "active_generation": active["generation_id"], "request_id": request_id}
+            except IndexError:
+                return 503, {"service": "index", "status": "not_ready", "ready": False,
+                             "checks": [{"name": "profile_bundle", "status": "unavailable"}],
+                             "request_id": request_id}
+        if method == "GET" and tail == ["generations", "active"]:
+            return 200, self.active_generation()
+        if method == "GET" and len(tail) == 5 and tail[0] == "profiles" and tail[2] == "versions":
+            return 200, self.profile_version(tail[1], tail[3])
+        if method == "GET" and len(tail) == 3 and tail[0] == "profiles" and tail[2] == "current":
+            with self._connect() as db:
+                rows = db.execute("SELECT bundle_json FROM profiles WHERE name=? ORDER BY version", (tail[1],)).fetchall()
+                if not rows:
+                    raise _error("profile_not_found", "Index profile was not found", 404)
+                if len(rows) != 1:
+                    raise _error("conflict", "multiple versions are provisioned; current profile selection is not configured", 409)
+                bundle = json.loads(rows[0]["bundle_json"])
+                return 200, {"name": bundle["name"], "version": bundle["version"], "digest": bundle["digest"],
+                             "bundle": bundle, "request_id": request_id}
+        if method == "GET" and len(tail) == 2 and tail[0] == "operations":
+            result = self.operation(tail[1])
+            result["request_id"] = request_id
+            return 200, result
+        if method == "GET" and len(tail) == 3 and tail[0] == "sources" and tail[2] == "status":
+            result = self.source_status(tail[1])
+            result["request_id"] = request_id
+            return 200, result
+        if method == "GET" and tail == ["sources", "manifest"]:
+            params = {key: values[-1] for key, values in query.items() if values}
+            owner = params.get("owner")
+            limit_text = params.get("limit", "100")
+            if owner not in {"memory", "knowledge"} or not limit_text.isdecimal() or not 1 <= int(limit_text) <= 100:
+                raise _error("invalid_request", "owner and limit (1-100) are required")
+            limit = int(limit_text)
+            cursor = params.get("cursor")
+            with self._connect() as db:
+                rows = db.execute("SELECT s.source_id,s.latest_sequence,s.indexed_sequence,s.scope_json,t.tombstone_sequence FROM sources s LEFT JOIN tombstones t ON t.source_id=s.source_id WHERE s.source_id LIKE ? ORDER BY s.source_id",
+                                  (owner + ":%",)).fetchall()
+                rows = [row for row in rows if cursor is None or row["source_id"] > cursor]
+                selected = rows[:limit]
+                return 200, {"owner": owner, "items": [{"source_id": row["source_id"],
+                    "latest_revision_sequence": row["latest_sequence"], "indexed_revision_sequence": row["indexed_sequence"],
+                    "tombstone_sequence": row["tombstone_sequence"]} for row in selected],
+                    "next_cursor": selected[-1]["source_id"] if len(rows) > limit and selected else None,
+                    "request_id": request_id}
+        if method == "GET" and len(tail) == 2 and tail[0] == "generations":
+            with self._connect() as db:
+                row = db.execute("SELECT * FROM generations WHERE generation_id=?", (tail[1],)).fetchone()
+                if not row:
+                    raise _error("generation_not_found", "Index generation was not found", 404)
+                result = self._generation_payload(db, row)
+                result["request_id"] = request_id
+                return 200, result
+
+        if method == "POST" and tail == ["operations", "upsert"]:
+            return self.upsert(payload, headers.get("Idempotency-Key", ""))
+        if method == "POST" and tail == ["operations", "delete"]:
+            return self.delete(payload, headers.get("Idempotency-Key", ""))
+        if method == "POST" and tail == ["lexical", "lookup"]:
+            return 200, self.lexical_lookup(payload)
+        if method == "POST" and tail == ["vector-neighbors"]:
+            return 200, self.vector_neighbors(payload)
+        if method == "POST" and tail == ["generations"]:
+            if not headers.get("Idempotency-Key"):
+                raise _error("invalid_request", "Idempotency-Key header is required")
+            with self._lock, self._connect() as db:
+                bundle, _ = self._profile(db, payload.get("index_profile"))
+                generation_id = "gen-" + uuid.uuid4().hex
+                db.execute("INSERT INTO generations(generation_id,status,profile_name,profile_version,profile_digest) VALUES(?,?,?,?,?)",
+                           (generation_id, "building", bundle["name"], bundle["version"], bundle["digest"]))
+                row = db.execute("SELECT * FROM generations WHERE generation_id=?", (generation_id,)).fetchone()
+                return 202, self._generation_payload(db, row)
+        if method == "POST" and len(tail) == 3 and tail[0] == "generations" and tail[2] == "abandon":
+            with self._lock, self._connect() as db:
+                row = db.execute("SELECT * FROM generations WHERE generation_id=?", (tail[1],)).fetchone()
+                if not row:
+                    raise _error("generation_not_found", "Index generation was not found", 404)
+                active = db.execute("SELECT generation_id FROM active_generation WHERE singleton=1").fetchone()
+                if active and active["generation_id"] == tail[1]:
+                    raise _error("active_generation_cannot_be_abandoned", "active generation cannot be abandoned", 409)
+                if row["status"] != "building":
+                    raise _error("conflict", "only a building generation can be abandoned", 409)
+                db.execute("UPDATE generations SET status='abandoned' WHERE generation_id=?", (tail[1],))
+                updated = db.execute("SELECT * FROM generations WHERE generation_id=?", (tail[1],)).fetchone()
+                return 200, self._generation_payload(db, updated)
+        if method == "POST" and len(tail) == 3 and tail[0] == "generations" and tail[2] == "owner-checkpoints":
+            owner = payload.get("owner")
+            sequence = payload.get("applied_change_sequence")
+            if owner not in {"memory", "knowledge"} or type(sequence) is not int or sequence < 0:
+                raise _error("invalid_request", "owner and nonnegative applied_change_sequence are required")
+            with self._lock, self._connect() as db:
+                gen = db.execute("SELECT generation_id,status FROM generations WHERE generation_id=?", (tail[1],)).fetchone()
+                if not gen or gen["status"] != "building":
+                    raise _error("generation_not_found", "building generation was not found", 404)
+                old = db.execute("SELECT applied_sequence FROM owner_checkpoints WHERE generation_id=? AND owner=?", (tail[1], owner)).fetchone()
+                if old and sequence < old["applied_sequence"]:
+                    raise _error("revision_sequence_regression", "owner checkpoint cannot regress", 409)
+                db.execute("INSERT INTO owner_checkpoints(generation_id,owner,applied_sequence) VALUES(?,?,?) ON CONFLICT(generation_id,owner) DO UPDATE SET applied_sequence=excluded.applied_sequence",
+                           (tail[1], owner, sequence))
+                return 200, {"owner": owner, "applied_change_sequence": sequence, "request_id": request_id}
+        if method == "PUT" and len(tail) == 5 and tail[0] == "generations" and tail[2] == "owner-fences":
+            generation_id, owner, fence_id = tail[1], tail[3], tail[4]
+            if payload.get("owner") != owner or payload.get("target_generation") != generation_id or payload.get("fence_id") != fence_id or payload.get("state") != "held":
+                raise _error("invalid_request", "fence identity does not match URL")
+            expires = payload.get("expires_at")
+            try:
+                expiry = datetime.fromisoformat(expires.replace("Z", "+00:00"))
+            except (AttributeError, ValueError):
+                raise _error("invalid_request", "expires_at must be an RFC3339 timestamp")
+            now = datetime.now(timezone.utc)
+            if expiry <= now or (expiry - now).total_seconds() > 300:
+                raise _error("fence_expired", "fence expiry must be in the future and within 300 seconds", 409)
+            with self._lock, self._connect() as db:
+                gen = db.execute("SELECT status FROM generations WHERE generation_id=?", (generation_id,)).fetchone()
+                if not gen or gen["status"] != "building" or owner not in {"memory", "knowledge"}:
+                    raise _error("generation_not_found", "building generation or owner was not found", 404)
+                sequence = payload.get("sealed_change_sequence")
+                if type(sequence) is not int or sequence < 0 or not isinstance(payload.get("fence_token"), str) or len(payload["fence_token"]) < 16:
+                    raise _error("invalid_request", "fence token or sealed sequence is invalid")
+                cp = db.execute("SELECT applied_sequence FROM owner_checkpoints WHERE generation_id=? AND owner=?", (generation_id, owner)).fetchone()
+                if not cp or cp["applied_sequence"] < sequence:
+                    raise _error("generation_not_caught_up", "owner checkpoint has not reached the sealed sequence", 409)
+                old = db.execute("SELECT * FROM owner_fences WHERE generation_id=? AND owner=? AND fence_id=?", (generation_id, owner, fence_id)).fetchone()
+                values = (generation_id, owner, fence_id, payload["fence_token"], sequence, expiry.isoformat(), "held")
+                if old and tuple(old[k] for k in ("generation_id","owner","fence_id","fence_token","sealed_sequence","expires_at","state")) != values:
+                    raise _error("conflict", "fence ID was reused with different contents", 409)
+                db.execute("INSERT OR IGNORE INTO owner_fences VALUES(?,?,?,?,?,?,?)", values)
+                return 200, {"owner": owner, "target_generation": generation_id, "fence_id": fence_id,
+                             "fence_token": payload["fence_token"], "expires_at": expiry.isoformat(),
+                             "sealed_change_sequence": sequence, "fence_state": "held", "request_id": request_id}
+        if method == "DELETE" and len(tail) == 5 and tail[0] == "generations" and tail[2] == "owner-fences":
+            generation_id, owner, fence_id = tail[1], tail[3], tail[4]
+            with self._lock, self._connect() as db:
+                row = db.execute("SELECT state FROM owner_fences WHERE generation_id=? AND owner=? AND fence_id=?", (generation_id, owner, fence_id)).fetchone()
+                if not row:
+                    raise _error("not_found", "owner fence was not found", 404)
+                db.execute("UPDATE owner_fences SET state='released' WHERE generation_id=? AND owner=? AND fence_id=?", (generation_id, owner, fence_id))
+                return 200, {"owner": owner, "target_generation": generation_id, "fence_id": fence_id, "released": True, "request_id": request_id}
+        if method == "POST" and len(tail) == 3 and tail[0] == "generations" and tail[2] == "cutover":
+            expected = payload.get("expected_active_generation")
+            fences = payload.get("owner_fences")
+            if not headers.get("Idempotency-Key") or not isinstance(fences, list) or len(fences) != 2:
+                raise _error("invalid_request", "Idempotency-Key and exactly two owner fences are required")
+            with self._lock, self._connect() as db:
+                active = db.execute("SELECT generation_id FROM active_generation WHERE singleton=1").fetchone()
+                target = db.execute("SELECT * FROM generations WHERE generation_id=?", (tail[1],)).fetchone()
+                if not active or active["generation_id"] != expected:
+                    raise _error("conflict", "active generation changed before cutover", 409)
+                if not target or target["status"] != "building":
+                    raise _error("generation_not_found", "building target generation was not found", 404)
+                seen = set()
+                for ref in fences:
+                    owner = ref.get("owner")
+                    if owner not in {"memory", "knowledge"} or owner in seen:
+                        raise _error("invalid_request", "cutover requires one fence per owner")
+                    seen.add(owner)
+                    fence = db.execute("SELECT * FROM owner_fences WHERE generation_id=? AND owner=? AND fence_id=?", (tail[1], owner, ref.get("fence_id"))).fetchone()
+                    if not fence or fence["state"] != "held" or fence["fence_token"] != ref.get("fence_token") or datetime.fromisoformat(fence["expires_at"]) <= datetime.now(timezone.utc):
+                        raise _error("fence_expired", "cutover fence is missing, released, or expired", 409)
+                    if fence["sealed_sequence"] != ref.get("sealed_change_sequence"):
+                        raise _error("conflict", "cutover sealed sequence does not match registered fence", 409)
+                    cp = db.execute("SELECT applied_sequence FROM owner_checkpoints WHERE generation_id=? AND owner=?", (tail[1], owner)).fetchone()
+                    if not cp or cp["applied_sequence"] < fence["sealed_sequence"]:
+                        raise _error("generation_not_caught_up", "owner checkpoint is behind sealed sequence", 409)
+                if seen != {"memory", "knowledge"}:
+                    raise _error("invalid_request", "cutover requires memory and knowledge fences")
+                db.execute("UPDATE generations SET status='retired' WHERE generation_id=?", (active["generation_id"],))
+                db.execute("UPDATE generations SET status='active' WHERE generation_id=?", (tail[1],))
+                db.execute("UPDATE active_generation SET generation_id=? WHERE singleton=1", (tail[1],))
+                row = db.execute("SELECT * FROM generations WHERE generation_id=?", (tail[1],)).fetchone()
+                return 200, self._generation_payload(db, row)
+
+        if path.startswith("/api/v1/index/"):
+            if method in {"GET", "POST", "PUT", "DELETE"}:
+                raise _error("endpoint_not_found", "Index endpoint not found", 404)
+        raise _error("method_not_allowed", "HTTP method is not supported for this Index endpoint", 405)
 
 
 _service_lock = threading.Lock()
