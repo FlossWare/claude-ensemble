@@ -104,7 +104,7 @@ class IndexService:
     def _bootstrap_chroma_generation(
         self, db: sqlite3.Connection, generation_id: str, bundle: dict[str, Any]
     ) -> None:
-        """Populate an empty/new Chroma collection from existing SQLite vectors once per process."""
+        """Seed only missing vector IDs from SQLite; never clear a live collection on a query."""
         if self.vector_backend == "sqlite" or generation_id in self._bootstrapped_generations:
             return
         store = self._vector_store(generation_id, bundle)
@@ -113,23 +113,19 @@ class IndexService:
                 "SELECT source_id,revision_sequence,chunk_id FROM representations WHERE generation_id=? AND vector_json IS NOT NULL",
                 (generation_id,),
             ).fetchall()
-            expected_ids = {
-                record_id({"generation_id": generation_id, "source_id": row["source_id"],
-                           "revision_sequence": row["revision_sequence"], "chunk_id": row["chunk_id"]})
-                for row in expected_rows
-            }
-            if store.list_ids() == expected_ids:
-                self._bootstrapped_generations.add(generation_id)
-                return
-            store.clear()
+            existing_ids = store.list_ids()
         except VectorStoreError as exc:
             raise _error("vector_store_unavailable", str(exc), 503) from exc
-        source_rows = db.execute(
-            "SELECT DISTINCT source_id FROM representations WHERE generation_id=? AND vector_json IS NOT NULL",
-            (generation_id,),
-        ).fetchall()
-        for source_row in source_rows:
-            self._sync_chroma_source(db, generation_id, source_row["source_id"], bundle)
+        missing_sources = {
+            row["source_id"] for row in expected_rows
+            if record_id({"generation_id": generation_id, "source_id": row["source_id"],
+                          "revision_sequence": row["revision_sequence"], "chunk_id": row["chunk_id"]})
+            not in existing_ids
+        }
+        # Source writes are bounded by the profile's chunk limit. A partially
+        # populated collection is filled incrementally without destructive rebuilds.
+        for source_id in sorted(missing_sources):
+            self._sync_chroma_source(db, generation_id, source_id, bundle)
         self._bootstrapped_generations.add(generation_id)
 
     def _sync_chroma_source(self, db: sqlite3.Connection, generation_id: str,
@@ -154,7 +150,10 @@ class IndexService:
                     "scope": json.loads(row["scope_json"]), "text": row["text"],
                     "embedding": json.loads(row["vector_json"]),
                 })
-            store.replace_source(source_id, records)
+            # Never delete the prior committed revision before SQLite commits.
+            # Orphaned newer vectors are harmless because query candidates must
+            # match SQLite's current representation; deterministic IDs make retry idempotent.
+            store.upsert(records)
         except VectorStoreError as exc:
             raise _error("vector_store_unavailable", str(exc), 503) from exc
 
@@ -953,6 +952,7 @@ class IndexService:
                 except VectorStoreError as exc:
                     raise _error("vector_store_unavailable", str(exc), 503) from exc
                 candidates = []
+                discarded_candidates = False
                 for candidate in raw_candidates:
                     row = db.execute(
                         """SELECT * FROM representations
@@ -965,12 +965,14 @@ class IndexService:
                          emb["model"], emb["model_version"], emb["dimensions"]),
                     ).fetchone()
                     if row is None:
+                        discarded_candidates = True
                         continue
                     tomb = db.execute(
                         "SELECT tombstone_sequence FROM tombstones WHERE source_id=?",
                         (row["source_id"],),
                     ).fetchone()
                     if tomb and row["revision_sequence"] <= tomb["tombstone_sequence"]:
+                        discarded_candidates = True
                         continue
                     item = {
                         "source_id": row["source_id"], "source_revision": row["source_revision"],
@@ -990,7 +992,8 @@ class IndexService:
                     item["source_id"], -item["revision_sequence"], item["chunk_id"],
                     item["chunker"]["profile"], item["chunker"]["version"],
                 ))
-                truncated = len(candidates) > limit or len(raw_candidates) == 100
+                truncated = (len(candidates) > limit or len(raw_candidates) == 100
+                             or discarded_candidates)
                 candidates = candidates[:limit]
                 for rank, candidate in enumerate(candidates, 1):
                     candidate["retrieval_rank"] = rank
