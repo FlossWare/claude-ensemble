@@ -278,8 +278,6 @@ class VectorRetrievalService:
         expected = bundle.get("embedding", {})
         if expected.get("profile") != embedding_profile.get("name") or expected.get("version") != embedding_profile.get("version"):
             raise RetrievalError("unsupported_profile", "embedding profile does not match the pinned Index bundle", 422)
-        if self._rerank_call is None:
-            raise RetrievalError("dependency_unavailable", "reranking endpoint is required for vector retrieval", 503)
         query = request.get("query")
         if not isinstance(query, dict):
             raise RetrievalError("invalid_request", "query must be an object")
@@ -334,6 +332,8 @@ class VectorRetrievalService:
         rerank_query = query.get("text", request.get("rerank_query"))
         shortlist = candidates[:min(limit, 20)]
         if shortlist:
+            if self._rerank_call is None:
+                raise RetrievalError("dependency_unavailable", "reranking endpoint is required for vector retrieval", 503)
             rerank_query = _string(rerank_query, "rerank_query", 16384)
             rerank_request = {
                 "request_id": request_id,
