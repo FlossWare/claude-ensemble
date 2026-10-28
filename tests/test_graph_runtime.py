@@ -1,6 +1,7 @@
 """Durability, support semantics, and bounded traversal tests for Graph."""
 from __future__ import annotations
 
+import sqlite3
 import tempfile
 import unittest
 from pathlib import Path
@@ -199,6 +200,48 @@ class GraphRuntimeTests(unittest.TestCase):
             "scope": SCOPE, "start_node_ids": ["node-a"], "direction": "outgoing",
         }, "after-reprojection")
         self.assertEqual(result["paths"], [])
+
+    def test_projection_rolls_back_all_changes_when_edge_persistence_fails(self):
+        self.service.project(self.projection(
+            operation_id="memory-initial", source_id="memory:m1",
+            nodes=[{"node_id": "node-a", "node_type": "service", "label": "Original"}],
+            edges=[],
+        ), "initial")
+        self.service.project(self.projection(
+            operation_id="knowledge-node-c", source_id="knowledge:k1",
+            owner_sequence=1,
+            nodes=[{"node_id": "node-c", "node_type": "project", "label": "Target"}],
+            edges=[],
+        ), "knowledge")
+
+        with sqlite3.connect(self.db_path) as db:
+            db.execute("""
+                CREATE TRIGGER fail_graph_edge_insert
+                BEFORE INSERT ON graph_edges
+                BEGIN
+                    SELECT RAISE(ABORT, 'injected edge write failure');
+                END
+            """)
+
+        replacement = self.projection(
+            operation_id="memory-replacement", source_id="memory:m1",
+            source_revision="rev-2", revision_sequence=2, owner_sequence=2,
+            nodes=[{"node_id": "node-b", "node_type": "service", "label": "Replacement"}],
+            edges=[{"edge_id": "edge-b-c", "source_node_id": "node-b",
+                    "target_node_id": "node-c", "relationship_type": "uses", "directed": True}],
+        )
+        with self.assertRaises(sqlite3.IntegrityError):
+            self.service.project(replacement, "replacement")
+
+        with sqlite3.connect(self.db_path) as db:
+            nodes = db.execute(
+                "SELECT node_id FROM graph_nodes WHERE source_id='memory:m1' ORDER BY node_id"
+            ).fetchall()
+            source = db.execute(
+                "SELECT revision_sequence,source_revision FROM graph_sources WHERE source_id='memory:m1'"
+            ).fetchone()
+        self.assertEqual(nodes, [("node-a",)])
+        self.assertEqual(source, (1, "rev-1"))
 
     def test_owner_checkpoint_stays_not_ready_until_contiguous_journal_replay(self):
         later = self.projection(operation_id="memory-op-2", source_id="memory:m2",
