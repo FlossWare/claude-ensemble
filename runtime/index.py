@@ -508,9 +508,9 @@ class IndexService:
                         "request_id": request.get("request_id", "index")}
             db.execute("INSERT INTO operations(operation_id,idempotency_key,payload_hash,status,response_json) VALUES(?,?,?,?,?)",
                        (request["operation_id"], idempotency_key, payload_hash, "complete", _canonical(response).decode()))
-            if is_active_generation and (not old or seq > old["latest_sequence"]):
-                # A new active mutation invalidates prior readiness and is dual-applied
-                # to compatible target generations before this transaction commits.
+            if is_active_generation:
+                # Active writes and idempotent replays repair/maintain compatible target
+                # generations before this transaction commits.
                 db.execute("UPDATE generations SET status='building' WHERE status='eligible' AND profile_digest=?",
                            (gen["profile_digest"],))
                 building = db.execute("SELECT generation_id FROM generations WHERE status='building' AND profile_digest=? AND generation_id<>?",
