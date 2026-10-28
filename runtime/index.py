@@ -175,7 +175,8 @@ class IndexService:
             raise _error("profile_mismatch", "pinned Index profile digest does not match", 409)
         return json.loads(row["bundle_json"]), row
 
-    def _generation(self, db: sqlite3.Connection, generation_id: str | None, identity: dict[str, Any]) -> sqlite3.Row:
+    def _generation(self, db: sqlite3.Connection, generation_id: str | None, identity: dict[str, Any],
+                    *, allow_building: bool = False) -> sqlite3.Row:
         if generation_id is None:
             active = db.execute("SELECT generation_id FROM active_generation WHERE singleton=1").fetchone()
             if not active:
@@ -186,7 +187,10 @@ class IndexService:
             raise _error("generation_not_found", "Index generation was not found", 404)
         if generation["profile_digest"] != identity["digest"]:
             raise _error("profile_mismatch", "generation and pinned Index profile differ", 409)
-        if generation["status"] not in {"active", "building", "eligible"}:
+        allowed = {"active"}
+        if allow_building:
+            allowed.update({"building", "eligible"})
+        if generation["status"] not in allowed:
             raise _error("generation_not_found", "generation is not queryable", 409)
         return generation
 
@@ -269,7 +273,9 @@ class IndexService:
             if bundle.get("status") == "retired":
                 raise _error("profile_retired", "retired profiles cannot accept new writes", 409)
             target = request.get("target_generation")
-            gen = self._generation(db, target, request["index_profile"])
+            gen = self._generation(db, target, request["index_profile"], allow_building=target is not None)
+            active_row = db.execute("SELECT generation_id FROM active_generation WHERE singleton=1").fetchone()
+            is_active_generation = active_row is not None and active_row["generation_id"] == gen["generation_id"]
             tomb = db.execute("SELECT tombstone_sequence FROM tombstones WHERE source_id=?", (source_id,)).fetchone()
             seq = source["revision_sequence"]
             if tomb and seq <= tomb["tombstone_sequence"]:
@@ -277,8 +283,13 @@ class IndexService:
             old = db.execute("SELECT latest_sequence,scope_json FROM sources WHERE source_id=?", (source_id,)).fetchone()
             if old and scope_json != old["scope_json"]:
                 raise _error("conflict", "a source identity cannot change scope partition", 409)
-            if old and seq <= old["latest_sequence"]:
-                raise _error("revision_sequence_regression", "a source revision sequence must strictly increase for a new operation", 409)
+            if is_active_generation:
+                if old and seq <= old["latest_sequence"]:
+                    raise _error("revision_sequence_regression", "a source revision sequence must strictly increase for a new operation", 409)
+            else:
+                prior_target = db.execute("SELECT MAX(revision_sequence) AS sequence FROM representations WHERE generation_id=? AND source_id=?", (gen["generation_id"], source_id)).fetchone()
+                if prior_target["sequence"] is not None and seq <= prior_target["sequence"]:
+                    raise _error("revision_sequence_regression", "target-generation revisions must increase within that generation", 409)
             validated = [self._check_representation(rep, bundle) for rep in reps]
             db.execute("DELETE FROM representations WHERE generation_id=? AND source_id=? AND revision_sequence<?",
                        (gen["generation_id"], source_id, seq))
@@ -296,8 +307,9 @@ class IndexService:
                      _canonical(vector.get("values")).decode() if vector else None,
                      vector.get("model"), vector.get("version"), vector.get("dimensions"),
                      _canonical(rep["metadata"]).decode()))
-            db.execute("INSERT INTO sources(source_id,latest_sequence,indexed_sequence,scope_json) VALUES(?,?,?,?) ON CONFLICT(source_id) DO UPDATE SET latest_sequence=MAX(latest_sequence,excluded.latest_sequence), indexed_sequence=MAX(indexed_sequence,excluded.indexed_sequence), scope_json=excluded.scope_json",
-                       (source_id, seq, seq, scope_json))
+            if is_active_generation:
+                db.execute("INSERT INTO sources(source_id,latest_sequence,indexed_sequence,scope_json) VALUES(?,?,?,?) ON CONFLICT(source_id) DO UPDATE SET latest_sequence=MAX(latest_sequence,excluded.latest_sequence), indexed_sequence=MAX(indexed_sequence,excluded.indexed_sequence), scope_json=excluded.scope_json",
+                           (source_id, seq, seq, scope_json))
             response = {"operation_id": request["operation_id"], "source_id": source_id, "source_revision": source["revision"],
                         "revision_sequence": seq, "status": "complete", "index_generation": gen["generation_id"],
                         "request_id": request.get("request_id", "index")}
@@ -357,10 +369,16 @@ class IndexService:
 
     def _generation_payload(self, db: sqlite3.Connection, row: sqlite3.Row) -> dict[str, Any]:
         counts = db.execute("SELECT COUNT(DISTINCT source_id) sources, COUNT(*) chunks, SUM(CASE WHEN vector_json IS NOT NULL THEN 1 ELSE 0 END) vectors FROM representations WHERE generation_id=?", (row["generation_id"],)).fetchone()
+        tombstones = db.execute("SELECT COUNT(*) AS count FROM tombstones").fetchone()["count"]
+        checkpoints = {item["owner"]: item["applied_sequence"] for item in db.execute(
+            "SELECT owner,applied_sequence FROM owner_checkpoints WHERE generation_id=?", (row["generation_id"],)).fetchall()}
+        fences = db.execute("SELECT owner,sealed_sequence,expires_at,state FROM owner_fences WHERE generation_id=?", (row["generation_id"],)).fetchall()
+        held = {item["owner"]: item for item in fences if item["state"] == "held" and datetime.fromisoformat(item["expires_at"]) > datetime.now(timezone.utc)}
+        eligible = row["status"] == "building" and set(checkpoints) >= {"memory", "knowledge"} and set(held) >= {"memory", "knowledge"} and all(checkpoints[o] >= held[o]["sealed_sequence"] for o in ("memory", "knowledge"))
         return {"generation_id": row["generation_id"], "status": row["status"],
                 "index_profile": {"name": row["profile_name"], "version": row["profile_version"], "digest": row["profile_digest"]},
-                "request_id": "index", "counts": {"sources": counts["sources"], "chunks": counts["chunks"], "vectors": counts["vectors"] or 0, "tombstones": 0, "failed_sources": 0},
-                "owner_reconciliation_checkpoints": {}, "validation_results": [], "cutover_eligible": False}
+                "request_id": "index", "counts": {"sources": counts["sources"], "chunks": counts["chunks"], "vectors": counts["vectors"] or 0, "tombstones": tombstones, "failed_sources": 0},
+                "owner_reconciliation_checkpoints": checkpoints, "validation_results": [], "cutover_eligible": eligible}
 
     def operation(self, operation_id: str) -> dict[str, Any]:
         with self._connect() as db:
@@ -530,8 +548,13 @@ class IndexService:
             limit = int(limit_text)
             cursor = params.get("cursor")
             with self._connect() as db:
-                rows = db.execute("SELECT s.source_id,s.latest_sequence,s.indexed_sequence,s.scope_json,t.tombstone_sequence FROM sources s LEFT JOIN tombstones t ON t.source_id=s.source_id WHERE s.source_id LIKE ? ORDER BY s.source_id",
-                                  (owner + ":%",)).fetchall()
+                rows = db.execute("""SELECT source_id,latest_sequence,indexed_sequence,tombstone_sequence FROM (
+                                  SELECT s.source_id AS source_id,s.latest_sequence AS latest_sequence,s.indexed_sequence AS indexed_sequence,t.tombstone_sequence AS tombstone_sequence
+                                  FROM sources s LEFT JOIN tombstones t ON t.source_id=s.source_id
+                                  UNION ALL
+                                  SELECT t.source_id AS source_id,NULL AS latest_sequence,NULL AS indexed_sequence,t.tombstone_sequence AS tombstone_sequence
+                                  FROM tombstones t LEFT JOIN sources s ON s.source_id=t.source_id WHERE s.source_id IS NULL
+                                  ) WHERE source_id LIKE ? ORDER BY source_id""", (owner + ":%",)).fetchall()
                 rows = [row for row in rows if cursor is None or row["source_id"] > cursor]
                 selected = rows[:limit]
                 return 200, {"owner": owner, "items": [{"source_id": row["source_id"],
