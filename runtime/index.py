@@ -243,7 +243,16 @@ class IndexService:
                 (generation_id, source_id, sequence, reason_code, _canonical(profile).decode(),
                  int(reason_code == "source_unavailable"), details[:1024]))
 
-    def provision_profile(self, bundle: dict[str, Any]) -> None
+    @staticmethod
+    def _journal_change(db: sqlite3.Connection, generation_id: str, source_id: str,
+                        sequence: int, operation_id: str, kind: str, payload_hash: str) -> None:
+        owner = source_id.split(":", 1)[0]
+        db.execute("""INSERT OR IGNORE INTO dual_apply_journal
+            (generation_id,owner,source_id,revision_sequence,operation_id,operation_kind,payload_hash,status)
+            VALUES(?,?,?,?,?,?,?,'applied')""",
+            (generation_id, owner, source_id, sequence, operation_id, kind, payload_hash))
+
+    def provision_profile(self, bundle: dict[str, Any]) -> None:
         bundle = self._validate_profile(bundle)
         encoded = _canonical(bundle).decode("utf-8")
         with self._lock, self._connect() as db:
@@ -423,6 +432,33 @@ class IndexService:
                         "request_id": request.get("request_id", "index")}
             db.execute("INSERT INTO operations(operation_id,idempotency_key,payload_hash,status,response_json) VALUES(?,?,?,?,?)",
                        (request["operation_id"], idempotency_key, payload_hash, "complete", _canonical(response).decode()))
+            if is_active_generation:
+                # Active writes are dual-applied to compatible building generations.
+                # Owner checkpoints separately prove replay of each owner's durable journal.
+                building = db.execute("SELECT generation_id FROM generations WHERE status='building' AND profile_digest=? AND generation_id<>?",
+                                      (gen["profile_digest"], gen["generation_id"])).fetchall()
+                for target_row in building:
+                    target_id = target_row["generation_id"]
+                    prior_target = db.execute("SELECT MAX(revision_sequence) AS sequence FROM representations WHERE generation_id=? AND source_id=?",
+                                              (target_id, source_id)).fetchone()["sequence"]
+                    if prior_target is None or seq > prior_target:
+                        db.execute("DELETE FROM representations WHERE generation_id=? AND source_id=? AND revision_sequence<?",
+                                   (target_id, source_id, seq))
+                        for rep in validated:
+                            lexical = rep["lexical"] or {}
+                            vector = rep["vector"] or {}
+                            db.execute("""INSERT OR REPLACE INTO representations
+                                (generation_id,source_id,source_revision,revision_sequence,scope_json,chunk_id,
+                                 chunker_profile,chunker_version,text,lexical_profile,lexical_version,terms_json,
+                                 vector_json,embedding_model,embedding_version,embedding_dimensions,metadata_json)
+                                VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
+                                (target_id, source_id, source["revision"], seq, scope_json, rep["chunk_id"],
+                                 rep["chunker"]["profile"], rep["chunker"]["version"], rep["text"],
+                                 lexical.get("profile"), lexical.get("version"), _canonical(rep["terms"]).decode(),
+                                 _canonical(vector.get("values")).decode() if vector else None,
+                                 vector.get("model"), vector.get("version"), vector.get("dimensions"),
+                                 _canonical(rep["metadata"]).decode()))
+                    self._journal_change(db, target_id, source_id, seq, request["operation_id"], "upsert", payload_hash)
             return 200, response
 
     def delete(self, request: dict[str, Any], idempotency_key: str) -> tuple[int, dict[str, Any]]:
@@ -460,6 +496,10 @@ class IndexService:
                         "request_id": request.get("request_id", "index")}
             db.execute("INSERT INTO operations(operation_id,idempotency_key,payload_hash,status,response_json) VALUES(?,?,?,?,?)",
                        (request["operation_id"], idempotency_key, payload_hash, "complete", _canonical(response).decode()))
+            building = db.execute("SELECT generation_id FROM generations WHERE status='building'").fetchall()
+            for target_row in building:
+                self._journal_change(db, target_row["generation_id"], source_id, seq,
+                                     request["operation_id"], "delete", payload_hash)
             return 200, response
 
     def profile_version(self, name: str, version: str) -> dict[str, Any]:
