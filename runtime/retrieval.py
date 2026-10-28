@@ -331,7 +331,7 @@ def _rest_json(base_url: str, path: str, *, payload: dict[str, Any] | None = Non
                request_id: str = "retrieval", timeout: float = 15.0) -> dict[str, Any]:
     """Call another CE logical service over REST; never fall back to local imports."""
     body = None if payload is None else json.dumps(payload, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
-    headers = {"Accept": "application/json", "X-CE-Request-ID": request_id}
+    headers = {"Accept": "application/json", "X-CE-Request-ID": request_id, "X-CE-Internal-Call": "true"}
     if body is not None:
         headers["Content-Type"] = "application/json"
     request = Request(base_url.rstrip("/") + path, data=body, headers=headers,
