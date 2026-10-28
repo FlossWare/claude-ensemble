@@ -107,6 +107,52 @@ class IndexRuntimeTests(unittest.TestCase):
         self.assertEqual(result["candidates"][0]["chunk_id"], "chunk-a")
         self.assertEqual(result["candidates"][0]["similarity"], 1.0)
 
+    def test_chroma_update_rollback_preserves_committed_revision_and_marks_filtered_results_truncated(self):
+        self.service.upsert(self.upsert_request(), "idem-a")
+        generation_id = self.service.active_generation()["generation_id"]
+        original_sync = self.service._sync_chroma_source
+
+        def sync_then_fail(db, target_generation, source_id, bundle):
+            original_sync(db, target_generation, source_id, bundle)
+            raise RuntimeError("injected failure after Chroma upsert")
+
+        with patch.object(self.service, "_sync_chroma_source", side_effect=sync_then_fail):
+            with self.assertRaisesRegex(RuntimeError, "injected failure"):
+                self.service.upsert(
+                    self.upsert_request(sequence=2, operation_id="op-b"), "idem-b"
+                )
+
+        query = {
+            "request_id": "req-rollback", "scope": SCOPE, "index_profile": self.identity,
+            "embedding_profile": {"name": "technical-default", "version": "0.1"},
+            "query_vector": [1.0, 0.0, 0.0], "input_type": "query", "metric": "cosine",
+            "limit": 5, "index_generation": generation_id,
+        }
+        result = self.service.vector_neighbors(query)
+        self.assertEqual([item["revision_sequence"] for item in result["candidates"]], [1])
+        self.assertTrue(result["truncated"])
+
+    def test_chroma_tombstone_filters_stale_vectors_after_service_restart(self):
+        self.service.upsert(self.upsert_request(), "idem-a")
+        generation_id = self.service.active_generation()["generation_id"]
+        delete = {
+            "operation_id": "delete-a", "request_id": "req-delete",
+            "source_id": "knowledge:doc-a", "source_revision": "tombstone-rev-2",
+            "revision_sequence": 2, "scope": SCOPE, "index_profile": self.identity,
+            "delete_scope": "source",
+        }
+        self.service.delete(delete, "idem-delete")
+        restarted = IndexService(Path(self.temp.name) / "index.sqlite3", self.bundle)
+        query = {
+            "request_id": "req-after-restart", "scope": SCOPE, "index_profile": self.identity,
+            "embedding_profile": {"name": "technical-default", "version": "0.1"},
+            "query_vector": [1.0, 0.0, 0.0], "input_type": "query", "metric": "cosine",
+            "limit": 5, "index_generation": generation_id,
+        }
+        result = restarted.vector_neighbors(query)
+        self.assertEqual(result["candidates"], [])
+        self.assertTrue(result["truncated"])
+
     def test_vector_neighbor_rejects_hostile_magnitudes_without_crashing_lookup(self):
         self.service.upsert(self.upsert_request(), "idem-a")
         request = {
