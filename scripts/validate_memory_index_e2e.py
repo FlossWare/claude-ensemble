@@ -64,8 +64,8 @@ def _profile(revision: str) -> dict:
             "normalization": "l2", "metric": "cosine", "max_input_tokens": 8192,
         },
         "limits": {
-            "max_chunks": 64, "max_source_bytes": 131072, "max_chunk_text_bytes": 512,
-            "max_request_bytes": 2097152, "max_chunk_representation_bytes": 18000,
+            "max_chunks": 32, "max_source_bytes": 131072, "max_chunk_text_bytes": 512,
+            "max_request_bytes": 2097152, "max_chunk_representation_bytes": 40000,
             "max_envelope_bytes": 16384, "max_metadata_bytes": 1024,
             "max_lexical_terms_per_chunk": 64, "max_lexical_term_bytes": 32,
         },
