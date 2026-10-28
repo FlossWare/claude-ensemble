@@ -934,6 +934,9 @@ class Handler(BaseHTTPRequestHandler):
                 extra_headers={"Idempotency-Key": operation_id})
             service.update_operation(operation_id, "complete", "indexed")
         except MemoryServiceError as exc:
+            # Keep the durable public operation status coarse, but retain a
+            # bounded diagnostic in service logs for operational troubleshooting.
+            print(f"Memory ingestion {operation_id} failed ({exc.code}): {str(exc)[:512]}")
             try:
                 if exc.code == "stale_revision":
                     service.update_operation(operation_id, "reconciliation_required", "reconciliation_required")
@@ -941,7 +944,8 @@ class Handler(BaseHTTPRequestHandler):
                     service.update_operation(operation_id, "failed", "index_failed")
             except Exception:
                 pass
-        except Exception:
+        except Exception as exc:
+            print(f"Memory ingestion {operation_id} failed ({type(exc).__name__}): {str(exc)[:512]}")
             try:
                 service.update_operation(operation_id, "failed", "index_failed")
             except Exception:
