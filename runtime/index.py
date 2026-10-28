@@ -184,25 +184,25 @@ class IndexService:
         """Best-effort post-commit removal of stale vector IDs; SQLite remains authoritative."""
         if self.vector_backend != "chromadb":
             return
-        store = self._vector_store(generation_id, bundle)
-        rows = db.execute(
-            "SELECT * FROM representations WHERE generation_id=? AND source_id=? AND vector_json IS NOT NULL ORDER BY revision_sequence,chunk_id",
-            (generation_id, source_id),
-        ).fetchall()
-        records = [{
-            "generation_id": generation_id, "profile_digest": profile_digest(bundle),
-            "source_id": row["source_id"], "source_revision": row["source_revision"],
-            "revision_sequence": row["revision_sequence"], "chunk_id": row["chunk_id"],
-            "chunker_profile": row["chunker_profile"], "chunker_version": row["chunker_version"],
-            "embedding_model": row["embedding_model"], "embedding_version": row["embedding_version"],
-            "embedding_dimensions": row["embedding_dimensions"],
-            "scope": json.loads(row["scope_json"]), "text": row["text"],
-            "embedding": json.loads(row["vector_json"]),
-        } for row in rows]
         try:
+            store = self._vector_store(generation_id, bundle)
+            rows = db.execute(
+                "SELECT * FROM representations WHERE generation_id=? AND source_id=? AND vector_json IS NOT NULL ORDER BY revision_sequence,chunk_id",
+                (generation_id, source_id),
+            ).fetchall()
+            records = [{
+                "generation_id": generation_id, "profile_digest": profile_digest(bundle),
+                "source_id": row["source_id"], "source_revision": row["source_revision"],
+                "revision_sequence": row["revision_sequence"], "chunk_id": row["chunk_id"],
+                "chunker_profile": row["chunker_profile"], "chunker_version": row["chunker_version"],
+                "embedding_model": row["embedding_model"], "embedding_version": row["embedding_version"],
+                "embedding_dimensions": row["embedding_dimensions"],
+                "scope": json.loads(row["scope_json"]), "text": row["text"],
+                "embedding": json.loads(row["vector_json"]),
+            } for row in rows]
             store.replace_source(source_id, records)
-        except VectorStoreError:
-            # Stale vectors remain harmless: query results must still pass SQLite validation.
+        except (IndexError, VectorStoreError, sqlite3.Error, ValueError, TypeError):
+            # Cleanup failure cannot invalidate a committed write; stale vectors are filtered by SQLite.
             return
 
     def _initialize(self) -> None:
