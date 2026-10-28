@@ -359,7 +359,7 @@ class VectorRetrievalService:
                     or reranked.get("profile") != expected_profile
                     or not isinstance(reranked.get("candidates"), list)):
                 raise RetrievalError("dependency_unavailable", "Reranking returned an invalid response contract", 503)
-            if reranked.get("request_id", request_id) != request_id:
+            if reranked.get("request_id") != request_id:
                 raise RetrievalError("dependency_unavailable", "Reranking returned a mismatched request identity", 503)
             reranked_candidates = reranked["candidates"]
             if len(reranked_candidates) != len(shortlist):
