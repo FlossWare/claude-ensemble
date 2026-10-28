@@ -591,7 +591,7 @@ class Handler(BaseHTTPRequestHandler):
                     context = self._memory_preflight(request, request_id)
                     status, response = service.create(request, self.headers.get("Idempotency-Key", ""), request_id)
                     worker = threading.Thread(target=self._memory_ingest,
-                                              args=(response, dict(request), context), daemon=True)
+                                              args=(service, response, dict(request), context), daemon=True)
                     worker.start()
                 elif path == "/api/v1/memories/verify-revisions":
                     if set(request) - {"items", "request_id"} or "items" not in request:
@@ -737,12 +737,14 @@ class Handler(BaseHTTPRequestHandler):
         if preflight.get("fits_profile") is not True:
             raise MemoryServiceError("source_too_large", "content exceeds the pinned Index profile limits", 422)
         return {"bundle": bundle, "preflight": preflight, "index_base": index_base,
-                "chunking_base": chunking_base, "local_base": local_base}
+                "chunking_base": chunking_base,
+                "tokenization_base": os.environ.get("CE_TOKENIZATION_BASE_URL", local_base),
+                "embedding_base": os.environ.get("CE_EMBEDDING_BASE_URL", local_base),
+                "local_base": local_base}
 
-    def _memory_ingest(self, accepted: dict[str, Any], original_request: dict[str, Any],
+    def _memory_ingest(self, service: Any, accepted: dict[str, Any], original_request: dict[str, Any],
                        context: dict[str, Any]) -> None:
         """Run the derived ingestion path after canonical commit, using REST only."""
-        service = get_memory_service()
         operation_id = accepted["operation_id"]
         request_id = accepted.get("request_id", operation_id)
         try:
@@ -769,7 +771,7 @@ class Handler(BaseHTTPRequestHandler):
             for start in range(0, len(chunks), 64):
                 batch = chunks[start:start + 64]
                 token_response = self._memory_rest_json(
-                    context["local_base"], "/api/v1/tokenization/lexical/batch",
+                    context["tokenization_base"], "/api/v1/tokenization/lexical/batch",
                     payload={
                         "request_id": request_id, "index_profile": profile,
                         "profile": tokenization_profile["profile"],
@@ -793,7 +795,7 @@ class Handler(BaseHTTPRequestHandler):
             for start in range(0, len(chunks), 64):
                 batch = chunks[start:start + 64]
                 embedding_response = self._memory_rest_json(
-                    os.environ.get("CE_EMBEDDING_BASE_URL", context["local_base"]), "/api/v1/embeddings",
+                    context["embedding_base"], "/api/v1/embeddings",
                     payload={
                         "request_id": request_id, "index_profile": profile,
                         "profile": embedding_profile["profile"],
