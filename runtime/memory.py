@@ -440,7 +440,9 @@ class MemoryService:
             response = json.loads(row["response_json"])
             graph = db.execute("SELECT status FROM memory_graph_journal WHERE operation_id=?", (operation_id,)).fetchone()
             graph_status = "indexed" if graph and graph["status"] == "applied" else response.get("graph_status", "pending_graph")
-            if status == "complete" and graph_status != "indexed":
+            if indexing_status == "indexed" and graph_status == "indexed" and status in {"complete", "pending", "accepted"}:
+                status = "complete"
+            elif status == "complete" and graph_status != "indexed":
                 status = "pending"
             response["status"] = status
             response["indexing_status"] = indexing_status
