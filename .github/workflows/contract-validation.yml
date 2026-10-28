@@ -162,3 +162,4 @@ jobs:
           HF_HUB_OFFLINE: "1"
           TRANSFORMERS_OFFLINE: "1"
         run: python scripts/evaluate_local_reranking.py
+
