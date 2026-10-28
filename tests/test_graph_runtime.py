@@ -49,7 +49,9 @@ class GraphRuntimeTests(unittest.TestCase):
         graph_schema = __import__("json").loads(
             (Path(__file__).resolve().parents[1] / "docs/contracts/schemas/graph.schema.json").read_text()
         )
-        Draft202012Validator(graph_schema).validate(response, graph_schema["$defs"]["operationResponse"])
+        response_schema = {"$schema": graph_schema["$schema"], "$defs": graph_schema["$defs"],
+                           "$ref": "#/$defs/operationResponse"}
+        Draft202012Validator(response_schema).validate(response)
         restarted = GraphService(self.db_path)
         retry_status, retry = restarted.project(request, "request-2")
         self.assertEqual(retry_status, 202)
