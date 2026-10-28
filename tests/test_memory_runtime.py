@@ -92,7 +92,7 @@ class MemoryOwnerTests(unittest.TestCase):
         self.addCleanup(httpd.shutdown)
         self.addCleanup(thread.join, 2)
         base = f"http://127.0.0.1:{httpd.server_address[1]}"
-        with patch.object(server_module, "get_memory_service", return_value=self.service):
+        with patch.object(server_module, "get_memory_service", return_value=self.service), patch.object(Handler, "_memory_preflight", return_value={}):
             payload = json.dumps(create_request()).encode()
             req = Request(base + "/api/v1/memories", data=payload, method="POST",
                           headers={"Content-Type": "application/json", "Idempotency-Key": "http-create"})
