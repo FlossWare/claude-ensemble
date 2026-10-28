@@ -141,6 +141,123 @@ class IndexRuntimeTests(unittest.TestCase):
         self.assertEqual(status, 202)
         self.assertEqual(result["revision_sequence"], 1)
 
+    def test_idempotency_conflict_and_expiry_precede_durable_validation_failures(self):
+        class Headers(dict):
+            def get(self, key, default=None):
+                return super().get(key, default)
+
+        _, generation = self.service.handle(
+            "POST", "/api/v1/index/generations", {},
+            {"index_profile": self.identity}, Headers({"Idempotency-Key": "build-idem-validation"}), "build"
+        )
+        target = generation["generation_id"]
+        original = self.upsert_request(operation_id="target-bound")
+        original["target_generation"] = target
+        self.service.upsert(original, "target-bound-key")
+        changed = self.upsert_request(operation_id="target-bound", reps=[
+            representation("chunk-a", "x" * 600, ["ranking"], [1.0, 0.0, 0.0])
+        ])
+        changed["target_generation"] = target
+        with self.assertRaises(IndexError) as conflict:
+            self.service.upsert(changed, "target-bound-key")
+        self.assertEqual(conflict.exception.code, "idempotency_conflict")
+        with self.service._connect() as db:
+            self.assertEqual(db.execute(
+                "SELECT COUNT(*) FROM generation_source_failures WHERE generation_id=? AND source_id=?",
+                (target, "knowledge:doc-a")
+            ).fetchone()[0], 0)
+        expired = self.upsert_request(operation_id="target-expired")
+        expired["target_generation"] = target
+        self.service.upsert(expired, "target-expired-key")
+        with self.service._connect() as db:
+            db.execute("UPDATE operations SET created_at='2000-01-01 00:00:00', terminal_at='2000-01-01 00:00:00' WHERE idempotency_key='target-expired-key'")
+        changed_expired = self.upsert_request(operation_id="target-expired", reps=[
+            representation("chunk-a", "y" * 600, ["ranking"], [1.0, 0.0, 0.0])
+        ])
+        changed_expired["target_generation"] = target
+        with self.assertRaises(IndexError) as expiry:
+            self.service.upsert(changed_expired, "target-expired-key")
+        self.assertEqual(expiry.exception.code, "idempotency_key_expired")
+        with self.service._connect() as db:
+            self.assertEqual(db.execute(
+                "SELECT COUNT(*) FROM generation_source_failures WHERE generation_id=? AND source_id=?",
+                (target, "knowledge:doc-a")
+            ).fetchone()[0], 0)
+
+    def test_source_status_and_manifest_include_target_only_high_water(self):
+        class Headers(dict):
+            def get(self, key, default=None):
+                return super().get(key, default)
+
+        _, generation = self.service.handle(
+            "POST", "/api/v1/index/generations", {},
+            {"index_profile": self.identity}, Headers({"Idempotency-Key": "build-high-water"}), "build"
+        )
+        target = generation["generation_id"]
+        target_only = self.upsert_request(source_id="knowledge:target-only", sequence=10, operation_id="target-only")
+        target_only["target_generation"] = target
+        self.service.upsert(target_only, "target-only-key")
+        self.service.upsert(self.upsert_request(source_id="knowledge:active-and-target", sequence=1,
+                                                operation_id="active-first"), "active-first-key")
+        target_newer = self.upsert_request(source_id="knowledge:active-and-target", sequence=10,
+                                           operation_id="target-newer")
+        target_newer["target_generation"] = target
+        self.service.upsert(target_newer, "target-newer-key")
+        restarted = IndexService(Path(self.temp.name) / "index.sqlite3", self.bundle)
+        target_status = restarted.source_status("knowledge:target-only")
+        self.assertEqual(target_status["latest_revision_sequence"], 10)
+        self.assertIsNone(target_status["indexed_revision_sequence"])
+        mixed_status = restarted.source_status("knowledge:active-and-target")
+        self.assertEqual(mixed_status["latest_revision_sequence"], 10)
+        self.assertEqual(mixed_status["indexed_revision_sequence"], 1)
+        status, manifest = restarted.handle(
+            "GET", "/api/v1/index/sources/manifest", {"owner": ["knowledge"], "limit": ["100"]},
+            None, Headers(), "high-water-manifest"
+        )
+        self.assertEqual(status, 200)
+        items = {item["source_id"]: item for item in manifest["items"]}
+        self.assertEqual(items["knowledge:target-only"]["latest_revision_sequence"], 10)
+        self.assertIsNone(items["knowledge:target-only"]["indexed_revision_sequence"])
+        self.assertEqual(items["knowledge:active-and-target"]["latest_revision_sequence"], 10)
+        self.assertEqual(items["knowledge:active-and-target"]["indexed_revision_sequence"], 1)
+
+    def test_aggregate_chunk_limit_records_durable_generation_failure(self):
+        limited_bundle = json.loads(json.dumps(self.bundle))
+        limited_bundle["limits"]["max_chunks"] = 1
+        limited_bundle["digest"] = profile_digest(limited_bundle)
+        db_path = Path(self.temp.name) / "limited-index.sqlite3"
+        limited = IndexService(db_path, limited_bundle)
+        identity = {k: limited_bundle[k] for k in ("name", "version", "digest")}
+
+        class Headers(dict):
+            def get(self, key, default=None):
+                return super().get(key, default)
+
+        _, generation = limited.handle(
+            "POST", "/api/v1/index/generations", {},
+            {"index_profile": identity}, Headers({"Idempotency-Key": "build-aggregate-failure"}), "build"
+        )
+        target = generation["generation_id"]
+        request = self.upsert_request(source_id="knowledge:too-many", sequence=3, operation_id="too-many")
+        request["index_profile"] = identity
+        request["target_generation"] = target
+        request["representations"] = [
+            representation("chunk-a", "ranking", ["ranking"], [1.0, 0.0, 0.0]),
+            representation("chunk-b", "fusion", ["fusion"], [0.0, 1.0, 0.0]),
+        ]
+        with self.assertRaises(IndexError) as raised:
+            limited.upsert(request, "too-many-key")
+        self.assertEqual(raised.exception.code, "source_too_large")
+        details = limited.handle("GET", f"/api/v1/index/generations/{target}", {}, None, Headers(), "status")[1]
+        self.assertEqual(details["counts"]["failed_sources"], 1)
+        restarted = IndexService(db_path, limited_bundle)
+        with restarted._connect() as db:
+            failure = db.execute(
+                "SELECT reason_code FROM generation_source_failures WHERE generation_id=? AND source_id=?",
+                (target, "knowledge:too-many")
+            ).fetchone()
+        self.assertEqual(failure["reason_code"], "source_too_large")
+
     def test_profile_digest_mismatch_is_rejected(self):
         invalid = dict(self.bundle)
         invalid["lexical"] = dict(invalid["lexical"], profile="other")
