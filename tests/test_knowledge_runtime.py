@@ -123,7 +123,8 @@ def test_knowledge_create_and_canonical_read_routes_are_reachable(tmp_path):
     try:
         with patch("runtime.server.get_knowledge_service", return_value=service), \
              patch.object(Handler, "_memory_preflight", return_value={"bundle": {}, "index_base": "", "chunking_base": ""}), \
-             patch("runtime.server._MEMORY_INGEST_EXECUTOR.submit"):
+             patch("runtime.server._MEMORY_INGEST_EXECUTOR.submit"), \
+             patch("runtime.server._MEMORY_GRAPH_EXECUTOR.submit"):
             base = f"http://127.0.0.1:{server.server_port}"
             body = json.dumps(create_request()).encode()
             request = Request(base + "/api/v1/knowledge/sources", data=body, method="POST",
@@ -143,3 +144,24 @@ def test_knowledge_create_and_canonical_read_routes_are_reachable(tmp_path):
         server.shutdown()
         server.server_close()
         thread.join(timeout=2)
+
+
+
+def test_graph_projection_journal_is_owner_scoped_and_completion_waits_for_index(tmp_path):
+    service = KnowledgeService(tmp_path / "knowledge-graph.sqlite3")
+    _, created = service.create(create_request(), "create-key", "req-1")
+    operation_id = created["operation_id"]
+    pending = service.pending_graph_projections()
+    assert len(pending) == 1
+    assert pending[0]["operation_kind"] == "project"
+    assert pending[0]["payload"]["source_id"] == created["source_id"]
+    assert pending[0]["payload"]["owner_projection_sequence"] == 1
+
+    service.update_graph_operation(operation_id, "indexed")
+    operation = service.operation(operation_id, None, "req-2")
+    assert operation["graph_status"] == "indexed"
+    assert operation["status"] == "pending"
+    service.update_operation(operation_id, "complete", "indexed")
+    operation = service.operation(operation_id, None, "req-3")
+    assert operation["status"] == "complete"
+    assert service.pending_graph_projections() == []

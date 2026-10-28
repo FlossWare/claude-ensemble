@@ -423,8 +423,7 @@ class Handler(BaseHTTPRequestHandler):
                 details = service.deletion_details(response["operation_id"])
                 threading.Thread(target=self._memory_delete_index,
                                  args=(service, response, details), daemon=True).start()
-                if not is_knowledge_delete:
-                    _MEMORY_GRAPH_EXECUTOR.submit(self._memory_graph_project, service)
+                _MEMORY_GRAPH_EXECUTOR.submit(self._memory_graph_project, service)
             self._send(status, response, request_id)
         except MemoryServiceError as exc:
             self._send(exc.status, _error(exc.code, str(exc), retryable=exc.status >= 500), request_id)
@@ -674,6 +673,7 @@ class Handler(BaseHTTPRequestHandler):
                     accepted = {**response, "memory_id": response["source_id"].removeprefix("knowledge:")}
                     if response.get("indexing_status") != "indexed":
                         _MEMORY_INGEST_EXECUTOR.submit(self._memory_ingest, service, accepted, dict(request), context)
+                    _MEMORY_GRAPH_EXECUTOR.submit(self._memory_graph_project, service)
                 elif path.startswith("/api/v1/knowledge/sources/") and path.endswith("/revisions"):
                     source_key = path.split("/")[-2]
                     query = parse_qs(parsed.query)
@@ -686,6 +686,7 @@ class Handler(BaseHTTPRequestHandler):
                     accepted = {**response, "memory_id": source_key}
                     if response.get("indexing_status") != "indexed":
                         _MEMORY_INGEST_EXECUTOR.submit(self._memory_ingest, service, accepted, context_request, context)
+                    _MEMORY_GRAPH_EXECUTOR.submit(self._memory_graph_project, service)
                 else:
                     status, response = service.handle("POST", path, parse_qs(parsed.query), request, self.headers, request_id)
                 response["request_id"] = request_id

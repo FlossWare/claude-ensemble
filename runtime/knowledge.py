@@ -72,6 +72,16 @@ class KnowledgeService:
               CREATE TABLE IF NOT EXISTS knowledge_idempotency(
                 idempotency_key TEXT PRIMARY KEY, payload_hash TEXT NOT NULL, operation_id TEXT NOT NULL,
                 FOREIGN KEY(operation_id) REFERENCES knowledge_operations(operation_id));
+              CREATE TABLE IF NOT EXISTS knowledge_graph_sequence(
+                singleton INTEGER PRIMARY KEY CHECK(singleton=1), next_sequence INTEGER NOT NULL);
+              INSERT OR IGNORE INTO knowledge_graph_sequence(singleton,next_sequence) VALUES(1,1);
+              CREATE TABLE IF NOT EXISTS knowledge_graph_journal(
+                operation_id TEXT PRIMARY KEY, owner_projection_sequence INTEGER NOT NULL UNIQUE,
+                operation_kind TEXT NOT NULL, source_id TEXT NOT NULL, revision_sequence INTEGER NOT NULL,
+                payload_json TEXT NOT NULL, status TEXT NOT NULL DEFAULT 'pending', last_error TEXT,
+                created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP, updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP);
+              CREATE INDEX IF NOT EXISTS knowledge_graph_journal_pending
+                ON knowledge_graph_journal(status, owner_projection_sequence);
             """)
             columns = {row["name"] for row in db.execute("PRAGMA table_info(knowledge_operations)")}
             if "index_profile_json" not in columns:
@@ -166,6 +176,64 @@ class KnowledgeService:
             raise KnowledgeError("idempotency_conflict", "Idempotency-Key was reused with a different payload", 409)
         return self._mutation_response(row, request_id)
 
+    def _enqueue_graph_projection(self, db, operation_id: str, source_key: str, revision: str,
+                                 revision_sequence: int, scope: dict[str, str], source_kind: str,
+                                 content: str, provenance: dict[str, Any]) -> None:
+        row = db.execute("SELECT next_sequence FROM knowledge_graph_sequence WHERE singleton=1").fetchone()
+        sequence = int(row["next_sequence"])
+        db.execute("UPDATE knowledge_graph_sequence SET next_sequence=? WHERE singleton=1", (sequence + 1,))
+        source_id = "knowledge:" + source_key
+        payload = {"operation_id": operation_id, "source_id": source_id, "source_revision": revision,
+                   "revision_sequence": revision_sequence, "owner_projection_sequence": sequence,
+                   "scope": scope, "nodes": [{"node_id": source_id, "node_type": "knowledge",
+                   "label": content[:1024], "aliases": [], "properties": {"source_kind": source_kind},
+                   "provenance": provenance}], "edges": []}
+        db.execute("""INSERT INTO knowledge_graph_journal(operation_id,owner_projection_sequence,operation_kind,
+                      source_id,revision_sequence,payload_json,status) VALUES(?,?,?,?,?,?,'pending')""",
+                   (operation_id, sequence, "project", source_id, revision_sequence,
+                    json.dumps(payload, ensure_ascii=False, sort_keys=True, separators=(",", ":"))))
+        db.execute("UPDATE knowledge_operations SET graph_status='pending' WHERE operation_id=?", (operation_id,))
+
+    def _enqueue_graph_deletion(self, db, operation_id: str, source_key: str, revision: str,
+                                revision_sequence: int, scope: dict[str, str]) -> None:
+        row = db.execute("SELECT next_sequence FROM knowledge_graph_sequence WHERE singleton=1").fetchone()
+        sequence = int(row["next_sequence"])
+        db.execute("UPDATE knowledge_graph_sequence SET next_sequence=? WHERE singleton=1", (sequence + 1,))
+        source_id = "knowledge:" + source_key
+        payload = {"operation_id": operation_id, "source_id": source_id, "source_revision": revision,
+                   "revision_sequence": revision_sequence, "owner_projection_sequence": sequence,
+                   "scope": scope, "delete_scope": "source"}
+        db.execute("""INSERT INTO knowledge_graph_journal(operation_id,owner_projection_sequence,operation_kind,
+                      source_id,revision_sequence,payload_json,status) VALUES(?,?,?,?,?,?,'pending')""",
+                   (operation_id, sequence, "delete", source_id, revision_sequence,
+                    json.dumps(payload, ensure_ascii=False, sort_keys=True, separators=(",", ":"))))
+        db.execute("UPDATE knowledge_operations SET graph_status='pending' WHERE operation_id=?", (operation_id,))
+
+    def pending_graph_projections(self) -> list[dict[str, Any]]:
+        with self._connect() as db:
+            rows = db.execute("""SELECT operation_id,owner_projection_sequence,operation_kind,payload_json
+                                 FROM knowledge_graph_journal WHERE status IN ('pending','failed')
+                                 ORDER BY owner_projection_sequence""").fetchall()
+        return [{"operation_id": row["operation_id"], "owner_projection_sequence": row["owner_projection_sequence"],
+                 "operation_kind": row["operation_kind"], "payload": json.loads(row["payload_json"])} for row in rows]
+
+    def update_graph_operation(self, operation_id: str, graph_status: str, error: str | None = None) -> dict[str, Any]:
+        if graph_status not in {"indexed", "graph_failed"}:
+            raise KnowledgeError("invalid_request", "graph status is invalid")
+        with self._lock, self._connect() as db:
+            journal = db.execute("SELECT status FROM knowledge_graph_journal WHERE operation_id=?", (operation_id,)).fetchone()
+            operation = db.execute("SELECT * FROM knowledge_operations WHERE operation_id=?", (operation_id,)).fetchone()
+            if journal is None or operation is None:
+                raise KnowledgeError("not_found", "Knowledge Graph projection operation was not found", 404)
+            applied = graph_status == "indexed"
+            db.execute("UPDATE knowledge_graph_journal SET status=?,last_error=?,updated_at=CURRENT_TIMESTAMP WHERE operation_id=?",
+                       ("applied" if applied else "failed", None if applied else (error or "Graph request failed")[:512], operation_id))
+            status = "complete" if applied and operation["indexing_status"] == "indexed" else ("failed" if not applied else "pending")
+            db.execute("UPDATE knowledge_operations SET graph_status=?,status=? WHERE operation_id=?",
+                       (graph_status, status, operation_id))
+            row = db.execute("SELECT * FROM knowledge_operations WHERE operation_id=?", (operation_id,)).fetchone()
+            return self._mutation_response(row, row["request_id"])
+
     def create(self, request: Any, idempotency_key: str, request_id: str) -> tuple[int, dict[str, Any]]:
         if not isinstance(idempotency_key, str) or not 1 <= len(idempotency_key) <= 256:
             raise KnowledgeError("invalid_request", "Idempotency-Key is required")
@@ -190,6 +258,8 @@ class KnowledgeService:
                        (source_key, revision, sequence, payload["content"], json.dumps(payload["provenance"], sort_keys=True),
                         json.dumps(payload["index_profile"], sort_keys=True)))
             operation_id = self._record_operation(db, source_key, revision, sequence, "accepted", "pending_index", request_id, payload["index_profile"])
+            self._enqueue_graph_projection(db, operation_id, source_key, revision, sequence, payload["scope"],
+                                           payload["source_kind"], payload["content"], payload["provenance"])
             db.execute("INSERT INTO knowledge_idempotency(idempotency_key,payload_hash,operation_id) VALUES(?,?,?)",
                        (idempotency_key, digest, operation_id))
             row = db.execute("SELECT * FROM knowledge_operations WHERE operation_id=?", (operation_id,)).fetchone()
@@ -271,6 +341,8 @@ class KnowledgeService:
             db.execute("UPDATE knowledge_sources SET current_revision=?,revision_sequence=? WHERE source_key=?",
                        (revision, sequence, source_key))
             operation_id = self._record_operation(db, source_key, revision, sequence, "accepted", "pending_index", request_id, payload["index_profile"])
+            self._enqueue_graph_projection(db, operation_id, source_key, revision, sequence, payload["scope"],
+                                           current["source_kind"], payload["content"], payload["provenance"])
             db.execute("INSERT INTO knowledge_idempotency(idempotency_key,payload_hash,operation_id) VALUES(?,?,?)",
                        (idempotency_key, digest, operation_id))
             row = db.execute("SELECT * FROM knowledge_operations WHERE operation_id=?", (operation_id,)).fetchone()
@@ -304,6 +376,7 @@ class KnowledgeService:
             db.execute("INSERT INTO knowledge_revisions(source_key,revision,revision_sequence,content,provenance_json,index_profile_json) VALUES(?,?,?,?,?,?)",
                        (source_key, revision, sequence, "", "{}", json.dumps(active_profile, sort_keys=True)))
             operation_id = self._record_operation(db, source_key, revision, sequence, "pending", "pending_index", request_id, active_profile)
+            self._enqueue_graph_deletion(db, operation_id, source_key, revision, sequence, scope)
             db.execute("INSERT INTO knowledge_idempotency(idempotency_key,payload_hash,operation_id) VALUES(?,?,?)",
                        (idempotency_key, digest, operation_id))
             row = db.execute("SELECT * FROM knowledge_operations WHERE operation_id=?", (operation_id,)).fetchone()
@@ -323,6 +396,14 @@ class KnowledgeService:
 
     def update_operation(self, operation_id: str, status: str, indexing_status: str) -> dict[str, Any]:
         with self._connect() as db:
+            row_before = db.execute("SELECT graph_status FROM knowledge_operations WHERE operation_id=?", (operation_id,)).fetchone()
+            if row_before is None:
+                raise KnowledgeError("not_found", "knowledge operation was not found", 404)
+            graph_status = row_before["graph_status"]
+            if indexing_status == "indexed" and graph_status == "indexed" and status in {"complete", "pending", "accepted"}:
+                status = "complete"
+            elif status == "complete" and graph_status != "indexed":
+                status = "pending"
             db.execute("UPDATE knowledge_operations SET status=?,indexing_status=? WHERE operation_id=?",
                        (status, indexing_status, operation_id))
             row = db.execute("SELECT * FROM knowledge_operations WHERE operation_id=?", (operation_id,)).fetchone()
