@@ -6,6 +6,7 @@ import threading
 from urllib.request import Request, urlopen
 from urllib.error import HTTPError
 from unittest.mock import patch
+from jsonschema import Draft202012Validator
 from pathlib import Path
 
 from runtime.memory import MemoryError, MemoryService
@@ -14,6 +15,7 @@ from runtime.server import BoundedThreadingHTTPServer, Handler
 
 SCOPE = {"type": "project", "id": "project-a", "visibility": "private"}
 PROFILE = {"name": "default", "version": "0.1", "digest": "0123456789abcdef" * 4}
+SCHEMA = json.loads((Path(__file__).resolve().parents[1] / "docs/contracts/schemas/memory.schema.json").read_text())
 
 
 def create_request(content="remember the REST contract"):
@@ -99,11 +101,14 @@ class MemoryOwnerTests(unittest.TestCase):
             with urlopen(req, timeout=3) as response:
                 self.assertEqual(response.status, 202)
                 created = json.loads(response.read())
+            self.assertEqual(list(Draft202012Validator(SCHEMA["$defs"]["createResponse"]).iter_errors(created)), [])
             memory_id = created["memory_id"]
             read_url = (base + f"/api/v1/memories/{memory_id}"
                         + "?scope_type=project&scope_id=project-a&visibility=private")
             with urlopen(read_url, timeout=3) as response:
-                self.assertEqual(json.loads(response.read())["content"], "remember the REST contract")
+                read_result = json.loads(response.read())
+                self.assertEqual(read_result["content"], "remember the REST contract")
+                self.assertEqual(list(Draft202012Validator(SCHEMA["$defs"]["canonicalReadResponse"]).iter_errors(read_result)), [])
             verify = json.dumps({"items": [{"source_id": created["source_id"],
                                             "revision_sequence": created["revision_sequence"]}]}).encode()
             req = Request(base + "/api/v1/memories/verify-revisions", data=verify, method="POST",
@@ -115,6 +120,11 @@ class MemoryOwnerTests(unittest.TestCase):
                           headers={"Content-Type": "application/json", "Idempotency-Key": "http-delete"})
             with urlopen(req, timeout=3) as response:
                 self.assertEqual(response.status, 202)
+                deleted = json.loads(response.read())
+            self.assertEqual(list(Draft202012Validator(SCHEMA["$defs"]["deleteResponse"]).iter_errors(deleted)), [])
+            with urlopen(base + "/api/v1/memories/operations/" + created["operation_id"], timeout=3) as response:
+                operation = json.loads(response.read())
+            self.assertEqual(list(Draft202012Validator(SCHEMA["$defs"]["operationStatusResponse"]).iter_errors(operation)), [])
             with self.assertRaises(HTTPError) as caught:
                 urlopen(read_url, timeout=3)
             self.assertEqual(caught.exception.code, 404)
