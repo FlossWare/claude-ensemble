@@ -12,6 +12,8 @@ import tempfile
 import unittest
 from pathlib import Path
 
+from jsonschema import Draft202012Validator
+
 ROOT = Path(__file__).resolve().parents[1]
 VALIDATOR_PATH = ROOT / "scripts" / "validate_contracts.py"
 GRAPH_PATH = ROOT / "scripts" / "check_service_call_graph.py"
@@ -202,6 +204,26 @@ class ContractGateTests(unittest.TestCase):
         self.assertIn("resolution_evidence", prose)
         self.assertIn("does not create a terminal disposition for the conflicting submission", prose)
         self.assertIn("normalized matched mention", prose)
+
+
+    def test_graph_traversal_requires_exactly_one_start_selector(self):
+        graph = json.loads((ROOT / "docs" / "contracts" / "schemas" / "graph.schema.json").read_text(encoding="utf-8"))
+        Draft202012Validator.check_schema(graph)
+        request_schema = {
+            "$schema": graph["$schema"],
+            "$defs": graph["$defs"],
+            "$ref": "#/$defs/traversalRequest",
+        }
+        validator = Draft202012Validator(request_schema)
+        base = {"scope": {"type": "project", "id": "p1", "visibility": "private"}}
+        validator.validate({**base, "start_node_ids": ["node-a"]})
+        validator.validate({**base, "entity_mentions": ["Solr"]})
+        with self.assertRaises(Exception):
+            validator.validate(base)
+        with self.assertRaises(Exception):
+            validator.validate({**base, "start_node_ids": ["node-a"], "entity_mentions": ["Solr"]})
+        with self.assertRaises(Exception):
+            validator.validate({**base, "start_node_ids": [f"node-{i}" for i in range(17)]})
 
     def test_rrf_integer_golden_vectors(self):
         def contribution(rank: int) -> int:
