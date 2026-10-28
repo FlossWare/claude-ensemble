@@ -114,12 +114,64 @@ def main() -> int:
             readiness = engine.readiness()
             if readiness.get("ready") is not True:
                 raise RuntimeError("configured real embedding model is not ready offline")
+            identity = {key: bundle[key] for key in ("name", "version", "digest")}
+            # Persist accepted work before the REST server starts, then discard the
+            # in-memory owner so startup recovery must reload its durable journal.
+            recovery_content = (
+                "Startup recovery replays pending canonical Memory revisions "
+                "into durable Index storage."
+            )
+            recovery_seed = get_memory_service().create(
+                {
+                    "scope": SCOPE, "type": "semantic", "content": recovery_content,
+                    "provenance": {"origin": "memory-index-restart-recovery"},
+                    "retention_policy": {"kind": "standard"}, "index_profile": identity,
+                },
+                "memory-index-e2e-recovery-create", "memory-index-e2e-recovery",
+            )[1]
+            reset_memory_service_for_tests()
+
             server = BoundedThreadingHTTPServer(("127.0.0.1", 0), Handler)
             base = f"http://127.0.0.1:{server.server_address[1]}"
             thread = __import__("threading").Thread(target=server.serve_forever, daemon=True)
             thread.start()
 
-            identity = {key: bundle[key] for key in ("name", "version", "digest")}
+            # Readiness schedules recovery. Poll the durable operation, not the
+            # thread, and verify the recovered revision is searchable over REST.
+            _request(base, "/api/v1/memory/ready")
+            scope_query = ("?scope_type=" + quote(SCOPE["type"]) + "&scope_id=" + quote(SCOPE["id"])
+                           + "&visibility=" + quote(SCOPE["visibility"]))
+            recovery_operation_id = recovery_seed["operation_id"]
+            deadline = time.monotonic() + 120.0
+            recovery_operation = {}
+            while time.monotonic() < deadline:
+                recovery_operation = _request(
+                    base, "/api/v1/memories/operations/" + recovery_operation_id + scope_query
+                )
+                if recovery_operation.get("status") in {"complete", "failed", "reconciliation_required"}:
+                    break
+                time.sleep(0.25)
+            if (recovery_operation.get("status") != "complete"
+                    or recovery_operation.get("indexing_status") != "indexed"):
+                raise RuntimeError(f"Startup recovery did not complete ingestion: {recovery_operation!r}")
+            recovery_generation = _request(base, "/api/v1/index/generations/active").get("generation_id")
+            recovered_lookup = _request(
+                base, "/api/v1/index/lexical/lookup",
+                payload={
+                    "scope": SCOPE, "terms": ["startup", "recovery", "canonical", "revisions"],
+                    "limit": 10, "index_generation": recovery_generation,
+                    "index_profile": identity,
+                    "lexical_profile": {"name": bundle["lexical"]["profile"],
+                                        "version": bundle["lexical"]["version"]},
+                },
+            )
+            if not any(
+                item.get("source_id") == recovery_seed.get("source_id")
+                and "startup recovery replays pending canonical memory revisions" in item.get("text", "").lower()
+                for item in recovered_lookup.get("candidates", []) if isinstance(item, dict)
+            ):
+                raise RuntimeError("Startup-recovered Memory source was not retrievable from Index")
+
             content = (
                 "Claude Ensemble indexes source revisions for reliable retrieval. "
                 "This acceptance fixture verifies real embedding inference, durable indexing, "
@@ -139,8 +191,6 @@ def main() -> int:
             if not isinstance(operation_id, str) or created.get("status") not in {"accepted", "pending"}:
                 raise RuntimeError(f"Memory create did not return an accepted operation: {created!r}")
 
-            scope_query = ("?scope_type=" + quote(SCOPE["type"]) + "&scope_id=" + quote(SCOPE["id"])
-                           + "&visibility=" + quote(SCOPE["visibility"]))
             deadline = time.monotonic() + 120.0
             operation = {}
             while time.monotonic() < deadline:
@@ -198,6 +248,8 @@ def main() -> int:
                 raise RuntimeError("Lexical retrieval failed after reopening Index storage")
 
             print("PASS: real pinned Nomic model used through the Embedding REST endpoint.")
+            print("PASS: startup recovery replayed a durable pending Memory operation through REST.")
+            print("PASS: recovered Memory source was retrievable from Index.")
             print("PASS: Memory -> Chunking -> Tokenization -> Embedding -> Index completed over HTTP.")
             print("PASS: lexical retrieval found the created source before and after Index storage reopen.")
             return 0
