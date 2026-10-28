@@ -8,6 +8,7 @@ from __future__ import annotations
 import hashlib
 import json
 import os
+import networkx as nx
 import re
 import sqlite3
 import threading
@@ -589,34 +590,72 @@ class GraphService:
                 adjacency = {node: [(next_node, edge) for next_node, edge in pairs
                                     if not edge["directed"] or edge["target_node_id"] == node]
                              for node, pairs in adjacency.items()}
+
+            # NetworkX owns the in-memory graph representation and path algorithms;
+            # CE owns scope filtering, provenance, and the contract's strict budgets.
+            graph = nx.DiGraph()
+            for node, neighbors in adjacency.items():
+                graph.add_node(node)
+                for next_node, edge in neighbors:
+                    # The contract returns one deterministic path per node sequence.
+                    # Keep the first edge in the already-sorted adjacency list when
+                    # parallel relationship types connect the same ordered pair.
+                    if not graph.has_edge(node, next_node):
+                        graph.add_edge(node, next_node, edge=edge)
+
             paths: list[dict[str, Any]] = []
             truncated = starts_truncated or edges_truncated
             visited_global: set[str] = set(resolved)
-            queue: list[tuple[list[str], list[dict[str, Any]]]] = [([node], []) for node in resolved]
-            seen_node_paths: set[tuple[str, ...]] = set()
-            while queue:
-                node_ids, path_edges = queue.pop(0)
-                if path_edges:
-                    key = tuple(node_ids)
-                    if key not in seen_node_paths:
-                        seen_node_paths.add(key)
-                        paths.append({"path_id": "path:" + _digest({"nodes": node_ids, "edges": [e["edge_id"] for e in path_edges]}),
-                                      "node_ids": node_ids, "edges": path_edges})
-                if len(path_edges) >= max_depth:
-                    continue
-                for next_node, edge in adjacency.get(node_ids[-1], []):
-                    if next_node in node_ids:
+            # Bound the reachable subgraph before enumerating simple paths. Sorting
+            # by distance and ID makes the node budget independent of DB row order.
+            for start_node in resolved:
+                if start_node not in graph:
+                    graph.add_node(start_node)
+                distances = nx.single_source_shortest_path_length(graph, start_node, cutoff=max_depth)
+                for node in sorted(distances, key=lambda value: (distances[value], value)):
+                    if node in visited_global:
                         continue
-                    if next_node not in visited_global:
-                        if len(visited_global) >= max_visited:
-                            truncated = True
-                            break
-                        visited_global.add(next_node)
-                    if len(queue) >= 10000:
+                    if len(visited_global) >= max_visited:
                         truncated = True
                         break
-                    queue.append((node_ids + [next_node], path_edges + [edge]))
-                if truncated:
+                    visited_global.add(node)
+                if truncated and len(visited_global) >= max_visited:
+                    break
+            bounded_graph = graph.subgraph(visited_global).copy()
+            seen_node_paths: set[tuple[str, ...]] = set()
+            path_budget = 10000
+            stop_enumeration = False
+            for start_node in resolved:
+                if start_node not in bounded_graph:
+                    continue
+                for target_node in sorted(bounded_graph.nodes):
+                    if target_node == start_node or not nx.has_path(bounded_graph, start_node, target_node):
+                        continue
+                    for node_path in nx.all_simple_paths(
+                        bounded_graph, source=start_node, target=target_node, cutoff=max_depth
+                    ):
+                        key = tuple(node_path)
+                        if key in seen_node_paths:
+                            continue
+                        seen_node_paths.add(key)
+                        path_edges = [
+                            bounded_graph[source][target]["edge"]
+                            for source, target in zip(node_path, node_path[1:])
+                        ]
+                        paths.append({
+                            "path_id": "path:" + _digest({
+                                "nodes": node_path, "edges": [edge["edge_id"] for edge in path_edges]
+                            }),
+                            "node_ids": node_path,
+                            "edges": path_edges,
+                        })
+                        if len(paths) >= path_budget:
+                            truncated = True
+                            stop_enumeration = True
+                            break
+                    if stop_enumeration:
+                        break
+                if stop_enumeration:
                     break
             paths.sort(key=lambda p: (len(p["edges"]), tuple(p["node_ids"]),
                                       tuple((e["source_node_id"], e["target_node_id"], e["relationship_type"],
