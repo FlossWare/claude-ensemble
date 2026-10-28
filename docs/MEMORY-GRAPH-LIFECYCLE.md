@@ -1,6 +1,6 @@
 # Memory-to-Graph Projection Lifecycle
 
-Status: implementation plan for the Memory owner integration slice.
+Status: initial implementation in PR #38; draft pending CI and review. The current projection emits one source-supported Memory node per record and does not yet extract entity relationships.
 
 ## Goals
 
@@ -14,7 +14,7 @@ Every accepted create, revision, and deletion must atomically persist its canoni
 - Updates project the new canonical revision under the same source identity. Graph's source-revision handling replaces that source's prior projection atomically.
 - Deletion writes a tombstone intent with a higher canonical revision sequence and a higher owner projection sequence.
 - Every Graph REST call uses the durable operation ID as its idempotency identity. A retry must not duplicate graph facts.
-- Graph acknowledgements update the corresponding Memory journal row. A failed or unavailable Graph service leaves the operation visibly pending/retryable; Memory must not report full downstream completion.
+- Graph acknowledgements update the corresponding Memory journal row. A failed or unavailable Graph service leaves a durable failed/retryable journal entry; Memory must not report full downstream completion.
 - Startup recovery replays pending intents in owner-sequence order. It must not skip a failed earlier operation and then claim the owner watermark is complete.
 - Concurrent requests must serialize allocation of the owner projection sequence in the same SQLite transaction as the canonical mutation and journal insertion.
 
@@ -22,7 +22,7 @@ Every accepted create, revision, and deletion must atomically persist its canoni
 
 Interactive CE requests remain synchronous request/response. Memory writes acknowledge durable canonical acceptance and expose truthful downstream status. Expensive chunking, tokenization, embedding, Index publication, and Graph projection work run outside the interactive request path.
 
-Background ingestion must not monopolize the HTTP worker pool or shared model/database resources. Concurrency is bounded, and capacity exhaustion is explicit. Small Memory writes are not fire-and-forget: canonical state and durable operation/journal records are committed before returning success.
+Background ingestion runs in a two-worker executor, so at most two ingestion pipelines execute concurrently. Graph projection calls are serialized by a process-local lock to preserve owner-sequence order. The executor queue is in-memory, but the durable owner journal remains the source of truth and unfinished work can be rediscovered after restart. Small Memory writes are not fire-and-forget: canonical state and durable operation/journal records are committed before returning success.
 
 ## Acceptance tests
 
