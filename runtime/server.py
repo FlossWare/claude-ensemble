@@ -500,7 +500,7 @@ class Handler(BaseHTTPRequestHandler):
                 self._send(200, response, request_id)
             except MemoryServiceError as exc:
                 self._send(exc.status, _error(exc.code, str(exc), retryable=exc.status >= 500), request_id)
-        elif len(urlsplit(self.path).path.strip("/").split("/")) == 5 and urlsplit(self.path).path.startswith("/api/v1/memories/") and urlsplit(self.path).path.split("/")[-2] == "operations":
+        elif len(urlsplit(self.path).path.strip("/").split("/")) == 6 and urlsplit(self.path).path.startswith("/api/v1/memories/") and urlsplit(self.path).path.split("/")[-2] == "operations":
             try:
                 parsed = urlsplit(self.path)
                 query = parse_qs(parsed.query)
