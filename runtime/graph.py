@@ -561,7 +561,16 @@ class GraphService:
             edges_rows = db.execute("SELECT * FROM graph_edges WHERE scope_json=? ORDER BY edge_id,source_id LIMIT 10000", (scope_json,)).fetchall()
             edges_truncated = edge_count > len(edges_rows)
             grouped: dict[str, dict[str, Any]] = {}
+            # Edge supports can outlive a node support supplied by another source.
+            # Never expose such an edge as traversable while either endpoint lacks
+            # any current node support in this scope. This also handles node removal
+            # during source re-projection without destructively deleting another
+            # source's independently supported edge.
+            supported_node_ids = set(by_node)
             for row in edges_rows:
+                if (row["source_node_id"] not in supported_node_ids
+                        or row["target_node_id"] not in supported_node_ids):
+                    continue
                 if relationship_types and row["relationship_type"] not in relationship_types:
                     continue
                 item = grouped.setdefault(row["edge_id"], {
