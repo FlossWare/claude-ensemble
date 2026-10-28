@@ -110,6 +110,26 @@ class IndexRuntimeTests(unittest.TestCase):
         self.assertEqual(result["candidates"][0]["chunk_id"], "chunk-a")
         self.assertEqual(result["candidates"][0]["similarity"], 1.0)
 
+    def test_chroma_scope_isolation_and_vectors_persist_across_service_restart(self):
+        self.service.upsert(self.upsert_request(), "idem-a")
+        other_scope = {"type": "project", "id": "project-b", "visibility": "private"}
+        other = self.upsert_request(
+            source_id="knowledge:doc-b", operation_id="op-b",
+            reps=[representation("chunk-b", "other project", ["other", "project"], [1.0, 0.0, 0.0])],
+        )
+        other["source"]["scope"] = other_scope
+        self.service.upsert(other, "idem-b")
+        generation_id = self.service.active_generation()["generation_id"]
+        query = {
+            "request_id": "req-scope", "scope": SCOPE, "index_profile": self.identity,
+            "embedding_profile": {"name": "technical-default", "version": "0.1"},
+            "query_vector": [1.0, 0.0, 0.0], "input_type": "query", "metric": "cosine",
+            "limit": 5, "index_generation": generation_id,
+        }
+        restarted = IndexService(Path(self.temp.name) / "index.sqlite3", self.bundle)
+        result = restarted.vector_neighbors(query)
+        self.assertEqual([item["source_id"] for item in result["candidates"]], ["knowledge:doc-a"])
+
     def test_chroma_update_rollback_preserves_committed_revision_and_marks_filtered_results_truncated(self):
         self.service.upsert(self.upsert_request(), "idem-a")
         generation_id = self.service.active_generation()["generation_id"]
