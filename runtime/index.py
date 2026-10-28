@@ -301,6 +301,24 @@ class IndexService:
             generation = db.execute("SELECT status FROM generations WHERE generation_id=?", (generation_id,)).fetchone()
             if not generation or generation["status"] not in {"building", "eligible"}:
                 return
+            # A delayed invalid revision must not resurrect a failure already
+            # superseded by a successful target representation or a source-wide
+            # tombstone. Check target-local evidence, not the global high-water
+            # mark, because older snapshot replay can still be legitimate when
+            # this generation has not advanced.
+            target_success = db.execute(
+                """SELECT MAX(revision_sequence) AS sequence FROM representations
+                   WHERE generation_id=? AND source_id=?""",
+                (generation_id, source_id),
+            ).fetchone()["sequence"]
+            tombstone = db.execute(
+                "SELECT tombstone_sequence FROM tombstones WHERE source_id=?",
+                (source_id,),
+            ).fetchone()
+            if target_success is not None and target_success >= sequence:
+                return
+            if tombstone and tombstone["tombstone_sequence"] >= sequence:
+                return
             db.execute("""INSERT INTO generation_source_failures
                 (generation_id,source_id,revision_sequence,reason_code,profile_json,retryable,details)
                 VALUES(?,?,?,?,?,?,?) ON CONFLICT(generation_id,source_id,revision_sequence,reason_code)
