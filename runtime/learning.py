@@ -179,7 +179,7 @@ class LearningService:
             "event_id": payload["event_id"], "selection_id": payload["selection_id"],
             "context_id": payload["context_id"], "arm_id": payload["arm_id"],
             "reward": reward, "reward_semantics": "binary",
-            "evidence": {"reference": payload["evidence"][0]["reference"], "policy_version": _POLICY},
+            "evidence_ref": payload["evidence"][0]["reference"],
         }
         headers = {
             "Accept": "application/json", "Content-Type": "application/json",

@@ -137,7 +137,7 @@ class ThompsonService:
             selection_id = "thompson:selection:" + secrets.token_hex(16)
             audit_ref = "thompson:audit:" + secrets.token_hex(12)
             response = {"selection_id": selection_id, "chosen_arm_id": chosen, "policy": POLICY,
-                        "state_version": int(state["state_version"]), "evidence": {"audit_ref": audit_ref},
+                        "state_version": int(state["state_version"]), "evidence": [{"audit_ref": audit_ref, "eligible_arm_count": len(ids)}],
                         "request_id": request_id}
             db.execute("UPDATE arms SET exposures=exposures+1 WHERE context_id=? AND arm_id=?", (context, chosen))
             db.execute("""INSERT INTO selections(selection_id,context_id,arm_id,policy_json,state_version,
@@ -149,19 +149,25 @@ class ThompsonService:
     def update(self, request: dict[str, Any], key: str, request_id: str) -> dict[str, Any]:
         if not isinstance(request, dict):
             raise ThompsonError("invalid_request", "request body must be an object")
-        required = {"event_id", "selection_id", "context_id", "arm_id", "reward", "reward_semantics", "evidence"}
-        if set(request) - (required | {"expected_state_version", "request_id"}) or not required.issubset(request):
+        required = {"event_id", "selection_id", "context_id", "arm_id", "reward", "evidence_ref"}
+        allowed = required | {"reward_semantics", "expected_state_version", "request_id"}
+        if set(request) - allowed or not required.issubset(request):
             raise ThompsonError("invalid_request", "update request has missing or unknown fields")
         if not isinstance(key, str) or not 1 <= len(key) <= 256:
             raise ThompsonError("invalid_request", "Idempotency-Key is required")
         event_id = self._ident(request["event_id"], "event_id")
-        selection_id = self._ident(request["selection_id"], "selection_id") if not str(request["selection_id"]).startswith("thompson:selection:") else request["selection_id"]
+        selection_id = request["selection_id"]
+        if not isinstance(selection_id, str) or not selection_id.startswith("thompson:selection:") or len(selection_id) > 256:
+            raise ThompsonError("invalid_request", "selection_id is invalid")
         context = self._ident(request["context_id"], "context_id")
         arm = self._ident(request["arm_id"], "arm_id")
-        if type(request["reward"]) is not int or request["reward"] not in (0, 1) or request["reward_semantics"] != "binary":
-            raise ThompsonError("invalid_request", "reward must be integer 0 or 1 with reward_semantics=binary")
-        if not isinstance(request["evidence"], dict):
-            raise ThompsonError("invalid_request", "evidence must be an object")
+        evidence_ref = request["evidence_ref"]
+        if not isinstance(evidence_ref, str) or not 1 <= len(evidence_ref) <= 1024:
+            raise ThompsonError("invalid_request", "evidence_ref must be a non-empty string of at most 1024 characters")
+        if type(request["reward"]) is not int or request["reward"] not in (0, 1):
+            raise ThompsonError("invalid_request", "reward must be integer 0 or 1")
+        if request.get("reward_semantics", "binary") != "binary":
+            raise ThompsonError("invalid_request", "reward_semantics must be binary")
         semantic = {k: v for k, v in request.items() if k != "request_id"}
         digest = self._hash(semantic)
         with self._lock, self._connect() as db:

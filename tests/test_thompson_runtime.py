@@ -40,7 +40,7 @@ def test_binary_update_advances_state_once_and_duplicate_is_idempotent(tmp_path)
         "arm_id": selected["chosen_arm_id"],
         "reward": 1,
         "reward_semantics": "binary",
-        "evidence": {"reference": "feedback:opaque-1"},
+        "evidence_ref": "feedback-opaque-1",
     }
     first = svc.update(request, "update-key", "req-2")
     again = svc.update(request, "update-key", "req-3")
@@ -57,7 +57,7 @@ def test_selection_can_only_receive_one_terminal_outcome(tmp_path):
         "context_id": "search-quality",
         "arm_id": selected["chosen_arm_id"],
         "reward_semantics": "binary",
-        "evidence": {"reference": "feedback:opaque-2"},
+        "evidence_ref": "feedback-opaque-2",
     }
     svc.update({**base, "event_id": "event-a", "reward": 1}, "update-a", "req-2")
     with pytest.raises(ThompsonError) as error:
@@ -76,7 +76,7 @@ def test_update_rejects_wrong_selection_identity_without_mutating_state(tmp_path
         "arm_id": "not-the-selected-arm",
         "reward": 1,
         "reward_semantics": "binary",
-        "evidence": {"reference": "feedback:opaque-3"},
+        "evidence_ref": "feedback-opaque-3",
     }
     with pytest.raises(ThompsonError) as error:
         svc.update(request, "update-key", "req-2")
@@ -94,7 +94,7 @@ def test_state_survives_service_restart(tmp_path):
         "arm_id": selected["chosen_arm_id"],
         "reward": 0,
         "reward_semantics": "binary",
-        "evidence": {"reference": "feedback:opaque-4"},
+        "evidence_ref": "feedback-opaque-4",
     }, "update-key", "req-2")
 
     restarted = service(tmp_path)
