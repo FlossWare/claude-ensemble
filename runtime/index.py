@@ -108,6 +108,10 @@ class IndexService:
                     source_id TEXT PRIMARY KEY, latest_sequence INTEGER NOT NULL,
                     indexed_sequence INTEGER NOT NULL, scope_json TEXT NOT NULL
                 );
+                CREATE TABLE IF NOT EXISTS source_high_water(
+                    source_id TEXT PRIMARY KEY, highest_sequence INTEGER NOT NULL,
+                    scope_json TEXT NOT NULL
+                );
                 CREATE TABLE IF NOT EXISTS operations(
                     operation_id TEXT PRIMARY KEY, idempotency_key TEXT NOT NULL UNIQUE,
                     payload_hash TEXT NOT NULL, status TEXT NOT NULL, response_json TEXT NOT NULL,
@@ -376,8 +380,11 @@ class IndexService:
         if not isinstance(rep.get("text"), str) or not rep["text"]:
             raise _error("invalid_request", "representation text is required")
         chunker = rep.get("chunker")
-        if not isinstance(chunker, dict) or not chunker.get("profile") or not chunker.get("version"):
-            raise _error("invalid_request", "representation chunker profile/version is required")
+        pinned_chunker = bundle["chunking"]
+        if (not isinstance(chunker, dict)
+                or chunker.get("profile") != pinned_chunker.get("profile")
+                or chunker.get("version") != pinned_chunker.get("version")):
+            raise _error("incompatible_representation", "representation chunker does not match the pinned profile", 422)
         limits = bundle["limits"]
         if len(rep["text"].encode("utf-8")) > limits["max_chunk_text_bytes"]:
             raise _error("source_too_large", "chunk text exceeds the pinned profile byte limit", 422)
@@ -399,8 +406,9 @@ class IndexService:
             if vector.get("input_type") != "document" or vector.get("model") != emb.get("model") or vector.get("version") != emb.get("model_version") or vector.get("dimensions") != emb.get("dimensions"):
                 raise _error("incompatible_representation", "vector model, version, dimensions, or input type does not match pinned profile", 422)
             values = vector.get("values")
-            if not isinstance(values, list) or len(values) != emb["dimensions"] or any(not isinstance(v, (int, float)) or not math.isfinite(float(v)) for v in values):
-                raise _error("incompatible_representation", "vector values are invalid", 422)
+            if (not isinstance(values, list) or len(values) != emb["dimensions"]
+                    or any(type(v) not in (int, float) or not math.isfinite(float(v)) or abs(float(v)) > 1_000_000 for v in values)):
+                raise _error("incompatible_representation", "vector values must be finite, bounded numbers with the pinned dimensions", 422)
         elif bundle["embedding"].get("required"):
             raise _error("incompatible_representation", "pinned profile requires a vector representation", 422)
         if lexical is None and bundle.get("lexical", {}).get("required", True):
@@ -417,7 +425,10 @@ class IndexService:
         if not idempotency_key:
             raise _error("invalid_request", "Idempotency-Key header is required")
         source = request.get("source")
-        if not isinstance(source, dict) or not isinstance(source.get("source_id"), str) or not isinstance(source.get("revision"), str) or type(source.get("revision_sequence")) is not int or source["revision_sequence"] < 1:
+        if (not isinstance(source, dict) or not isinstance(source.get("source_id"), str)
+                or not isinstance(source.get("revision"), str)
+                or type(source.get("revision_sequence")) is not int
+                or not 1 <= source["revision_sequence"] <= 9_007_199_254_740_991):
             raise _error("invalid_request", "source identity, revision, and positive revision_sequence are required")
         source_id = source["source_id"]
         if not re.fullmatch(r"(memory|knowledge):[A-Za-z0-9._~-]{1,128}", source_id):
@@ -430,6 +441,8 @@ class IndexService:
             raise _error("invalid_request", "representations must contain 1 to 256 items")
         with self._connect() as db:
             bundle_for_limits, _ = self._profile(db, request.get("index_profile"))
+        if len(reps) > bundle_for_limits["limits"]["max_chunks"]:
+            raise _error("source_too_large", "representation count exceeds the pinned profile chunk limit", 422)
         if len(_canonical(request)) > bundle_for_limits["limits"]["max_request_bytes"]:
             raise _error("request_too_large", "upsert exceeds the pinned profile request byte limit", 413)
         target = request.get("target_generation")
@@ -459,13 +472,20 @@ class IndexService:
             gen = self._generation(db, target, request["index_profile"], allow_building=target is not None)
             active_row = db.execute("SELECT generation_id FROM active_generation WHERE singleton=1").fetchone()
             is_active_generation = active_row is not None and active_row["generation_id"] == gen["generation_id"]
-            tomb = db.execute("SELECT tombstone_sequence FROM tombstones WHERE source_id=?", (source_id,)).fetchone()
+            tomb = db.execute("SELECT tombstone_sequence,scope_json FROM tombstones WHERE source_id=?", (source_id,)).fetchone()
             seq = source["revision_sequence"]
+            if tomb and scope_json != tomb["scope_json"]:
+                raise _error("scope_conflict", "upsert scope does not match the durable tombstone partition", 409)
             if tomb and seq <= tomb["tombstone_sequence"]:
                 raise _error("revision_sequence_regression", "upsert is at or below the durable tombstone sequence", 409)
             old = db.execute("SELECT latest_sequence,scope_json FROM sources WHERE source_id=?", (source_id,)).fetchone()
+            high_water = db.execute("SELECT highest_sequence,scope_json FROM source_high_water WHERE source_id=?", (source_id,)).fetchone()
             if old and scope_json != old["scope_json"]:
-                raise _error("conflict", "a source identity cannot change scope partition", 409)
+                raise _error("scope_conflict", "a source identity cannot change scope partition", 409)
+            if high_water and scope_json != high_water["scope_json"]:
+                raise _error("scope_conflict", "source identity cannot change its durable scope partition", 409)
+            if is_active_generation and high_water and seq < high_water["highest_sequence"]:
+                raise _error("revision_sequence_regression", "active revision sequence is below the highest accepted source revision", 409)
             if is_active_generation:
                 if old and seq < old["latest_sequence"]:
                     raise _error("revision_sequence_regression", "a source revision sequence cannot regress", 409)
@@ -505,6 +525,8 @@ class IndexService:
             if is_active_generation:
                 db.execute("INSERT INTO sources(source_id,latest_sequence,indexed_sequence,scope_json) VALUES(?,?,?,?) ON CONFLICT(source_id) DO UPDATE SET latest_sequence=MAX(latest_sequence,excluded.latest_sequence), indexed_sequence=MAX(indexed_sequence,excluded.indexed_sequence), scope_json=excluded.scope_json",
                            (source_id, seq, seq, scope_json))
+            db.execute("INSERT INTO source_high_water(source_id,highest_sequence,scope_json) VALUES(?,?,?) ON CONFLICT(source_id) DO UPDATE SET highest_sequence=MAX(highest_sequence,excluded.highest_sequence)",
+                       (source_id, seq, scope_json))
             response = {"operation_id": request["operation_id"], "source_id": source_id, "source_revision": source["revision"],
                         "revision_sequence": seq, "status": "complete", "index_generation": gen["generation_id"],
                         "request_id": request.get("request_id", "index")}
@@ -523,7 +545,16 @@ class IndexService:
                                               (target_id, source_id)).fetchone()["sequence"]
                     if prior_target == seq and not self._representations_match(
                             db, target_id, source_id, source["revision"], scope_json, validated):
-                        raise _error("revision_conflict", "active mutation conflicts with an existing target-generation revision", 409)
+                        db.execute("""INSERT INTO generation_source_failures
+                            (generation_id,source_id,revision_sequence,reason_code,profile_json,retryable,details)
+                            VALUES(?,?,?,?,?,?,?) ON CONFLICT(generation_id,source_id,revision_sequence,reason_code)
+                            DO UPDATE SET profile_json=excluded.profile_json,retryable=excluded.retryable,details=excluded.details""",
+                            (target_id, source_id, seq, "incompatible_representation",
+                             _canonical(request.get("index_profile", {})).decode(), 0,
+                             "active mutation conflicts with an existing target-generation revision"))
+                        self._journal_change(db, target_id, source_id, seq, request["operation_id"],
+                                             "upsert", payload_hash)
+                        continue
                     if prior_target is None or seq > prior_target:
                         db.execute("DELETE FROM representations WHERE generation_id=? AND source_id=? AND revision_sequence<?",
                                    (target_id, source_id, seq))
@@ -553,7 +584,10 @@ class IndexService:
             raise _error("invalid_request", "Idempotency-Key header is required")
         source_id = request.get("source_id")
         seq = request.get("revision_sequence")
-        if not isinstance(source_id, str) or not re.fullmatch(r"(memory|knowledge):[A-Za-z0-9._~-]{1,128}", source_id) or type(seq) is not int or seq < 1 or request.get("delete_scope") != "source" or not isinstance(request.get("operation_id"), str) or not request["operation_id"]:
+        if (not isinstance(source_id, str) or not re.fullmatch(r"(memory|knowledge):[A-Za-z0-9._~-]{1,128}", source_id)
+                or type(seq) is not int or not 1 <= seq <= 9_007_199_254_740_991
+                or request.get("delete_scope") != "source" or not isinstance(request.get("operation_id"), str)
+                or not request["operation_id"]):
             raise _error("invalid_request", "source-wide tombstone with a valid source, operation ID, and positive sequence is required")
         payload_hash = _payload_hash(request)
         with self._lock, self._connect() as db:
@@ -573,18 +607,28 @@ class IndexService:
             scope_json = self._scope(request.get("scope"))
             existing = db.execute("SELECT tombstone_sequence,scope_json FROM tombstones WHERE source_id=?", (source_id,)).fetchone()
             source_row = db.execute("SELECT latest_sequence,scope_json FROM sources WHERE source_id=?", (source_id,)).fetchone()
+            high_water = db.execute("SELECT highest_sequence,scope_json FROM source_high_water WHERE source_id=?", (source_id,)).fetchone()
             represented_scope = db.execute("SELECT scope_json FROM representations WHERE source_id=? LIMIT 1", (source_id,)).fetchone()
-            known_scope = source_row["scope_json"] if source_row else (represented_scope["scope_json"] if represented_scope else None)
+            known_scope = (source_row["scope_json"] if source_row else
+                           high_water["scope_json"] if high_water else
+                           represented_scope["scope_json"] if represented_scope else None)
             if known_scope is not None and known_scope != scope_json:
                 raise _error("scope_conflict", "source-wide delete scope does not match the canonical source partition", 409)
             if existing and existing["scope_json"] != scope_json:
                 raise _error("scope_conflict", "source-wide delete scope does not match the existing tombstone partition", 409)
-            if source_row and seq <= source_row["latest_sequence"]:
-                raise _error("revision_sequence_regression", "tombstone sequence must exceed every allocated source revision", 409)
+            highest_sequence = max(
+                source_row["latest_sequence"] if source_row else 0,
+                high_water["highest_sequence"] if high_water else 0,
+                existing["tombstone_sequence"] if existing else 0,
+            )
+            if seq <= highest_sequence:
+                raise _error("revision_sequence_regression", "tombstone sequence must exceed every accepted source revision", 409)
             if existing and seq <= existing["tombstone_sequence"]:
                 raise _error("revision_sequence_regression", "tombstone sequence cannot regress", 409)
             db.execute("INSERT INTO tombstones(source_id,tombstone_sequence,source_revision,scope_json) VALUES(?,?,?,?) ON CONFLICT(source_id) DO UPDATE SET tombstone_sequence=MAX(tombstone_sequence,excluded.tombstone_sequence), source_revision=excluded.source_revision, scope_json=excluded.scope_json",
                        (source_id, seq, request.get("source_revision", ""), scope_json))
+            db.execute("INSERT INTO source_high_water(source_id,highest_sequence,scope_json) VALUES(?,?,?) ON CONFLICT(source_id) DO UPDATE SET highest_sequence=MAX(highest_sequence,excluded.highest_sequence)",
+                       (source_id, seq, scope_json))
             db.execute("DELETE FROM representations WHERE source_id=? AND revision_sequence<=?", (source_id, seq))
             db.execute("DELETE FROM generation_source_failures WHERE source_id=? AND revision_sequence<=?", (source_id, seq))
             db.execute("UPDATE generations SET status='building' WHERE status='eligible'")
@@ -645,11 +689,14 @@ class IndexService:
             if not row:
                 raise _error("operation_not_found", "Index operation was not found", 404)
             payload = json.loads(row["response_json"])
-            return {"operation_id": payload["operation_id"], "status": row["status"],
-                    "source_id": payload.get("source_id"), "source_revision": payload.get("source_revision"),
-                    "revision_sequence": payload.get("revision_sequence"),
-                    "safe_error_code": row["safe_error_code"], "reconciliation_required": row["status"] == "reconciliation_required",
-                    "request_id": payload.get("request_id", "index")}
+            result = {"operation_id": payload["operation_id"], "status": row["status"],
+                      "source_id": payload.get("source_id"), "source_revision": payload.get("source_revision"),
+                      "revision_sequence": payload.get("revision_sequence"),
+                      "reconciliation_required": row["status"] == "reconciliation_required",
+                      "request_id": payload.get("request_id", "index")}
+            if row["safe_error_code"] is not None:
+                result["safe_error_code"] = row["safe_error_code"]
+            return result
 
     def source_status(self, source_id: str) -> dict[str, Any]:
         with self._connect() as db:
@@ -668,8 +715,15 @@ class IndexService:
         scope_json = self._scope(request.get("scope"))
         terms = request.get("terms")
         limit = request.get("limit")
-        if not isinstance(terms, list) or not terms or any(not isinstance(t, str) or not t for t in terms) or type(limit) is not int or not 1 <= limit <= 100:
-            raise _error("invalid_request", "terms and limit are invalid")
+        if (not isinstance(terms, list) or not terms or any(not isinstance(t, str) or not t for t in terms)
+                or type(limit) is not int or not 1 <= limit <= 100
+                or ("source_ids" in request and (not isinstance(request["source_ids"], list)
+                    or any(not isinstance(v, str) for v in request["source_ids"])))
+                or ("source_revisions" in request and (not isinstance(request["source_revisions"], list)
+                    or any(not isinstance(v, str) for v in request["source_revisions"])))):
+            raise _error("invalid_request", "terms, source filters, and limit are invalid")
+        if not isinstance(request.get("index_generation"), str) or not request["index_generation"]:
+            raise _error("invalid_request", "index_generation is required")
         with self._connect() as db:
             bundle, _ = self._profile(db, request.get("index_profile"))
             gen = self._generation(db, request.get("index_generation"), request["index_profile"])
@@ -709,8 +763,15 @@ class IndexService:
         vector = request.get("query_vector")
         metric = request.get("metric")
         limit = request.get("limit")
-        if request.get("input_type") != "query" or not isinstance(vector, list) or not vector or any(not isinstance(v, (int, float)) or not math.isfinite(float(v)) for v in vector):
-            raise _error("invalid_request", "query vector/input_type is invalid")
+        if (request.get("input_type") != "query" or not isinstance(vector, list) or not vector
+                or any(type(v) not in (int, float) or not math.isfinite(float(v)) or abs(float(v)) > 1_000_000 for v in vector)
+                or ("source_ids" in request and (not isinstance(request["source_ids"], list)
+                    or any(not isinstance(v, str) for v in request["source_ids"])))
+                or ("source_revisions" in request and (not isinstance(request["source_revisions"], list)
+                    or any(not isinstance(v, str) for v in request["source_revisions"])))):
+            raise _error("invalid_request", "query vector, source filters, or input_type is invalid")
+        if not isinstance(request.get("index_generation"), str) or not request["index_generation"]:
+            raise _error("invalid_request", "index_generation is required")
         if metric not in {"cosine", "dot_product", "euclidean"} or type(limit) is not int or not 1 <= limit <= 100:
             raise _error("invalid_request", "metric or limit is invalid")
         with self._connect() as db:
@@ -718,8 +779,10 @@ class IndexService:
             gen = self._generation(db, request.get("index_generation"), request["index_profile"])
             emb = bundle["embedding"]
             ep = request.get("embedding_profile")
-            if not isinstance(ep, dict) or ep.get("name") != emb["profile"] or ep.get("version") != emb["version"] or len(vector) != emb["dimensions"] or metric != emb["metric"]:
-                raise _error("incompatible_representation", "query vector profile/dimensions/metric mismatch", 422)
+            if (not isinstance(ep, dict) or ep.get("name") != emb["profile"] or ep.get("version") != emb["version"]
+                    or ep.get("model") != emb["model"] or ep.get("model_version") != emb["model_version"]
+                    or ep.get("dimensions") != emb["dimensions"] or len(vector) != emb["dimensions"] or metric != emb["metric"]):
+                raise _error("incompatible_representation", "query vector profile/model/version/dimensions/metric mismatch", 422)
             rows = db.execute("SELECT * FROM representations WHERE generation_id=? AND scope_json=? AND vector_json IS NOT NULL AND embedding_model=? AND embedding_version=? AND embedding_dimensions=?",
                               (gen["generation_id"], scope_json, emb["model"], emb["model_version"], emb["dimensions"])).fetchall()
             scored = []
@@ -733,14 +796,16 @@ class IndexService:
                     continue
                 candidate = json.loads(row["vector_json"])
                 if metric == "euclidean":
-                    score = math.sqrt(sum((float(a) - float(b)) ** 2 for a, b in zip(vector, candidate)))
+                    score = math.hypot(*(float(a) - float(b) for a, b in zip(vector, candidate)))
                     key = score
                 elif metric == "dot_product":
-                    score = sum(float(a) * float(b) for a, b in zip(vector, candidate))
+                    score = math.fsum(float(a) * float(b) for a, b in zip(vector, candidate))
                     key = -score
                 else:
-                    denom = math.sqrt(sum(float(a) ** 2 for a in vector) * sum(float(b) ** 2 for b in candidate))
-                    score = sum(float(a) * float(b) for a, b in zip(vector, candidate)) / denom if denom else 0.0
+                    norm_a = math.hypot(*(float(a) for a in vector))
+                    norm_b = math.hypot(*(float(b) for b in candidate))
+                    dot = math.fsum(float(a) * float(b) for a, b in zip(vector, candidate))
+                    score = dot / (norm_a * norm_b) if norm_a and norm_b else 0.0
                     key = -score
                 scored.append((key, row, score))
             scored.sort(key=lambda item: (item[0], item[1]["source_id"], -item[1]["revision_sequence"], item[1]["chunk_id"], item[1]["chunker_profile"], item[1]["chunker_version"]))
