@@ -267,5 +267,58 @@ class IndexRuntimeTests(unittest.TestCase):
         self.assertEqual(profile_response["digest"], self.bundle["digest"])
 
 
+    def test_terminal_idempotency_binding_expires_after_thirty_days(self):
+        request = self.upsert_request()
+        self.service.upsert(request, "idem-expire")
+        with self.service._connect() as db:
+            db.execute("UPDATE operations SET created_at='2000-01-01 00:00:00' WHERE idempotency_key='idem-expire'")
+        with self.assertRaises(IndexError) as raised:
+            self.service.upsert(request, "idem-expire")
+        self.assertEqual(raised.exception.code, "idempotency_key_expired")
+
+    def test_active_writes_are_dual_applied_to_building_generation(self):
+        class Headers(dict):
+            def get(self, key, default=None):
+                return super().get(key, default)
+        status, generation = self.service.handle(
+            "POST", "/api/v1/index/generations", {},
+            {"index_profile": self.identity}, Headers({"Idempotency-Key": "build-dual"}), "build"
+        )
+        self.assertEqual(status, 202)
+        target = generation["generation_id"]
+        self.service.upsert(self.upsert_request(), "idem-dual")
+        result = self.service.lexical_lookup({
+            "request_id": "lookup-target", "scope": SCOPE, "index_profile": self.identity,
+            "lexical_profile": {"name": "bm25-v1", "version": "0.1"},
+            "terms": ["ranking"], "limit": 10, "index_generation": target,
+        })
+        self.assertEqual([item["source_id"] for item in result["candidates"]], ["knowledge:doc-a"])
+        details = self.service.handle("GET", f"/api/v1/index/generations/{target}", {}, None, Headers(), "status")[1]
+        self.assertGreater(int(details["dual_apply_journal_position"]), 0)
+
+    def test_target_generation_source_failure_is_durable_and_blocks_eligibility(self):
+        class Headers(dict):
+            def get(self, key, default=None):
+                return super().get(key, default)
+        status, generation = self.service.handle(
+            "POST", "/api/v1/index/generations", {},
+            {"index_profile": self.identity}, Headers({"Idempotency-Key": "build-failure"}), "build"
+        )
+        self.assertEqual(status, 202)
+        target = generation["generation_id"]
+        request = self.upsert_request(
+            operation_id="too-large",
+            reps=[representation("chunk-large", "x" * 513, ["x"], [1.0, 0.0, 0.0])]
+        )
+        request["target_generation"] = target
+        with self.assertRaises(IndexError) as raised:
+            self.service.upsert(request, "idem-too-large")
+        self.assertEqual(raised.exception.code, "source_too_large")
+        details = self.service.handle("GET", f"/api/v1/index/generations/{target}", {}, None, Headers(), "status")[1]
+        self.assertEqual(details["counts"]["failed_sources"], 1)
+        self.assertEqual(details["source_failures"][0]["reason_code"], "source_too_large")
+        self.assertFalse(details["cutover_eligible"])
+
+
 if __name__ == "__main__":
     unittest.main()
