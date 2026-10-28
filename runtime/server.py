@@ -7,6 +7,7 @@ import threading
 import time
 import uuid
 from datetime import datetime, timezone
+from urllib.parse import parse_qs, urlsplit
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from typing import Any
 
@@ -17,6 +18,7 @@ from .intent_classification import IntentClassificationError, classify as classi
 from .entity_extraction import EntityExtractionError, PROFILE_NAME as ENTITY_PROFILE_NAME, PROFILE_VERSION as ENTITY_PROFILE_VERSION, get_extractor as get_entity_extractor
 from .reranking import RerankingError, get_engine as get_reranking_engine
 from .retrieval import RetrievalError, configured_retrieval_services, retrieval_readiness
+from .index import IndexError as IndexServiceError, get_index_service
 from .chunking import (
     MAX_CONTENT_BYTES, MAX_CHUNKS, DEFAULT_POLICY, ChunkingError, Policy, chunk_document, chunk_spans, validate_index_profile,
 )
@@ -304,14 +306,57 @@ class Handler(BaseHTTPRequestHandler):
         self.send_header("X-CE-Request-ID", request_id)
         self.end_headers()
 
+    def _dispatch_index_method(self, method: str, read_body: bool) -> None:
+        request_id, invalid_id = self._request_id()
+        if invalid_id:
+            self._send(400, _error("invalid_parameter", "X-CE-Request-ID contains invalid characters or length"), request_id)
+            return
+        if (deadline_error := self._deadline_error()) is not None:
+            self._fail(deadline_error, request_id)
+            return
+        parsed = urlsplit(self.path)
+        if not parsed.path.startswith("/api/v1/index/"):
+            self._method_not_allowed()
+            return
+        body: dict[str, Any] | None = None
+        try:
+            if read_body:
+                if self.headers.get_content_type() != "application/json":
+                    self._send(415, _error("unsupported_media_type", "Content-Type must be application/json"), request_id)
+                    return
+                length_text = self.headers.get("Content-Length")
+                if length_text is None or not length_text.isdecimal():
+                    raise ChunkingError("invalid_request", "a valid Content-Length is required", status=400)
+                length = int(length_text)
+                if length > MAX_PROFILE_REQUEST_BYTES:
+                    self.close_connection = True
+                    raise ChunkingError("request_too_large", "request exceeds configured byte limit", status=413)
+                raw = self._read_body(length)
+                try:
+                    body = json.loads(raw.decode("utf-8"), object_pairs_hook=_unique_json_object,
+                                      parse_constant=_reject_json_constant)
+                except (UnicodeDecodeError, json.JSONDecodeError, ValueError) as exc:
+                    raise ChunkingError("invalid_request", "request body must be valid UTF-8 JSON without duplicate object keys", status=400) from exc
+                _validate_json_unicode(body)
+                if not isinstance(body, dict):
+                    raise ChunkingError("invalid_request", "request body must be a JSON object", status=400)
+            status, response = get_index_service().handle(method, parsed.path, parse_qs(parsed.query), body, self.headers, request_id)
+            self._send(status, response, request_id)
+        except IndexServiceError as exc:
+            self._send(exc.status, _error(exc.code, str(exc), retryable=exc.status >= 500), request_id)
+        except ChunkingError as exc:
+            self._fail(exc, request_id)
+        except Exception:
+            self._send(500, _error("internal_error", "request could not be processed"), request_id)
+
     def do_PUT(self) -> None:
-        self._method_not_allowed()
+        self._dispatch_index_method("PUT", True)
 
     def do_PATCH(self) -> None:
         self._method_not_allowed()
 
     def do_DELETE(self) -> None:
-        self._method_not_allowed()
+        self._dispatch_index_method("DELETE", False)
 
     def do_OPTIONS(self) -> None:
         self._method_not_allowed()
@@ -378,6 +423,15 @@ class Handler(BaseHTTPRequestHandler):
             service = "lexical-retrieval" if "lexical-retrieval" in self.path else "vector-retrieval"
             response = retrieval_readiness(service)
             self._send(200 if response["ready"] else 503, response, request_id)
+        elif urlsplit(self.path).path.startswith("/api/v1/index/"):
+            try:
+                parsed = urlsplit(self.path)
+                status, response = get_index_service().handle("GET", parsed.path, parse_qs(parsed.query), None, self.headers, request_id)
+                self._send(status, response, request_id)
+            except IndexServiceError as exc:
+                self._send(exc.status, _error(exc.code, str(exc), retryable=exc.status >= 500), request_id)
+            except Exception:
+                self._send(500, _error("internal_error", "request could not be processed"), request_id)
         else:
             self._send(404, _error("endpoint_not_found", "endpoint not found"), request_id)
 
@@ -390,7 +444,8 @@ class Handler(BaseHTTPRequestHandler):
         if deadline_error is not None:
             self._fail(deadline_error, request_id)
             return
-        if self.path not in (
+        is_index_route = urlsplit(self.path).path.startswith("/api/v1/index/")
+        if not is_index_route and self.path not in (
             "/api/v1/chunking/chunks", "/api/v1/chunking/preflight",
             "/api/v1/tokenization/lexical", "/api/v1/tokenization/lexical/batch",
             "/api/v1/embeddings", "/api/v1/ranking/rank",
@@ -408,7 +463,9 @@ class Handler(BaseHTTPRequestHandler):
             if length_text is None or not length_text.isdecimal():
                 raise ChunkingError("invalid_request", "a valid Content-Length is required", status=400)
             length = int(length_text)
-            if self.path == "/api/v1/chunking/chunks":
+            if is_index_route:
+                limit = MAX_PROFILE_REQUEST_BYTES
+            elif self.path == "/api/v1/chunking/chunks":
                 limit = MAX_REQUEST_BYTES
             elif self.path == "/api/v1/chunking/preflight":
                 limit = MAX_PROFILE_REQUEST_BYTES
@@ -437,6 +494,14 @@ class Handler(BaseHTTPRequestHandler):
             except (UnicodeDecodeError, json.JSONDecodeError, ValueError) as exc:
                 raise ChunkingError("invalid_request", "request body must be valid UTF-8 JSON without duplicate object keys", status=400) from exc
             _validate_json_unicode(request)
+            if is_index_route:
+                parsed = urlsplit(self.path)
+                status, response = get_index_service().handle("POST", parsed.path, parse_qs(parsed.query), request, self.headers, request_id)
+                if (deadline_error := self._deadline_error()) is not None:
+                    self._fail(deadline_error, request_id)
+                    return
+                self._send(status, response, request_id)
+                return
             if self.path == "/api/v1/chunking/preflight":
                 response = self._preflight(request)
             elif self.path == "/api/v1/tokenization/lexical":
@@ -486,6 +551,8 @@ class Handler(BaseHTTPRequestHandler):
         except RerankingError as exc:
             self._send(exc.status, _error(exc.code, str(exc), retryable=exc.status >= 500), request_id)
         except RetrievalError as exc:
+            self._send(exc.status, _error(exc.code, str(exc), retryable=exc.status >= 500), request_id)
+        except IndexServiceError as exc:
             self._send(exc.status, _error(exc.code, str(exc), retryable=exc.status >= 500), request_id)
         except Exception:
             self._send(500, _error("internal_error", "request could not be processed"), request_id)
