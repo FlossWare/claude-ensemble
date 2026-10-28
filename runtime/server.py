@@ -27,6 +27,7 @@ from .reranking import RerankingError, get_engine as get_reranking_engine
 from .retrieval import RetrievalError, configured_retrieval_services, retrieval_readiness
 from .index import IndexError as IndexServiceError, get_index_service
 from .memory import MemoryError as MemoryServiceError, get_memory_service
+from .graph import GraphError, get_graph_service
 from .internal_calls import INTERNAL_CALL_TOKEN
 from .chunking import (
     MAX_CONTENT_BYTES, MAX_CHUNKS, DEFAULT_POLICY, ChunkingError, Policy, chunk_document, chunk_spans, validate_index_profile,
@@ -41,6 +42,7 @@ MAX_TOKENIZATION_BATCH_REQUEST_BYTES = 524_288
 MAX_RANKING_REQUEST_BYTES = 1_048_576
 MAX_INTENT_REQUEST_BYTES = 1_048_576
 MAX_ENTITY_REQUEST_BYTES = 1_048_576
+MAX_GRAPH_REQUEST_BYTES = 1_048_576
 DEFAULT_REQUEST_TIMEOUT_SECONDS = 30.0
 SUPPORTED_PROFILES = {"markdown-default": {"0.1"}}
 _MEMORY_RECOVERY_LOCK = threading.Lock()
@@ -535,6 +537,13 @@ class Handler(BaseHTTPRequestHandler):
                 self._send(200, response, request_id)
             except MemoryServiceError as exc:
                 self._send(exc.status, _error(exc.code, str(exc), retryable=exc.status >= 500), request_id)
+        elif urlsplit(self.path).path.startswith("/api/v1/graph/"):
+            try:
+                parsed = urlsplit(self.path)
+                status, response = get_graph_service().handle("GET", parsed.path, parse_qs(parsed.query), None, request_id)
+                self._send(status, response, request_id)
+            except GraphError as exc:
+                self._send(exc.status, _error(exc.code, str(exc), retryable=exc.status >= 500), request_id)
         elif urlsplit(self.path).path.startswith("/api/v1/index/"):
             try:
                 parsed = urlsplit(self.path)
@@ -561,7 +570,8 @@ class Handler(BaseHTTPRequestHandler):
         memory_path = urlsplit(self.path).path
         is_memory_route = memory_path == "/api/v1/memories" or memory_path == "/api/v1/memories/verify-revisions" or (
             memory_path.startswith("/api/v1/memories/") and memory_path.endswith("/revisions"))
-        if not is_index_route and not is_memory_route and self.path not in (
+        is_graph_route = memory_path.startswith("/api/v1/graph/")
+        if not is_index_route and not is_memory_route and not is_graph_route and self.path not in (
             "/api/v1/chunking/chunks", "/api/v1/chunking/preflight",
             "/api/v1/tokenization/lexical", "/api/v1/tokenization/lexical/batch",
             "/api/v1/embeddings", "/api/v1/ranking/rank",
@@ -581,6 +591,8 @@ class Handler(BaseHTTPRequestHandler):
             length = int(length_text)
             if is_index_route:
                 limit = MAX_PROFILE_REQUEST_BYTES
+            elif is_graph_route:
+                limit = MAX_GRAPH_REQUEST_BYTES
             elif self.path == "/api/v1/chunking/chunks":
                 limit = MAX_REQUEST_BYTES
             elif self.path == "/api/v1/chunking/preflight":
@@ -610,6 +622,11 @@ class Handler(BaseHTTPRequestHandler):
             except (UnicodeDecodeError, json.JSONDecodeError, ValueError) as exc:
                 raise ChunkingError("invalid_request", "request body must be valid UTF-8 JSON without duplicate object keys", status=400) from exc
             _validate_json_unicode(request)
+            if is_graph_route:
+                parsed = urlsplit(self.path)
+                status, response = get_graph_service().handle("POST", parsed.path, parse_qs(parsed.query), request, request_id)
+                self._send(status, response, request_id)
+                return
             if is_memory_route:
                 parsed = urlsplit(self.path)
                 path = parsed.path
@@ -706,6 +723,8 @@ class Handler(BaseHTTPRequestHandler):
         except RetrievalError as exc:
             self._send(exc.status, _error(exc.code, str(exc), retryable=exc.status >= 500), request_id)
         except MemoryServiceError as exc:
+            self._send(exc.status, _error(exc.code, str(exc), retryable=exc.status >= 500), request_id)
+        except GraphError as exc:
             self._send(exc.status, _error(exc.code, str(exc), retryable=exc.status >= 500), request_id)
         except IndexServiceError as exc:
             self._send(exc.status, _error(exc.code, str(exc), retryable=exc.status >= 500), request_id)
