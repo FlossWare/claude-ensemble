@@ -511,10 +511,12 @@ class GraphService:
                 resolved = sorted(ids)
             else:
                 mentions = request["entity_mentions"]
-                if not isinstance(mentions, list) or not 1 <= len(mentions) <= 16 or len(set(mentions)) != len(mentions):
+                if not isinstance(mentions, list) or not 1 <= len(mentions) <= 16:
                     raise GraphError("invalid_request", "entity_mentions must contain 1 to 16 mentions")
+                mentions = [_string(mention, "entity_mention", 1024) for mention in mentions]
+                if len(set(mentions)) != len(mentions):
+                    raise GraphError("invalid_request", "entity_mentions must be unique")
                 for mention in mentions:
-                    mention = _string(mention, "entity_mention", 1024)
                     normalized = unicodedata.normalize("NFC", mention).casefold()
                     matches: list[str] = []
                     for node_id, rows in by_node.items():
