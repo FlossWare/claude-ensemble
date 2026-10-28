@@ -311,6 +311,8 @@ class SourceManifest:
                     content_sha256 TEXT NOT NULL,
                     source_revision TEXT NOT NULL,
                     memory_id TEXT,
+                    revision_sequence INTEGER,
+                    scope_json TEXT,
                     state TEXT NOT NULL,
                     last_error TEXT,
                     updated_at TEXT NOT NULL
@@ -324,18 +326,28 @@ class SourceManifest:
             return dict(row) if row else None
 
     def record(self, document: SourceDocument, *, memory_id: str | None, state: str,
-               error: str | None = None) -> None:
+               error: str | None = None, revision_sequence: int | None = None,
+               scope: dict[str, str] | None = None) -> None:
         with sqlite3.connect(self.path) as db:
             db.execute("""
-                INSERT INTO source_items(source_key,content_sha256,source_revision,memory_id,state,last_error,updated_at)
-                VALUES(?,?,?,?,?,?,?)
+                INSERT INTO source_items(source_key,content_sha256,source_revision,memory_id,
+                    revision_sequence,scope_json,state,last_error,updated_at)
+                VALUES(?,?,?,?,?,?,?,?,?)
                 ON CONFLICT(source_key) DO UPDATE SET
                     content_sha256=excluded.content_sha256,
                     source_revision=excluded.source_revision,
                     memory_id=COALESCE(excluded.memory_id,source_items.memory_id),
+                    revision_sequence=COALESCE(excluded.revision_sequence,source_items.revision_sequence),
+                    scope_json=COALESCE(excluded.scope_json,source_items.scope_json),
                     state=excluded.state,last_error=excluded.last_error,updated_at=excluded.updated_at
             """, (document.source_key, document.content_sha256, document.source_revision,
-                  memory_id, state, error, _now()))
+                  memory_id, revision_sequence, json.dumps(scope, sort_keys=True) if scope else None,
+                  state, error, _now()))
+
+    def mark_removed(self, source_key: str, error: str | None = None) -> None:
+        with sqlite3.connect(self.path) as db:
+            db.execute("UPDATE source_items SET state=?,last_error=?,updated_at=? WHERE source_key=?",
+                       ("removed" if error is None else "error", error, _now(), source_key))
 
     def active_keys(self) -> set[str]:
         with sqlite3.connect(self.path) as db:
@@ -377,3 +389,102 @@ class MemoryRestClient:
 def stable_memory_id(source_key: str) -> str:
     """Deterministic Memory ID for source identity; never contains a path/locator."""
     return hashlib.sha256(source_key.encode("utf-8")).hexdigest()[:32]
+
+
+class SourcePipeline:
+    """Idempotent source lifecycle coordinator backed by Memory's REST contract."""
+
+    def __init__(self, client: MemoryRestClient, manifest: SourceManifest):
+        self.client = client
+        self.manifest = manifest
+
+    @staticmethod
+    def _key(prefix: str, source_key: str, digest: str = "") -> str:
+        return prefix + hashlib.sha256((source_key + ":" + digest).encode("utf-8")).hexdigest()
+
+    def ingest(self, document: SourceDocument, *, scope: dict[str, str],
+               index_profile: dict[str, str]) -> dict[str, object]:
+        previous = self.manifest.get(document.source_key)
+        if previous and previous.get("state") == "active" and previous.get("content_sha256") == document.content_sha256:
+            return {"source_key": document.source_key, "status": "unchanged",
+                    "memory_id": previous.get("memory_id")}
+        payload = document.to_memory_payload(scope=scope, index_profile=index_profile)
+        memory_id = str(previous["memory_id"]) if previous and previous.get("memory_id") else None
+        try:
+            if memory_id:
+                status, current = self.client.request("GET", f"/api/v1/memories/{memory_id}")
+                if status != 200:
+                    raise SourceIngestionError(f"Memory read failed for {document.source_key}: HTTP {status}")
+                sequence = current.get("revision_sequence")
+                if type(sequence) is not int:
+                    raise SourceIngestionError("Memory read response omitted revision_sequence")
+                update = {
+                    "expected_base_revision_sequence": sequence,
+                    "content": payload["content"],
+                    "provenance": payload["provenance"],
+                    "index_profile": index_profile,
+                    "request_id": str(uuid.uuid4()),
+                }
+                status, response = self.client.request(
+                    "POST", f"/api/v1/memories/{memory_id}/revisions", update,
+                    self._key("source-update-", document.source_key, document.content_sha256))
+            else:
+                status, response = self.client.request(
+                    "POST", "/api/v1/memories", payload,
+                    self._key("source-create-", document.source_key))
+            if status not in (200, 202):
+                raise SourceIngestionError(
+                    f"Memory rejected {document.source_key}: HTTP {status}: "
+                    f"{json.dumps(response, ensure_ascii=False)[:512]}")
+            memory_id = str(response.get("memory_id") or memory_id or "")
+            sequence = response.get("revision_sequence")
+            if not memory_id or type(sequence) is not int:
+                raise SourceIngestionError("Memory response omitted memory_id or revision_sequence")
+            self.manifest.record(document, memory_id=memory_id, revision_sequence=sequence,
+                                 scope=scope, state="active")
+            return {"source_key": document.source_key, "status": "submitted",
+                    "memory_id": memory_id, "revision_sequence": sequence,
+                    "operation_id": response.get("operation_id"),
+                    "indexing_status": response.get("indexing_status")}
+        except Exception as exc:
+            self.manifest.record(document, memory_id=memory_id, scope=scope, state="error",
+                                 error=f"{type(exc).__name__}: {str(exc)[:512]}")
+            raise
+
+    def ingest_many(self, documents: Iterable[SourceDocument], *, scope: dict[str, str],
+                    index_profile: dict[str, str]) -> list[dict[str, object]]:
+        results = []
+        for document in documents:
+            try:
+                results.append(self.ingest(document, scope=scope, index_profile=index_profile))
+            except Exception as exc:
+                results.append({"source_key": document.source_key, "status": "error",
+                                "error": f"{type(exc).__name__}: {str(exc)[:512]}"})
+        return results
+
+    def remove_missing(self, current_source_keys: set[str]) -> list[dict[str, object]]:
+        """Tombstone Memory records missing from a completed source scan."""
+        results = []
+        for source_key in sorted(self.manifest.active_keys() - current_source_keys):
+            entry = self.manifest.get(source_key)
+            if not entry or not entry.get("memory_id") or not entry.get("scope_json"):
+                results.append({"source_key": source_key, "status": "error",
+                                "error": "manifest lacks Memory identity or scope"})
+                continue
+            scope = json.loads(str(entry["scope_json"]))
+            memory_id = str(entry["memory_id"])
+            request_id = str(uuid.uuid4())
+            try:
+                status, response = self.client.request(
+                    "DELETE", f"/api/v1/memories/{memory_id}",
+                    {"scope": scope, "delete_scope": "source", "request_id": request_id},
+                    self._key("source-delete-", source_key, str(entry.get("content_sha256", ""))))
+                if status not in (200, 202):
+                    raise SourceIngestionError(f"Memory delete returned HTTP {status}: {response}")
+                self.manifest.mark_removed(source_key)
+                results.append({"source_key": source_key, "status": "tombstoned",
+                                "operation_id": response.get("operation_id")})
+            except Exception as exc:
+                results.append({"source_key": source_key, "status": "error",
+                                "error": f"{type(exc).__name__}: {str(exc)[:512]}"})
+        return results
