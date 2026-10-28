@@ -257,6 +257,16 @@ class IndexRuntimeTests(unittest.TestCase):
                 (target, "knowledge:too-many")
             ).fetchone()
         self.assertEqual(failure["reason_code"], "source_too_large")
+        corrected = self.upsert_request(source_id="knowledge:too-many", sequence=4, operation_id="corrected")
+        corrected["index_profile"] = identity
+        corrected["target_generation"] = target
+        limited.upsert(corrected, "corrected-key")
+        with restarted._connect() as db:
+            cleared = db.execute(
+                "SELECT COUNT(*) FROM generation_source_failures WHERE generation_id=? AND source_id=?",
+                (target, "knowledge:too-many")
+            ).fetchone()[0]
+        self.assertEqual(cleared, 0)
 
     def test_profile_digest_mismatch_is_rejected(self):
         invalid = dict(self.bundle)
