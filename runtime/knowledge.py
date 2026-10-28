@@ -68,7 +68,7 @@ class KnowledgeService:
                 operation_id TEXT PRIMARY KEY, source_key TEXT NOT NULL, revision TEXT NOT NULL,
                 revision_sequence INTEGER NOT NULL, status TEXT NOT NULL, indexing_status TEXT NOT NULL,
                 graph_status TEXT NOT NULL DEFAULT 'not_started', request_id TEXT NOT NULL,
-                created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP);
+                index_profile_json TEXT NOT NULL DEFAULT '{}', created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP);
               CREATE TABLE IF NOT EXISTS knowledge_idempotency(
                 idempotency_key TEXT PRIMARY KEY, payload_hash TEXT NOT NULL, operation_id TEXT NOT NULL,
                 FOREIGN KEY(operation_id) REFERENCES knowledge_operations(operation_id));
@@ -132,18 +132,19 @@ class KnowledgeService:
             "index_profile": self._profile(request["index_profile"]),
         }
 
-    def _record_operation(self, db, source_key, revision, sequence, status, indexing_status, request_id):
+    def _record_operation(self, db, source_key, revision, sequence, status, indexing_status, request_id, index_profile):
         operation_id = "knowledge:op:" + secrets.token_hex(16)
         db.execute("""INSERT INTO knowledge_operations(operation_id,source_key,revision,revision_sequence,
-                      status,indexing_status,request_id) VALUES(?,?,?,?,?,?,?)""",
-                   (operation_id, source_key, revision, sequence, status, indexing_status, request_id))
+                      status,indexing_status,request_id,index_profile_json) VALUES(?,?,?,?,?,?,?,?)""",
+                   (operation_id, source_key, revision, sequence, status, indexing_status, request_id,
+                    json.dumps(index_profile, sort_keys=True)))
         return operation_id
 
     def _mutation_response(self, row, request_id: str) -> dict[str, Any]:
         return {"operation_id": row["operation_id"], "source_id": "knowledge:" + row["source_key"],
                 "revision": row["revision"], "revision_sequence": row["revision_sequence"],
                 "status": row["status"], "indexing_status": row["indexing_status"],
-                "index_profile": self._profile_from_revision(row["source_key"], row["revision_sequence"]),
+                "index_profile": json.loads(row["index_profile_json"]),
                 "request_id": request_id}
 
     def _profile_from_revision(self, source_key: str, sequence: int) -> dict[str, Any]:
@@ -185,7 +186,7 @@ class KnowledgeService:
                        provenance_json,index_profile_json) VALUES(?,?,?,?,?,?)""",
                        (source_key, revision, sequence, payload["content"], json.dumps(payload["provenance"], sort_keys=True),
                         json.dumps(payload["index_profile"], sort_keys=True)))
-            operation_id = self._record_operation(db, source_key, revision, sequence, "accepted", "pending_index", request_id)
+            operation_id = self._record_operation(db, source_key, revision, sequence, "accepted", "pending_index", request_id, payload["index_profile"])
             db.execute("INSERT INTO knowledge_idempotency(idempotency_key,payload_hash,operation_id) VALUES(?,?,?)",
                        (idempotency_key, digest, operation_id))
             row = db.execute("SELECT * FROM knowledge_operations WHERE operation_id=?", (operation_id,)).fetchone()
@@ -218,11 +219,11 @@ class KnowledgeService:
         source_key = self._id(source_key, "source_key")
         scope = self._scope(scope)
         with self._connect() as db:
-            row = db.execute("""SELECT s.scope_json,s.status,r.content,r.revision,r.revision_sequence
+            row = db.execute("""SELECT s.scope_json,s.status,s.revision_sequence AS current_sequence,r.content,r.revision,r.revision_sequence
                                 FROM knowledge_sources s JOIN knowledge_revisions r ON r.source_key=s.source_key
                                 WHERE s.source_key=? AND r.revision_sequence=?""",
                              (source_key, revision_sequence)).fetchone()
-        if row is None or row["status"] != "active":
+        if row is None or row["status"] != "active" or row["current_sequence"] != revision_sequence:
             raise KnowledgeError("stale_revision", "knowledge source revision is no longer active", 409)
         if json.loads(row["scope_json"]) != scope:
             raise KnowledgeError("not_found", "knowledge source was not found", 404)
@@ -288,14 +289,17 @@ class KnowledgeService:
             current = db.execute("SELECT * FROM knowledge_sources WHERE source_key=?", (source_key,)).fetchone()
             if current is None or current["status"] != "active" or json.loads(current["scope_json"]) != scope:
                 raise KnowledgeError("not_found", "knowledge source was not found", 404)
+            active_revision = db.execute("SELECT index_profile_json FROM knowledge_revisions WHERE source_key=? AND revision_sequence=?",
+                                         (source_key, current["revision_sequence"])).fetchone()
+            active_profile = json.loads(active_revision["index_profile_json"])
             sequence = current["revision_sequence"] + 1
             revision = "tombstone-" + secrets.token_hex(12)
             db.execute("UPDATE knowledge_sources SET status='tombstoned',current_revision=?,revision_sequence=? WHERE source_key=?",
                        (revision, sequence, source_key))
             # A tombstone revision is immutable lifecycle evidence, with no source content.
             db.execute("INSERT INTO knowledge_revisions(source_key,revision,revision_sequence,content,provenance_json,index_profile_json) VALUES(?,?,?,?,?,?)",
-                       (source_key, revision, sequence, "", "{}", json.dumps({"name":"deleted","version":"0","digest":"0"*64})))
-            operation_id = self._record_operation(db, source_key, revision, sequence, "pending", "pending_index", request_id)
+                       (source_key, revision, sequence, "", "{}", json.dumps(active_profile, sort_keys=True)))
+            operation_id = self._record_operation(db, source_key, revision, sequence, "pending", "pending_index", request_id, active_profile)
             db.execute("INSERT INTO knowledge_idempotency(idempotency_key,payload_hash,operation_id) VALUES(?,?,?)",
                        (idempotency_key, digest, operation_id))
             row = db.execute("SELECT * FROM knowledge_operations WHERE operation_id=?", (operation_id,)).fetchone()
@@ -303,9 +307,8 @@ class KnowledgeService:
 
     def deletion_details(self, operation_id: str) -> dict[str, Any]:
         with self._connect() as db:
-            row = db.execute("""SELECT o.*,s.scope_json,r.index_profile_json FROM knowledge_operations o
+            row = db.execute("""SELECT o.*,s.scope_json FROM knowledge_operations o
                                 JOIN knowledge_sources s ON s.source_key=o.source_key
-                                JOIN knowledge_revisions r ON r.source_key=o.source_key AND r.revision_sequence=o.revision_sequence
                                 WHERE o.operation_id=?""", (operation_id,)).fetchone()
         if row is None:
             raise KnowledgeError("not_found", "knowledge operation was not found", 404)
