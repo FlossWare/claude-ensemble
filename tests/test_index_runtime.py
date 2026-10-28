@@ -155,6 +155,49 @@ class IndexRuntimeTests(unittest.TestCase):
         self.assertEqual([item["revision_sequence"] for item in result["candidates"]], [1])
         self.assertTrue(result["truncated"])
 
+    def test_chroma_partial_failure_across_generations_preserves_old_vectors(self):
+        self.service.upsert(self.upsert_request(), "idem-active")
+        active_generation = self.service.active_generation()["generation_id"]
+
+        class Headers(dict):
+            def get(self, key, default=None):
+                return super().get(key, default)
+
+        _, target_result = self.service.handle(
+            "POST", "/api/v1/index/generations", {},
+            {"index_profile": self.identity},
+            Headers({"Idempotency-Key": "generation-multi"}),
+            "generation-multi",
+        )
+        target_generation = target_result["generation_id"]
+        seed = self.upsert_request(operation_id="target-seed")
+        seed["target_generation"] = target_generation
+        self.service.upsert(seed, "idem-target-seed")
+
+        original_sync = self.service._sync_chroma_source
+        call_count = 0
+
+        def fail_on_second_generation(db, generation_id, source_id, bundle):
+            nonlocal call_count
+            original_sync(db, generation_id, source_id, bundle)
+            call_count += 1
+            if call_count == 2:
+                raise RuntimeError("injected second-generation failure")
+
+        update = self.upsert_request(sequence=2, operation_id="target-update")
+        update["target_generation"] = target_generation
+        with patch.object(self.service, "_sync_chroma_source", side_effect=fail_on_second_generation):
+            with self.assertRaisesRegex(RuntimeError, "second-generation failure"):
+                self.service.upsert(update, "idem-target-update")
+        self.assertEqual(call_count, 2)
+
+        for generation_id in (active_generation, target_generation):
+            store = self.service._vector_store(generation_id, self.bundle)
+            candidates = store.query(
+                [1.0, 0.0, 0.0], scope=SCOPE, limit=100, metric="cosine"
+            )
+            self.assertTrue(any(item["revision_sequence"] == 1 for item in candidates))
+
     def test_chroma_tombstone_filters_stale_vectors_after_service_restart(self):
         self.service.upsert(self.upsert_request(), "idem-a")
         generation_id = self.service.active_generation()["generation_id"]
