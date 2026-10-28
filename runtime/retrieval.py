@@ -397,7 +397,7 @@ class VectorRetrievalService:
                     raise RetrievalError("dependency_unavailable", "Reranking returned an unknown or duplicate candidate identity", 503)
                 score = item.get("score")
                 rank = item.get("rerank")
-                if (not isinstance(score, (int, float)) or not math.isfinite(float(score))
+                if (type(score) not in (int, float) or not math.isfinite(float(score))
                         or type(rank) is not int or not 1 <= rank <= len(shortlist)
                         or rank in seen_ranks
                         or item.get("score_semantics") != "cross-encoder-profile-score-v1"):
@@ -409,7 +409,9 @@ class VectorRetrievalService:
                 merged["rerank_score"] = float(score)
                 merged["rerank_rank"] = rank
                 merged["score_semantics"] = item["score_semantics"]
-                merged["provenance"] = provenance
+                # The reranker may add provenance, but cannot rewrite the vector
+                # retrieval's authoritative generation/model lineage.
+                merged["provenance"] = {**provenance, **original["provenance"]}
                 restored.append(merged)
                 seen_identities.add(identity)
                 seen_ranks.add(rank)
