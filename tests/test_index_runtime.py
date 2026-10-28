@@ -147,6 +147,7 @@ class IndexRuntimeTests(unittest.TestCase):
                 "CE_INDEX_DB_PATH": str(db_path),
                 "CE_INDEX_BASE_URL": f"http://127.0.0.1:{server.server_address[1]}",
                 "CE_TOKENIZATION_BASE_URL": f"http://127.0.0.1:{server.server_address[1]}",
+                "CE_EMBEDDING_BASE_URL": f"http://127.0.0.1:{server.server_address[1]}",
             }):
                 base = f"http://127.0.0.1:{server.server_address[1]}"
                 health = json.loads(urlopen(base + "/api/v1/index/health", timeout=2).read())
@@ -193,6 +194,36 @@ class IndexRuntimeTests(unittest.TestCase):
                     retrieval = json.loads(response.read())
                 self.assertEqual(retrieval["candidates"][0]["source_id"], "knowledge:doc-a")
                 self.assertEqual(retrieval["candidates"][0]["score_semantics"], "bm25-v1")
+
+                class DeterministicEmbeddingEngine:
+                    # Controlled fake for REST wiring only. The pinned real-model
+                    # inference remains covered by the separate offline CPU CI job.
+                    def embed(self, inputs, normalization):
+                        return (
+                            {"provider": "test", "model_id": "local-nomic", "model_version": "r1",
+                             "dimensions": 3, "normalization": "l2"},
+                            [{"input_id": item["input_id"], "input_type": item["input_type"],
+                              "status": "complete", "vector": [1.0, 0.0, 0.0], "dimensions": 3}
+                             for item in inputs],
+                        )
+
+                vector_body = {
+                    "query_id": "query-vector-http", "request_id": "vector-retrieval-http",
+                    "scope": SCOPE, "index_profile": self.identity,
+                    "embedding_profile": {"name": "technical-default", "version": "0.1"},
+                    "index_generation": generation["generation_id"], "limit": 5,
+                    "query": {"text": "ranking algorithm"},
+                }
+                vector_request = Request(base + "/api/v1/vector-retrieval/search",
+                    data=json.dumps(vector_body).encode("utf-8"),
+                    headers={"Content-Type": "application/json"}, method="POST")
+                with patch("runtime.server.get_embedding_engine", return_value=DeterministicEmbeddingEngine()):
+                    with urlopen(vector_request, timeout=4) as response:
+                        vector_result = json.loads(response.read())
+                self.assertEqual(vector_result["metric"], "cosine")
+                self.assertEqual(vector_result["candidates"][0]["source_id"], "knowledge:doc-a")
+                self.assertEqual(vector_result["candidates"][0]["retrieval_rank"], 1)
+                self.assertEqual(vector_result["candidates"][0]["provenance"]["embedding_model"], "local-nomic")
         finally:
             server.shutdown()
             server.server_close()
