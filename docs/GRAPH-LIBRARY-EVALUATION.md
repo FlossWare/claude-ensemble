@@ -12,7 +12,7 @@ SQLite remains the canonical durable store. The candidate library supplies in-me
 
 Compare NetworkX, rustworkx, and igraph using the optional deterministic harness [scripts/benchmark_graph_libraries.py](../scripts/benchmark_graph_libraries.py). Run the same generated graph, query starts, depth bound, visited-node bound, and path bound against all three candidates. The harness rejects a run if the candidate result signatures differ.
 
-The harness reports graph build time, aggregate/median/p95 query time, and Python-tracked peak allocations. tracemalloc does not capture all native allocations, so memory figures are directional rather than complete process RSS. Run candidates on the same machine and Python version, record the environment, and repeat runs before interpreting small differences.
+The harness warms up all candidates, rotates candidate order, and performs three measurement rounds per workload by default. It reports graph build time, aggregate/median/p95 query time, and Python-tracked peak allocations. tracemalloc does not capture all native allocations, so memory figures are directional rather than complete process RSS. CI runs all candidates on the same machine and Python version; treat small differences cautiously.
 
 Install the optional candidate packages in an isolated environment:
 
@@ -21,7 +21,7 @@ python -m pip install 'networkx==3.5' 'rustworkx>=0.17,<1' 'igraph>=0.11,<1'
 python scripts/benchmark_graph_libraries.py
 ~~~
 
-Use --quick for a short smoke run. The default run includes a larger scenario capped at CE's 10,000 materialized-edge contract limit. These are synthetic stress cases, not claims about production traffic. If results are close, add workload shapes based on measured CE traces before choosing a winner.
+Use --quick for a short smoke run. The default run includes a larger scenario capped at CE's 10,000 materialized-edge contract limit. GitHub Actions runs the comparison on changes to the harness or this document and retains the JSON results as an artifact. These are synthetic stress cases, not claims about production traffic. If results are close, add workload shapes based on measured CE traces before choosing a winner.
 
 ## Contract constraints that remain CE-owned
 
