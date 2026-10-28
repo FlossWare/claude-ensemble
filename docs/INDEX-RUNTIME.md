@@ -45,3 +45,9 @@ The runtime retains terminal idempotency bindings for the common 30-day window a
 Cutover still deliberately fails closed. Index-side dual-apply journaling is not a substitute for Memory and Knowledge's own durable change journals, replay acknowledgments, stable canonical manifests, and source-write fencing. Those owner services must be implemented and integrated before Index can prove that a target generation is complete or safely switch the active pointer. Recovery after a bad cutover is forward rebuild only; v1 rollback remains unsupported. The generalized multi-version profile registry in [PR #11](https://github.com/FlossWare/claude-ensemble/pull/11) remains deferred until a real consumer requires it.
 
 Keep the PR in draft until the complete test suite passes and remaining contract gaps are either implemented or explicitly assigned to the owner-service integration slice. Static contract validation alone is not runtime acceptance evidence.
+
+## Optional second-stage vector reranking
+
+Vector retrieval can opt into the existing reranking endpoint by setting `rerank: true` on `POST /api/v1/vector-retrieval/search`. The request must include query text in `query.text`; callers that supply a precomputed query vector instead must provide `rerank_query` text explicitly. Reranking uses the pinned `default-reranker@0.1` profile and calls `POST /api/v1/reranking/rerank` over internal REST, using `CE_RERANKING_BASE_URL` (default `http://127.0.0.1:8080`).
+
+The reranker evaluates at most the top 20 vector candidates. The returned candidate order follows reranker scores, while each candidate retains its vector distance, original retrieval rank, source/chunk identity, and provenance. Responses include `rerank_score`, `rerank_rank`, and `reranking_profile`. Reranking is opt-in; requests that enable it when no reranking dependency is configured fail with HTTP 503. This stage does not change canonical Memory/Knowledge data or Index persistence.
