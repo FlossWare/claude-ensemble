@@ -48,12 +48,23 @@ class FakeCollection:
         for item_id, doc, embedding, metadata in zip(ids, documents, embeddings, metadatas):
             self.records[item_id] = (doc, embedding, metadata)
 
+    @staticmethod
+    def _matches(metadata, where):
+        if "$and" in where:
+            return all(FakeCollection._matches(metadata, clause) for clause in where["$and"])
+        for key, expected in where.items():
+            if isinstance(expected, dict) and "$in" in expected:
+                if metadata.get(key) not in expected["$in"]:
+                    return False
+            elif metadata.get(key) != expected:
+                return False
+        return True
+
     def query(self, *, query_embeddings, n_results, where, include):
         self.query_calls.append((query_embeddings, n_results, where, include))
         selected = []
         for item_id, (doc, embedding, metadata) in self.records.items():
-            if all(metadata.get(key) == value for key, value in where.items()
-                   if not key.startswith("$")):
+            if self._matches(metadata, where):
                 selected.append((item_id, doc, metadata, 0.0))
         selected = selected[:n_results]
         return {
@@ -102,6 +113,21 @@ class VectorStoreTests(unittest.TestCase):
     def test_record_id_is_deterministic_and_revision_specific(self):
         self.assertEqual(record_id(record()), record_id(record()))
         self.assertNotEqual(record_id(record()), record_id(record(revision_sequence=2)))
+
+    def test_query_enforces_scope_and_source_filters(self):
+        self.store.upsert([
+            record(),
+            record(source_id="knowledge:doc-b", chunk_id="chunk-b",
+                   scope={"type": "project", "id": "project-b", "visibility": "private"}),
+        ])
+        candidates = self.store.query(
+            [1.0, 0.0, 0.0], scope=SCOPE, limit=5, metric="cosine",
+            source_ids=["knowledge:doc-a"], source_revisions=["rev-1"],
+        )
+        self.assertEqual([item["source_id"] for item in candidates], ["knowledge:doc-a"])
+        _, _, where, _ = self.client.collections[self.store.name].query_calls[0]
+        self.assertIn({"source_id": {"$in": ["knowledge:doc-a"]}}, where["$and"])
+        self.assertIn({"source_revision": {"$in": ["rev-1"]}}, where["$and"])
 
     def test_upsert_and_query_preserve_identity_and_contract_metadata(self):
         self.store.upsert([record()])
