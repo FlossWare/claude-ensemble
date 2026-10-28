@@ -49,6 +49,16 @@ class MemoryOwnerTests(unittest.TestCase):
         self.assertEqual(retry["request_id"], "req-2")
         self.assertEqual(restarted.read(response["memory_id"], SCOPE)["content"], "remember the REST contract")
 
+    def test_pending_ingestion_is_recoverable_after_restart(self):
+        _, created = self.service.create(create_request(), "create-1", "req-1")
+        self.service.update_operation(created["operation_id"], "pending", "pending_index")
+        restarted = MemoryService(self.path)
+        pending = restarted.pending_ingestions()
+        self.assertEqual(len(pending), 1)
+        self.assertEqual(pending[0]["accepted"]["operation_id"], created["operation_id"])
+        self.assertEqual(pending[0]["request"]["content"], "remember the REST contract")
+        self.assertEqual(pending[0]["request"]["scope"], SCOPE)
+
     def test_idempotency_key_cannot_be_reused_for_different_payload(self):
         self.service.create(create_request(), "create-1", "req-1")
         with self.assertRaisesRegex(MemoryError, "different payload") as caught:
