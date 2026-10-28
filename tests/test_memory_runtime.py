@@ -126,6 +126,28 @@ class MemoryOwnerTests(unittest.TestCase):
                           headers={"Content-Type": "application/json"})
             with urlopen(req, timeout=3) as response:
                 self.assertEqual(json.loads(response.read())["results"][0]["status"], "current")
+            update = json.dumps({
+                "expected_base_revision_sequence": created["revision_sequence"],
+                "content": "updated through REST",
+                "provenance": {"origin": "http-update"},
+                "index_profile": PROFILE,
+            }).encode()
+            update_url = (base + f"/api/v1/memories/{memory_id}/revisions"
+                          + "?scope_type=project&scope_id=project-a&visibility=private")
+            req = Request(update_url, data=update, method="POST",
+                          headers={"Content-Type": "application/json", "Idempotency-Key": "http-update"})
+            with urlopen(req, timeout=3) as response:
+                updated = json.loads(response.read())
+                self.assertEqual(response.status, 202)
+            self.assertGreater(updated["revision_sequence"], created["revision_sequence"])
+            self.assertEqual(self.service.read(memory_id, SCOPE)["content"], "updated through REST")
+            wrong_scope_url = (base + f"/api/v1/memories/{memory_id}/revisions"
+                               + "?scope_type=project&scope_id=other&visibility=private")
+            req = Request(wrong_scope_url, data=update, method="POST",
+                          headers={"Content-Type": "application/json", "Idempotency-Key": "wrong-scope-update"})
+            with self.assertRaises(HTTPError) as caught:
+                urlopen(req, timeout=3)
+            self.assertEqual(caught.exception.code, 404)
             delete = json.dumps({"scope": SCOPE, "delete_scope": "source"}).encode()
             req = Request(base + f"/api/v1/memories/{memory_id}", data=delete, method="DELETE",
                           headers={"Content-Type": "application/json", "Idempotency-Key": "http-delete"})
