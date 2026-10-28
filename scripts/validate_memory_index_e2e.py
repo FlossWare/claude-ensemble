@@ -106,7 +106,6 @@ def main() -> int:
 
             reset_index_service_for_tests()
             reset_memory_service_for_tests()
-            reset_engine_for_tests()
             engine = get_engine()
             readiness = engine.readiness()
             if readiness.get("ready") is not True:
