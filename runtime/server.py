@@ -403,10 +403,15 @@ class Handler(BaseHTTPRequestHandler):
             if set(body) - {"scope", "delete_scope", "request_id"} or not {"scope", "delete_scope"}.issubset(body):
                 raise MemoryServiceError("invalid_request", "delete request has missing or unknown fields", 400)
             memory_id = urlsplit(self.path).path.rsplit("/", 1)[-1]
-            status, response = get_memory_service().delete(
+            service = get_memory_service()
+            status, response = service.delete(
                 memory_id, body.get("scope"), body.get("delete_scope"),
                 self.headers.get("Idempotency-Key", ""), request_id)
             response["request_id"] = request_id
+            if response.get("status") in {"accepted", "pending", "failed"} and response.get("indexing_status") != "indexed":
+                details = service.deletion_details(response["operation_id"])
+                threading.Thread(target=self._memory_delete_index,
+                                 args=(service, response, details), daemon=True).start()
             self._send(status, response, request_id)
         except MemoryServiceError as exc:
             self._send(exc.status, _error(exc.code, str(exc), retryable=exc.status >= 500), request_id)
@@ -775,6 +780,33 @@ class Handler(BaseHTTPRequestHandler):
         service = get_memory_service()
         threading.Thread(target=self._recover_pending_memory, args=(service,), daemon=True).start()
 
+    def _memory_delete_index(self, service: Any, accepted: dict[str, Any], details: dict[str, Any]) -> None:
+        operation_id = accepted["operation_id"]
+        request_id = accepted.get("request_id", operation_id)
+        local_base = f"http://127.0.0.1:{self.server.server_address[1]}"
+        index_base = os.environ.get("CE_INDEX_BASE_URL", local_base)
+        try:
+            self._memory_rest_json(
+                index_base, "/api/v1/index/operations/delete",
+                payload={
+                    "operation_id": operation_id, "request_id": request_id,
+                    "source_id": details["source_id"],
+                    "revision_sequence": details["revision_sequence"],
+                    "scope": details["scope"], "index_profile": details["index_profile"],
+                    "delete_scope": "source",
+                },
+                request_id=request_id, timeout=10.0,
+                extra_headers={"Idempotency-Key": operation_id})
+            # Graph deletion is deliberately not implemented in this slice.
+            # Keep the overall operation pending until that independent owner
+            # projection is acknowledged; Index alone is not full delete acceptance.
+            service.update_operation(operation_id, "pending", "indexed")
+        except Exception:
+            try:
+                service.update_operation(operation_id, "failed", "index_failed")
+            except Exception:
+                pass
+
     def _recover_pending_memory(self, service: Any) -> None:
         for item in service.pending_ingestions():
             accepted = item["accepted"]
@@ -788,6 +820,8 @@ class Handler(BaseHTTPRequestHandler):
                     service.update_operation(accepted["operation_id"], "failed", "index_failed")
                 except Exception:
                     pass
+        for item in service.pending_deletions():
+            self._memory_delete_index(service, item["accepted"], item["details"])
 
     def _memory_ingest(self, service: Any, accepted: dict[str, Any], original_request: dict[str, Any],
                        context: dict[str, Any]) -> None:
