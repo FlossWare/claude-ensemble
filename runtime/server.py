@@ -864,13 +864,14 @@ class Handler(BaseHTTPRequestHandler):
         if not _MEMORY_GRAPH_LOCK.acquire(blocking=False):
             return
         try:
+            local_base = f"http://127.0.0.1:{self.server.server_address[1]}"
+            graph_base = os.environ.get("CE_GRAPH_BASE_URL", local_base)
+            replay_succeeded = True
             for item in service.pending_graph_projections():
                 payload = dict(item["payload"])
                 operation_id = item["operation_id"]
                 request_id = payload.get("request_id", operation_id)
                 payload["request_id"] = request_id
-                local_base = f"http://127.0.0.1:{self.server.server_address[1]}"
-                graph_base = os.environ.get("CE_GRAPH_BASE_URL", local_base)
                 endpoint = ("/api/v1/graph/source-deletions" if item["operation_kind"] == "delete"
                             else "/api/v1/graph/source-projections")
                 try:
@@ -878,12 +879,28 @@ class Handler(BaseHTTPRequestHandler):
                                            timeout=10.0, extra_headers={"Idempotency-Key": operation_id})
                     service.update_graph_operation(operation_id, "indexed")
                 except Exception as exc:
+                    replay_succeeded = False
                     try:
                         service.update_graph_operation(operation_id, "graph_failed",
                                                        f"{type(exc).__name__}: {str(exc)[:400]}")
                     except Exception:
                         pass
                     break
+
+            # Graph readiness is owner-led. Seal only a fully acknowledged
+            # journal prefix; never checkpoint across a failed or newly enqueued event.
+            if replay_succeeded:
+                sealed_sequence = service.graph_projection_checkpoint_sequence()
+                if sealed_sequence is not None:
+                    checkpoint_request_id = f"memory-graph-checkpoint-{sealed_sequence}"
+                    try:
+                        self._memory_rest_json(
+                            graph_base, "/api/v1/graph/reconciliation/checkpoints",
+                            payload={"owner": "memory", "sealed_projection_sequence": sealed_sequence,
+                                     "request_id": checkpoint_request_id},
+                            request_id=checkpoint_request_id, timeout=10.0)
+                    except Exception as exc:
+                        print(f"Memory Graph checkpoint {sealed_sequence} failed: {type(exc).__name__}: {str(exc)[:400]}")
         finally:
             _MEMORY_GRAPH_LOCK.release()
 
