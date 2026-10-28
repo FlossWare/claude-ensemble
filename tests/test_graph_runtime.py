@@ -140,6 +140,66 @@ class GraphRuntimeTests(unittest.TestCase):
             self.service.traverse({"scope": SCOPE, "start_node_ids": ["node-a"]}, "query-4")
         self.assertEqual(error.exception.status, 404)
 
+    def test_source_deletion_makes_cross_source_edges_untraversable(self):
+        # memory owns the relationship, while knowledge independently supports
+        # its target node. Deleting knowledge must not leave a path to an
+        # unsupported node through memory's still-present edge support.
+        self.service.project(self.projection(
+            operation_id="knowledge-node-b", source_id="knowledge:k1",
+            owner_sequence=1, nodes=[
+                {"node_id": "node-b", "node_type": "project", "label": "FlossWare"}
+            ], edges=[],
+        ), "knowledge-project")
+        self.service.project(self.projection(
+            operation_id="memory-edge-a-b", source_id="memory:m1",
+            owner_sequence=1, nodes=[
+                {"node_id": "node-a", "node_type": "service", "label": "Search"}
+            ], edges=[{
+                "edge_id": "edge-a-b", "source_node_id": "node-a",
+                "target_node_id": "node-b", "relationship_type": "uses", "directed": True,
+            }],
+        ), "memory-project")
+
+        self.service.delete_source({
+            "operation_id": "knowledge-delete-k1", "source_id": "knowledge:k1",
+            "revision_sequence": 2, "owner_projection_sequence": 2,
+            "scope": SCOPE, "delete_scope": "source",
+        }, "knowledge-delete")
+
+        result = self.service.traverse({
+            "scope": SCOPE, "start_node_ids": ["node-a"], "direction": "outgoing",
+        }, "after-delete")
+        self.assertEqual(result["paths"], [])
+        self.assertFalse(any("node-b" in path["node_ids"] for path in result["paths"]))
+
+    def test_reprojection_removing_node_makes_cross_source_edges_untraversable(self):
+        self.service.project(self.projection(
+            operation_id="knowledge-node-b", source_id="knowledge:k1",
+            owner_sequence=1, nodes=[
+                {"node_id": "node-b", "node_type": "project", "label": "FlossWare"}
+            ], edges=[],
+        ), "knowledge-project")
+        self.service.project(self.projection(
+            operation_id="memory-edge-a-b", source_id="memory:m1",
+            owner_sequence=1, nodes=[
+                {"node_id": "node-a", "node_type": "service", "label": "Search"}
+            ], edges=[{
+                "edge_id": "edge-a-b", "source_node_id": "node-a",
+                "target_node_id": "node-b", "relationship_type": "uses", "directed": True,
+            }],
+        ), "memory-project")
+
+        self.service.project(self.projection(
+            operation_id="knowledge-revision-2", source_id="knowledge:k1",
+            source_revision="knowledge-rev-2", revision_sequence=2, owner_sequence=2,
+            nodes=[], edges=[],
+        ), "knowledge-reproject")
+
+        result = self.service.traverse({
+            "scope": SCOPE, "start_node_ids": ["node-a"], "direction": "outgoing",
+        }, "after-reprojection")
+        self.assertEqual(result["paths"], [])
+
     def test_owner_checkpoint_stays_not_ready_until_contiguous_journal_replay(self):
         later = self.projection(operation_id="memory-op-2", source_id="memory:m2",
                                 owner_sequence=2, nodes=[], edges=[])
