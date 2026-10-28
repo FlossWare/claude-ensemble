@@ -48,6 +48,7 @@ DEFAULT_REQUEST_TIMEOUT_SECONDS = 30.0
 SUPPORTED_PROFILES = {"markdown-default": {"0.1"}}
 _MEMORY_RECOVERY_LOCK = threading.Lock()
 _MEMORY_GRAPH_LOCK = threading.Lock()
+_MEMORY_GRAPH_EXECUTOR = ThreadPoolExecutor(max_workers=1, thread_name_prefix="ce-memory-graph")
 _MEMORY_INGEST_EXECUTOR = ThreadPoolExecutor(max_workers=2, thread_name_prefix="ce-memory-ingest")
 
 
@@ -417,7 +418,7 @@ class Handler(BaseHTTPRequestHandler):
                 details = service.deletion_details(response["operation_id"])
                 threading.Thread(target=self._memory_delete_index,
                                  args=(service, response, details), daemon=True).start()
-                threading.Thread(target=self._memory_graph_project, args=(service,), daemon=True).start()
+                _MEMORY_GRAPH_EXECUTOR.submit(self._memory_graph_project, service)
             self._send(status, response, request_id)
         except MemoryServiceError as exc:
             self._send(exc.status, _error(exc.code, str(exc), retryable=exc.status >= 500), request_id)
