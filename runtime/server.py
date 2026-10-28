@@ -593,9 +593,10 @@ class Handler(BaseHTTPRequestHandler):
                 if path == "/api/v1/memories":
                     context = self._memory_preflight(request, request_id)
                     status, response = service.create(request, self.headers.get("Idempotency-Key", ""), request_id)
-                    worker = threading.Thread(target=self._memory_ingest,
-                                              args=(service, response, dict(request), context), daemon=True)
-                    worker.start()
+                    if response.get("status") in {"accepted", "pending", "failed"} and response.get("indexing_status") != "indexed":
+                        worker = threading.Thread(target=self._memory_ingest,
+                                                  args=(service, response, dict(request), context), daemon=True)
+                        worker.start()
                 elif path == "/api/v1/memories/verify-revisions":
                     if set(request) - {"items", "request_id"} or "items" not in request:
                         raise MemoryServiceError("invalid_request", "verification request has missing or unknown fields", 400)
