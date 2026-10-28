@@ -1,5 +1,12 @@
+import json
+import threading
+from urllib.parse import urlencode
+from urllib.request import Request, urlopen
+from unittest.mock import patch
+
 import pytest
 
+from runtime.server import BoundedThreadingHTTPServer, Handler
 from runtime.knowledge import KnowledgeError, KnowledgeService
 
 
@@ -23,8 +30,6 @@ def create_request(content="source document"):
 def service(tmp_path):
     return KnowledgeService(tmp_path / "knowledge.sqlite3")
 
-
-from runtime.knowledge import KnowledgeService
 
 
 def test_create_is_canonical_and_idempotent_across_restart(tmp_path):
@@ -107,3 +112,34 @@ def test_operation_status_and_delete_details_are_available(service):
     assert operation["canonical_status"] == "tombstoned"
     assert details["source_id"] == created["source_id"]
     assert details["index_profile"] == PROFILE
+
+
+
+def test_knowledge_create_and_canonical_read_routes_are_reachable(tmp_path):
+    service = KnowledgeService(tmp_path / "knowledge-http.sqlite3")
+    server = BoundedThreadingHTTPServer(("127.0.0.1", 0), Handler)
+    thread = threading.Thread(target=server.serve_forever, daemon=True)
+    thread.start()
+    try:
+        with patch("runtime.server.get_knowledge_service", return_value=service), \
+             patch.object(Handler, "_memory_preflight", return_value={"bundle": {}, "index_base": "", "chunking_base": ""}), \
+             patch("runtime.server._MEMORY_INGEST_EXECUTOR.submit"):
+            base = f"http://127.0.0.1:{server.server_port}"
+            body = json.dumps(create_request()).encode()
+            request = Request(base + "/api/v1/knowledge/sources", data=body, method="POST",
+                              headers={"Content-Type": "application/json", "Idempotency-Key": "http-create-key"})
+            with urlopen(request, timeout=3) as response:
+                created = json.loads(response.read())
+                assert response.status == 202
+            scope_query = urlencode({"scope_type": SCOPE["type"], "scope_id": SCOPE["id"],
+                                     "visibility": SCOPE["visibility"]})
+            with urlopen(base + "/api/v1/knowledge/sources/" + created["source_id"].split(":", 1)[1] + "?" + scope_query,
+                         timeout=3) as response:
+                canonical = json.loads(response.read())
+                assert response.status == 200
+                assert canonical["content"] == "source document"
+                assert canonical["source_id"] == created["source_id"]
+    finally:
+        server.shutdown()
+        server.server_close()
+        thread.join(timeout=2)
