@@ -341,6 +341,7 @@ class Handler(BaseHTTPRequestHandler):
                 if not isinstance(body, dict):
                     raise ChunkingError("invalid_request", "request body must be a JSON object", status=400)
             status, response = get_index_service().handle(method, parsed.path, parse_qs(parsed.query), body, self.headers, request_id)
+            response["request_id"] = request_id
             self._send(status, response, request_id)
         except IndexServiceError as exc:
             self._send(exc.status, _error(exc.code, str(exc), retryable=exc.status >= 500), request_id)
@@ -427,6 +428,7 @@ class Handler(BaseHTTPRequestHandler):
             try:
                 parsed = urlsplit(self.path)
                 status, response = get_index_service().handle("GET", parsed.path, parse_qs(parsed.query), None, self.headers, request_id)
+                response["request_id"] = request_id
                 self._send(status, response, request_id)
             except IndexServiceError as exc:
                 self._send(exc.status, _error(exc.code, str(exc), retryable=exc.status >= 500), request_id)
@@ -496,7 +498,9 @@ class Handler(BaseHTTPRequestHandler):
             _validate_json_unicode(request)
             if is_index_route:
                 parsed = urlsplit(self.path)
+                request["request_id"] = request_id
                 status, response = get_index_service().handle("POST", parsed.path, parse_qs(parsed.query), request, self.headers, request_id)
+                response["request_id"] = request_id
                 if (deadline_error := self._deadline_error()) is not None:
                     self._fail(deadline_error, request_id)
                     return
