@@ -34,7 +34,7 @@ Place that digest in the bundle's `digest` field. Keep the `status` field presen
 
 ## Implemented REST surface
 
-The shared server currently exposes Index health/readiness, pinned profile lookup, active-generation/status lookup, source manifest/status, upsert/operation status, source-wide tombstones, lexical lookup, vector neighbors, and the first generation/fence/checkpoint operations. The initial configured bundle bootstraps the first active generation.
+The shared server currently exposes Index health/readiness, pinned profile lookup, active-generation/status lookup, source manifest/status, upsert/operation status, source-wide tombstones, lexical lookup, vector neighbors, and the first generation/fence/checkpoint operations. The initial configured bundle bootstraps the first active generation. The cutover endpoint deliberately fails closed with `503 not_ready` until owner-journal replay, reconciliation evidence, and cutover recovery are implemented and tested.
 
 All mutating POST calls require `Idempotency-Key`. Lexical and vector retrieval must supply the active generation and exact profile identity. Lookup results are bounded to 100 candidates and are filtered against the durable tombstone high-water mark.
 
