@@ -107,6 +107,13 @@ class IndexService:
         """Populate an empty/new Chroma collection from existing SQLite vectors once per process."""
         if self.vector_backend == "sqlite" or generation_id in self._bootstrapped_generations:
             return
+        store = self._vector_store(generation_id, bundle)
+        try:
+            if store.list_ids():
+                self._bootstrapped_generations.add(generation_id)
+                return
+        except VectorStoreError as exc:
+            raise _error("vector_store_unavailable", str(exc), 503) from exc
         source_rows = db.execute(
             "SELECT DISTINCT source_id FROM representations WHERE generation_id=? AND vector_json IS NOT NULL",
             (generation_id,),
