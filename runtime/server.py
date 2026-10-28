@@ -847,17 +847,28 @@ class BoundedThreadingHTTPServer(ThreadingHTTPServer):
         super().__init__(server_address, RequestHandlerClass, bind_and_activate)
 
     @staticmethod
-    def _is_internal_request(request: Any) -> bool:
+    def _is_internal_request(request: Any, wait_seconds: float = 0) -> bool:
         # Peek only; BaseHTTPRequestHandler still consumes the original bytes.
-        # The process-local token prevents an ordinary client from stealing the
-        # reserved internal worker pool by spoofing the public marker header.
+        # If external capacity is exhausted, process_request may wait briefly for
+        # the complete header block. TCP accept can precede the client's first
+        # write, so a single zero-timeout peek is not a reliable classifier.
+        # The process-local token prevents ordinary clients from claiming the lane.
+        deadline = time.monotonic() + max(0.0, wait_seconds)
         try:
-            readable, _, _ = select.select([request], [], [], 0)
-            if not readable:
-                return False
-            head = request.recv(16384, socket.MSG_PEEK).split(b"\r\n\r\n", 1)[0]
+            while True:
+                remaining = max(0.0, deadline - time.monotonic())
+                readable, _, _ = select.select([request], [], [], remaining)
+                if not readable:
+                    return False
+                head = request.recv(16384, socket.MSG_PEEK)
+                if b"\r\n\r\n" in head or len(head) >= 16384:
+                    break
+                if wait_seconds <= 0 or time.monotonic() >= deadline:
+                    return False
+                time.sleep(min(0.001, max(0.0, deadline - time.monotonic())))
+            header_block = head.split(b"\r\n\r\n", 1)[0]
             headers = {}
-            for line in head.split(b"\r\n")[1:]:
+            for line in header_block.split(b"\r\n")[1:]:
                 name, separator, value = line.partition(b":")
                 if separator:
                     headers[name.strip().lower()] = value.strip()
@@ -889,10 +900,25 @@ class BoundedThreadingHTTPServer(ThreadingHTTPServer):
             self.shutdown_request(request)
 
     def process_request(self, request: Any, client_address: Any) -> None:
-        slot = self._internal_slots if self._is_internal_request(request) else self._external_slots
-        if not slot.acquire(blocking=False):
-            self._reject_capacity(request)
-            return
+        if self._is_internal_request(request):
+            slot = self._internal_slots
+            if not slot.acquire(blocking=False):
+                self._reject_capacity(request)
+                return
+        else:
+            slot = self._external_slots
+            if not slot.acquire(blocking=False):
+                # Only wait for headers when the external lane is full. This
+                # avoids stalling the accept loop during normal traffic while
+                # closing the accept-before-write race for nested REST calls.
+                if self._is_internal_request(request, wait_seconds=0.25):
+                    slot = self._internal_slots
+                    if not slot.acquire(blocking=False):
+                        self._reject_capacity(request)
+                        return
+                else:
+                    self._reject_capacity(request)
+                    return
         if not self._worker_slots.acquire(blocking=False):
             slot.release()
             self._reject_capacity(request)
