@@ -362,6 +362,14 @@ class IndexService:
             bundle_for_limits, _ = self._profile(db, request.get("index_profile"))
         if len(_canonical(request)) > bundle_for_limits["limits"]["max_request_bytes"]:
             raise _error("request_too_large", "upsert exceeds the pinned profile request byte limit", 413)
+        target = request.get("target_generation")
+        try:
+            validated = [self._check_representation(rep, bundle_for_limits) for rep in reps]
+        except IndexError as exc:
+            if target is not None and exc.code in {"source_too_large", "unsupported_profile", "incompatible_representation"}:
+                self._record_source_failure(target, source_id, source["revision_sequence"], exc.code,
+                                            request.get("index_profile", {}), str(exc))
+            raise
         payload_hash = _payload_hash(request)
         with self._lock, self._connect() as db:
             prior = db.execute("SELECT * FROM operations WHERE operation_id=? OR idempotency_key=?", (request["operation_id"], idempotency_key)).fetchone()
@@ -374,7 +382,6 @@ class IndexService:
             bundle, _ = self._profile(db, request.get("index_profile"))
             if bundle.get("status") == "retired":
                 raise _error("profile_retired", "retired profiles cannot accept new writes", 409)
-            target = request.get("target_generation")
             gen = self._generation(db, target, request["index_profile"], allow_building=target is not None)
             active_row = db.execute("SELECT generation_id FROM active_generation WHERE singleton=1").fetchone()
             is_active_generation = active_row is not None and active_row["generation_id"] == gen["generation_id"]
@@ -392,13 +399,6 @@ class IndexService:
                 prior_target = db.execute("SELECT MAX(revision_sequence) AS sequence FROM representations WHERE generation_id=? AND source_id=?", (gen["generation_id"], source_id)).fetchone()
                 if prior_target["sequence"] is not None and seq <= prior_target["sequence"]:
                     raise _error("revision_sequence_regression", "target-generation revisions must increase within that generation", 409)
-            try:
-                validated = [self._check_representation(rep, bundle) for rep in reps]
-            except IndexError as exc:
-                if target is not None and exc.code in {"source_too_large", "unsupported_profile", "incompatible_representation"}:
-                    self._record_source_failure(target, source_id, seq, exc.code, request.get("index_profile", {}),
-                                                str(exc))
-                raise
             db.execute("DELETE FROM representations WHERE generation_id=? AND source_id=? AND revision_sequence<?",
                        (gen["generation_id"], source_id, seq))
             for rep in validated:
