@@ -633,6 +633,7 @@ class Handler(BaseHTTPRequestHandler):
                     scope = {"type": query.get("scope_type", [""])[0],
                              "id": query.get("scope_id", [""])[0],
                              "visibility": query.get("visibility", [""])[0]}
+                    service.read(memory_id, scope)
                     context = self._memory_preflight(request, request_id)
                     status, response = service.update(
                         memory_id, request, self.headers.get("Idempotency-Key", ""), request_id, scope)
@@ -841,7 +842,7 @@ class Handler(BaseHTTPRequestHandler):
         request_id = accepted.get("request_id", operation_id)
         try:
             service.update_operation(operation_id, "pending", "pending_index")
-            canonical = service.read(accepted["memory_id"], original_request["scope"])
+            canonical = service.read_for_ingestion(accepted["memory_id"], original_request["scope"], accepted["revision_sequence"])
             bundle = context["bundle"]
             profile = accepted["index_profile"]
             source = {
@@ -932,6 +933,14 @@ class Handler(BaseHTTPRequestHandler):
                 request_id=request_id, timeout=20.0,
                 extra_headers={"Idempotency-Key": operation_id})
             service.update_operation(operation_id, "complete", "indexed")
+        except MemoryServiceError as exc:
+            try:
+                if exc.code == "stale_revision":
+                    service.update_operation(operation_id, "reconciliation_required", "reconciliation_required")
+                else:
+                    service.update_operation(operation_id, "failed", "index_failed")
+            except Exception:
+                pass
         except Exception:
             try:
                 service.update_operation(operation_id, "failed", "index_failed")
