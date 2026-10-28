@@ -461,7 +461,7 @@ class IndexRuntimeTests(unittest.TestCase):
             ).fetchone()["sequence"]
         self.assertEqual(target_sequence, 10)
         self.assertEqual([(row["status"], row["revision_sequence"]) for row in rows],
-                         [("applied", 10), ("skipped_stale", 1)])
+                         [("skipped_stale", 1), ("applied", 10)])
 
     def test_completed_operations_record_terminal_timestamp(self):
         self.service.upsert(self.upsert_request(), "terminal-time")
