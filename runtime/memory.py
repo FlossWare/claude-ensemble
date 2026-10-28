@@ -436,8 +436,13 @@ class MemoryService:
             if row is None:
                 raise MemoryError("not_found", "operation was not found", 404)
             response = json.loads(row["response_json"])
+            graph = db.execute("SELECT status FROM memory_graph_journal WHERE operation_id=?", (operation_id,)).fetchone()
+            graph_status = "indexed" if graph and graph["status"] == "applied" else response.get("graph_status", "pending_graph")
+            if status == "complete" and graph_status != "indexed":
+                status = "pending"
             response["status"] = status
             response["indexing_status"] = indexing_status
+            response["graph_status"] = graph_status
             db.execute("UPDATE memory_operations SET status=?,indexing_status=?,response_json=?,updated_at=CURRENT_TIMESTAMP WHERE operation_id=?",
                        (status, indexing_status, _canonical(response).decode(), operation_id))
             db.execute("UPDATE memory_idempotency SET response_json=? WHERE operation_id=?", (_canonical(response).decode(), operation_id))
