@@ -178,6 +178,11 @@ class ChromaVectorStore:
         if set(scope) != {"type", "id", "visibility"} or any(
                 not isinstance(v, str) or not v for v in scope.values()):
             raise VectorStoreError("query scope is invalid")
+        for name, values in (("source_ids", source_ids), ("source_revisions", source_revisions)):
+            if values is not None and (
+                    not isinstance(values, list)
+                    or any(not isinstance(value, str) or not value for value in values)):
+                raise VectorStoreError(f"{name} filter is invalid")
         try:
             result = self._collection.query(
                 query_embeddings=[[float(v) for v in query_vector]],
@@ -199,12 +204,29 @@ class ChromaVectorStore:
             raise VectorStoreError("Chroma query result arrays have inconsistent lengths")
         candidates: list[dict[str, Any]] = []
         for item_id, meta, document, distance in zip(row_ids, metas, docs, distances):
-            if not isinstance(meta, dict) or not isinstance(document, str):
+            required_metadata = (
+                "generation_id", "profile_digest", "source_id", "source_revision",
+                "revision_sequence", "chunk_id", "chunker_profile", "chunker_version",
+                "embedding_model", "embedding_version", "embedding_dimensions",
+            )
+            if (not isinstance(item_id, str) or not isinstance(meta, dict)
+                    or any(key not in meta for key in required_metadata)
+                    or not isinstance(document, str)):
                 raise VectorStoreError("Chroma candidate metadata or document is malformed")
             if (meta.get("generation_id") != self.generation_id
                     or meta.get("profile_digest") != self.profile_digest
                     or any(meta.get(f"scope_{key}") != value for key, value in scope.items())):
                 raise VectorStoreError("Chroma returned a candidate outside the requested partition")
+            if (not isinstance(meta["source_id"], str) or not meta["source_id"]
+                    or not isinstance(meta["source_revision"], str)
+                    or not isinstance(meta["chunk_id"], str)
+                    or not isinstance(meta["chunker_profile"], str)
+                    or not isinstance(meta["chunker_version"], str)
+                    or not isinstance(meta["embedding_model"], str)
+                    or not isinstance(meta["embedding_version"], str)
+                    or type(meta["revision_sequence"]) is not int or meta["revision_sequence"] < 1
+                    or type(meta["embedding_dimensions"]) is not int or meta["embedding_dimensions"] < 1):
+                raise VectorStoreError("Chroma candidate identity metadata is invalid")
             if type(distance) not in (int, float) or not math.isfinite(float(distance)):
                 raise VectorStoreError("Chroma returned an invalid distance")
             distance = float(distance)
