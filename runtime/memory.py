@@ -389,6 +389,42 @@ class MemoryService:
                 results.append(result)
         return results
 
+    def pending_ingestions(self) -> list[dict[str, Any]]:
+        """Return durable, current ingestion work for startup recovery."""
+        stale_operations: list[str] = []
+        pending: list[dict[str, Any]] = []
+        with self._connect() as db:
+            rows = db.execute("""
+                SELECT o.operation_id,o.operation_kind,o.status,o.indexing_status,o.revision_sequence,o.response_json,
+                       m.memory_id,m.scope_json,m.memory_type,m.current_sequence,m.tombstone_sequence,m.index_profile_json,
+                       r.content,r.provenance_json,r.retention_json
+                FROM memory_operations o
+                JOIN memories m ON m.memory_id=o.memory_id
+                JOIN revisions r ON r.memory_id=o.memory_id AND r.revision_sequence=o.revision_sequence
+                WHERE o.operation_kind IN ('create','update')
+                  AND o.status IN ('accepted','pending')
+                  AND o.indexing_status='pending_index'
+                ORDER BY o.updated_at,m.memory_id,o.revision_sequence
+            """).fetchall()
+            for row in rows:
+                if row["tombstone_sequence"] is not None or row["current_sequence"] != row["revision_sequence"]:
+                    stale_operations.append(row["operation_id"])
+                    continue
+                accepted = json.loads(row["response_json"])
+                request = {
+                    "scope": json.loads(row["scope_json"]),
+                    "type": row["memory_type"],
+                    "content": row["content"],
+                    "provenance": json.loads(row["provenance_json"]),
+                    "retention_policy": json.loads(row["retention_json"]),
+                    "index_profile": json.loads(row["index_profile_json"]),
+                    "request_id": accepted.get("request_id", row["operation_id"]),
+                }
+                pending.append({"accepted": accepted, "request": request})
+        for operation_id in stale_operations:
+            self.update_operation(operation_id, "reconciliation_required", "reconciliation_required")
+        return pending
+
     def list_records_for_tests(self) -> int:
         """Small diagnostic used by tests; not exposed through REST."""
         with self._connect() as db:
