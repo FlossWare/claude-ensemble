@@ -6,6 +6,7 @@ import unittest
 import json
 import os
 import threading
+from datetime import datetime, timezone, timedelta
 from urllib.request import Request, urlopen
 from urllib.error import HTTPError
 from unittest.mock import patch
@@ -224,12 +225,20 @@ class IndexRuntimeTests(unittest.TestCase):
                     "index_generation": generation["generation_id"], "limit": 5,
                     "query": {"text": "ranking algorithm"},
                 }
+                deadline = (datetime.now(timezone.utc) + timedelta(seconds=10)).strftime("%Y-%m-%dT%H:%M:%S.%fZ")
                 vector_request = Request(base + "/api/v1/vector-retrieval/search",
                     data=json.dumps(vector_body).encode("utf-8"),
-                    headers={"Content-Type": "application/json"}, method="POST")
-                with patch("runtime.server.get_embedding_engine", return_value=DeterministicEmbeddingEngine()):
+                    headers={"Content-Type": "application/json", "X-CE-Deadline": deadline}, method="POST")
+                observed_deadlines = {}
+                original_embed = Handler._embed
+                def capture_embedding_deadline(handler, request_value):
+                    observed_deadlines["embedding"] = handler.headers.get("X-CE-Deadline")
+                    return original_embed(handler, request_value)
+                with patch.object(Handler, "_embed", capture_embedding_deadline), \
+                     patch("runtime.server.get_embedding_engine", return_value=DeterministicEmbeddingEngine()):
                     with urlopen(vector_request, timeout=4) as response:
                         vector_result = json.loads(response.read())
+                self.assertEqual(observed_deadlines["embedding"], deadline)
                 self.assertEqual(vector_result["metric"], "cosine")
                 self.assertEqual(vector_result["candidates"][0]["source_id"], "knowledge:doc-a")
                 self.assertEqual(vector_result["candidates"][0]["retrieval_rank"], 1)

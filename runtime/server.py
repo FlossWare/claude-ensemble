@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+import hmac
 import re
 import select
 import socket
@@ -21,6 +22,7 @@ from .entity_extraction import EntityExtractionError, PROFILE_NAME as ENTITY_PRO
 from .reranking import RerankingError, get_engine as get_reranking_engine
 from .retrieval import RetrievalError, configured_retrieval_services, retrieval_readiness
 from .index import IndexError as IndexServiceError, get_index_service
+from .internal_calls import INTERNAL_CALL_TOKEN
 from .chunking import (
     MAX_CONTENT_BYTES, MAX_CHUNKS, DEFAULT_POLICY, ChunkingError, Policy, chunk_document, chunk_spans, validate_index_profile,
 )
@@ -525,7 +527,7 @@ class Handler(BaseHTTPRequestHandler):
             elif self.path == "/api/v1/reranking/rerank":
                 response = get_reranking_engine().rerank(request)
             elif self.path in ("/api/v1/lexical-retrieval/search", "/api/v1/vector-retrieval/search"):
-                lexical_service, vector_service = configured_retrieval_services()
+                lexical_service, vector_service = configured_retrieval_services(deadline=self.headers.get("X-CE-Deadline"))
                 if self.path == "/api/v1/lexical-retrieval/search":
                     response = lexical_service.search(request)
                 else:
@@ -838,14 +840,23 @@ class BoundedThreadingHTTPServer(ThreadingHTTPServer):
 
     @staticmethod
     def _is_internal_request(request: Any) -> bool:
-        # The accepted socket is readable before its worker is started in the
-        # normal client path. Peek only; BaseHTTPRequestHandler reads the bytes.
+        # Peek only; BaseHTTPRequestHandler still consumes the original bytes.
+        # The process-local token prevents an ordinary client from stealing the
+        # reserved internal worker pool by spoofing the public marker header.
         try:
             readable, _, _ = select.select([request], [], [], 0.05)
             if not readable:
                 return False
-            head = request.recv(8192, socket.MSG_PEEK).split(b"\r\n\r\n", 1)[0].lower()
-            return b"\r\nx-ce-internal-call: true" in head
+            head = request.recv(16384, socket.MSG_PEEK).split(b"\r\n\r\n", 1)[0]
+            headers = {}
+            for line in head.split(b"\r\n")[1:]:
+                name, separator, value = line.partition(b":")
+                if separator:
+                    headers[name.strip().lower()] = value.strip()
+            marker = headers.get(b"x-ce-internal-call", b"").lower() == b"true"
+            token = headers.get(b"x-ce-internal-token", b"")
+            expected = INTERNAL_CALL_TOKEN.encode("ascii")
+            return marker and hmac.compare_digest(token, expected)
         except (OSError, ValueError):
             return False
 

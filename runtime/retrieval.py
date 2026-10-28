@@ -8,10 +8,13 @@ from __future__ import annotations
 import json
 import math
 import os
+from datetime import datetime, timezone
 from urllib.error import HTTPError, URLError
 from urllib.parse import quote
 from urllib.request import Request, urlopen
 from typing import Any, Callable, Iterable
+
+from .internal_calls import INTERNAL_CALL_TOKEN
 
 
 class RetrievalError(ValueError):
@@ -328,10 +331,27 @@ class VectorRetrievalService:
 
 
 def _rest_json(base_url: str, path: str, *, payload: dict[str, Any] | None = None,
-               request_id: str = "retrieval", timeout: float = 15.0) -> dict[str, Any]:
-    """Call another CE logical service over REST; never fall back to local imports."""
+               request_id: str = "retrieval", timeout: float = 15.0,
+               deadline: str | None = None) -> dict[str, Any]:
+    """Call another CE logical service over REST with bounded deadline propagation."""
+    if deadline is not None:
+        try:
+            if not deadline.endswith("Z"):
+                raise ValueError("deadline must end in Z")
+            deadline_at = datetime.fromisoformat(deadline[:-1] + "+00:00")
+        except (TypeError, ValueError) as exc:
+            raise RetrievalError("invalid_parameter", "X-CE-Deadline must be an RFC 3339 UTC timestamp ending in Z", 400) from exc
+        remaining = (deadline_at - datetime.now(timezone.utc)).total_seconds()
+        if remaining <= 0:
+            raise RetrievalError("deadline_exceeded", "request deadline expired before a dependency call", 504)
+        timeout = min(timeout, remaining)
     body = None if payload is None else json.dumps(payload, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
-    headers = {"Accept": "application/json", "X-CE-Request-ID": request_id, "X-CE-Internal-Call": "true"}
+    headers = {
+        "Accept": "application/json", "X-CE-Request-ID": request_id,
+        "X-CE-Internal-Call": "true", "X-CE-Internal-Token": INTERNAL_CALL_TOKEN,
+    }
+    if deadline is not None:
+        headers["X-CE-Deadline"] = deadline
     if body is not None:
         headers["Content-Type"] = "application/json"
     request = Request(base_url.rstrip("/") + path, data=body, headers=headers,
@@ -348,14 +368,20 @@ def _rest_json(base_url: str, path: str, *, payload: dict[str, Any] | None = Non
         except (ValueError, UnicodeDecodeError):
             code, message = "dependency_unavailable", "CE dependency returned an unreadable HTTP error"
         raise RetrievalError(code, message, exc.code) from exc
-    except (URLError, TimeoutError, OSError, ValueError, UnicodeDecodeError) as exc:
+    except TimeoutError as exc:
+        if deadline is not None:
+            raise RetrievalError("deadline_exceeded", "dependency call exceeded the request deadline", 504) from exc
+        raise RetrievalError("dependency_unavailable", "required CE REST dependency is unavailable", 503) from exc
+    except (URLError, OSError, ValueError, UnicodeDecodeError) as exc:
+        if deadline is not None and isinstance(getattr(exc, "reason", None), TimeoutError):
+            raise RetrievalError("deadline_exceeded", "dependency call exceeded the request deadline", 504) from exc
         raise RetrievalError("dependency_unavailable", "required CE REST dependency is unavailable", 503) from exc
     if not isinstance(decoded, dict):
         raise RetrievalError("dependency_unavailable", "CE REST dependency returned a non-object response", 503)
     return decoded
 
 
-def configured_retrieval_services() -> tuple[LexicalRetrievalService, VectorRetrievalService]:
+def configured_retrieval_services(deadline: str | None = None) -> tuple[LexicalRetrievalService, VectorRetrievalService]:
     """Build retrieval services whose dependencies are addressed only over REST."""
     index_url = os.environ.get("CE_INDEX_BASE_URL", "http://127.0.0.1:8080")
     tokenization_url = os.environ.get("CE_TOKENIZATION_BASE_URL", "http://127.0.0.1:8080")
@@ -366,7 +392,7 @@ def configured_retrieval_services() -> tuple[LexicalRetrievalService, VectorRetr
         response = _rest_json(
             index_url,
             f"/api/v1/index/profiles/{quote(profile['name'], safe='')}/versions/{quote(profile['version'], safe='')}",
-            request_id=request.get("request_id", "retrieval"),
+            request_id=request.get("request_id", "retrieval"), deadline=deadline,
         )
         bundle = response.get("profile_bundle", response.get("bundle"))
         if bundle is None:
@@ -377,21 +403,21 @@ def configured_retrieval_services() -> tuple[LexicalRetrievalService, VectorRetr
 
     def tokenize_call(payload: dict[str, Any]) -> dict[str, Any]:
         return _rest_json(tokenization_url, "/api/v1/tokenization/lexical", payload=payload,
-                          request_id=payload.get("request_id", "retrieval"))
+                          request_id=payload.get("request_id", "retrieval"), deadline=deadline)
 
     def embed_call(payload: dict[str, Any]) -> dict[str, Any]:
         return _rest_json(embedding_url, "/api/v1/embeddings", payload=payload,
-                          request_id=payload.get("request_id", "retrieval"))
+                          request_id=payload.get("request_id", "retrieval"), deadline=deadline)
 
     def lexical_lookup(payload: dict[str, Any]) -> dict[str, Any]:
         return _rest_json(index_url, "/api/v1/index/lexical/lookup", payload=payload,
-                          request_id=payload.get("request_id", "retrieval"))
+                          request_id=payload.get("request_id", "retrieval"), deadline=deadline)
 
     def vector_neighbors(payload: dict[str, Any]) -> dict[str, Any]:
         payload = dict(payload)
         payload["input_type"] = "query"
         return _rest_json(index_url, "/api/v1/index/vector-neighbors", payload=payload,
-                          request_id=payload.get("request_id", "retrieval"))
+                          request_id=payload.get("request_id", "retrieval"), deadline=deadline)
 
     return (
         LexicalRetrievalService(tokenize_call, lexical_lookup, resolve),

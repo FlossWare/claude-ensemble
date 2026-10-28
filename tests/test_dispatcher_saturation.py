@@ -2,11 +2,13 @@
 from __future__ import annotations
 
 import threading
+import socket
 import unittest
 from http.server import BaseHTTPRequestHandler
 from urllib.request import Request, urlopen
 
 from runtime.server import BoundedThreadingHTTPServer
+from runtime.internal_calls import INTERNAL_CALL_TOKEN
 
 
 class TinyBoundedServer(BoundedThreadingHTTPServer):
@@ -36,7 +38,7 @@ class SaturationHandler(BaseHTTPRequestHandler):
             try:
                 self.barrier.wait(timeout=2)
                 base = f"http://127.0.0.1:{self.server.server_address[1]}"
-                request = Request(base + "/internal", headers={"X-CE-Internal-Call": "true"})
+                request = Request(base + "/internal", headers={"X-CE-Internal-Call": "true", "X-CE-Internal-Token": INTERNAL_CALL_TOKEN})
                 with urlopen(request, timeout=2) as response:
                     body = response.read()
                 self._reply(200 if body == b"internal-ok" else 502, b"outer-ok")
@@ -47,6 +49,19 @@ class SaturationHandler(BaseHTTPRequestHandler):
 
 
 class DispatcherSaturationTests(unittest.TestCase):
+    def test_internal_marker_requires_process_token(self):
+        for token, expected in ((None, False), ("not-the-token", False), (INTERNAL_CALL_TOKEN, True)):
+            server_side, client_side = socket.socketpair()
+            try:
+                headers = b"GET / HTTP/1.1\r\nHost: localhost\r\nX-CE-Internal-Call: true\r\n"
+                if token is not None:
+                    headers += f"X-CE-Internal-Token: {token}\r\n".encode("ascii")
+                client_side.sendall(headers + b"\r\n")
+                self.assertEqual(BoundedThreadingHTTPServer._is_internal_request(server_side), expected)
+            finally:
+                server_side.close()
+                client_side.close()
+
     def test_reserved_internal_workers_survive_all_external_slots_being_busy(self):
         SaturationHandler.barrier = threading.Barrier(2)
         server = TinyBoundedServer(("127.0.0.1", 0), SaturationHandler)
