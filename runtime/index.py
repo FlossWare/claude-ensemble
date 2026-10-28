@@ -5,6 +5,7 @@ Knowledge, or retrieval services; all callers use this module through REST.
 """
 from __future__ import annotations
 
+import base64
 import hashlib
 import json
 import math
@@ -13,7 +14,7 @@ import re
 import sqlite3
 import threading
 import uuid
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from contextlib import contextmanager
 from urllib.parse import unquote, parse_qs
 from pathlib import Path
@@ -118,6 +119,9 @@ class IndexService:
                 );
                 CREATE TABLE IF NOT EXISTS generation_idempotency(
                     idempotency_key TEXT PRIMARY KEY, payload_hash TEXT NOT NULL, generation_id TEXT NOT NULL
+                );
+                CREATE TABLE IF NOT EXISTS manifest_snapshots(
+                    snapshot_id TEXT PRIMARY KEY, owner TEXT NOT NULL, items_json TEXT NOT NULL, expires_at TEXT NOT NULL
                 );
                 CREATE TABLE IF NOT EXISTS owner_fences(
                     generation_id TEXT NOT NULL, owner TEXT NOT NULL, fence_id TEXT NOT NULL,
@@ -587,20 +591,45 @@ class IndexService:
                 raise _error("invalid_request", "owner and limit (1-100) are required")
             limit = int(limit_text)
             cursor = params.get("cursor")
-            with self._connect() as db:
-                rows = db.execute("""SELECT source_id,latest_sequence,indexed_sequence,tombstone_sequence FROM (
-                                  SELECT s.source_id AS source_id,s.latest_sequence AS latest_sequence,s.indexed_sequence AS indexed_sequence,t.tombstone_sequence AS tombstone_sequence
-                                  FROM sources s LEFT JOIN tombstones t ON t.source_id=s.source_id
-                                  UNION ALL
-                                  SELECT t.source_id AS source_id,NULL AS latest_sequence,NULL AS indexed_sequence,t.tombstone_sequence AS tombstone_sequence
-                                  FROM tombstones t LEFT JOIN sources s ON s.source_id=t.source_id WHERE s.source_id IS NULL
-                                  ) WHERE source_id LIKE ? ORDER BY source_id""", (owner + ":%",)).fetchall()
-                rows = [row for row in rows if cursor is None or row["source_id"] > cursor]
-                selected = rows[:limit]
-                return 200, {"owner": owner, "items": [{"source_id": row["source_id"],
-                    "latest_revision_sequence": row["latest_sequence"], "indexed_revision_sequence": row["indexed_sequence"],
-                    "tombstone_sequence": row["tombstone_sequence"]} for row in selected],
-                    "next_cursor": selected[-1]["source_id"] if len(rows) > limit and selected else None,
+            with self._lock, self._connect() as db:
+                now = datetime.now(timezone.utc)
+                db.execute("DELETE FROM manifest_snapshots WHERE expires_at<=?", (now.isoformat(),))
+                after = ""
+                if cursor:
+                    try:
+                        token = cursor + "=" * (-len(cursor) % 4)
+                        decoded = json.loads(base64.urlsafe_b64decode(token.encode("ascii")))
+                        snapshot_id, after = decoded["snapshot_id"], decoded["after"]
+                        if not isinstance(snapshot_id, str) or not isinstance(after, str):
+                            raise ValueError("invalid cursor fields")
+                    except (ValueError, KeyError, TypeError, UnicodeError) as exc:
+                        raise _error("invalid_cursor", "manifest cursor is invalid", 400) from exc
+                    snapshot = db.execute("SELECT owner,items_json,expires_at FROM manifest_snapshots WHERE snapshot_id=?", (snapshot_id,)).fetchone()
+                    if not snapshot or snapshot["owner"] != owner:
+                        raise _error("invalid_cursor", "manifest cursor does not identify a live snapshot for this owner", 400)
+                    rows = json.loads(snapshot["items_json"])
+                else:
+                    raw_rows = db.execute("""SELECT source_id,latest_sequence,indexed_sequence,tombstone_sequence FROM (
+                                      SELECT s.source_id AS source_id,s.latest_sequence AS latest_sequence,s.indexed_sequence AS indexed_sequence,t.tombstone_sequence AS tombstone_sequence
+                                      FROM sources s LEFT JOIN tombstones t ON t.source_id=s.source_id
+                                      UNION ALL
+                                      SELECT t.source_id AS source_id,NULL AS latest_sequence,NULL AS indexed_sequence,t.tombstone_sequence AS tombstone_sequence
+                                      FROM tombstones t LEFT JOIN sources s ON s.source_id=t.source_id WHERE s.source_id IS NULL
+                                      ) WHERE source_id LIKE ? ORDER BY source_id""", (owner + ":%",)).fetchall()
+                    rows = [{"source_id": row["source_id"], "latest_revision_sequence": row["latest_sequence"],
+                             "indexed_revision_sequence": row["indexed_sequence"], "tombstone_sequence": row["tombstone_sequence"]}
+                            for row in raw_rows]
+                    snapshot_id = uuid.uuid4().hex
+                    expires_at = (now.replace(microsecond=0) + timedelta(minutes=15)).isoformat()
+                    db.execute("INSERT INTO manifest_snapshots(snapshot_id,owner,items_json,expires_at) VALUES(?,?,?,?)",
+                               (snapshot_id, owner, _canonical(rows).decode("utf-8"), expires_at))
+                remaining = [item for item in rows if item["source_id"] > after]
+                selected = remaining[:limit]
+                next_cursor = None
+                if len(remaining) > limit and selected:
+                    token_data = _canonical({"snapshot_id": snapshot_id, "after": selected[-1]["source_id"]})
+                    next_cursor = base64.urlsafe_b64encode(token_data).decode("ascii").rstrip("=")
+                return 200, {"owner": owner, "items": selected, "next_cursor": next_cursor,
                     "request_id": request_id}
         if method == "GET" and len(tail) == 2 and tail[0] == "generations":
             with self._connect() as db:
