@@ -104,6 +104,12 @@ class GraphRuntimeTests(unittest.TestCase):
                                 revision_sequence=1, owner_sequence=3)
         _, response = self.service.project(stale, "stale-request")
         self.assertEqual(response["status"], "superseded")
+        _, stale_delete = self.service.delete_source({
+            "operation_id": "memory-delete-stale", "source_id": "memory:m1",
+            "revision_sequence": 1, "owner_projection_sequence": 4,
+            "scope": SCOPE, "delete_scope": "source",
+        }, "stale-delete-request")
+        self.assertEqual(stale_delete["status"], "superseded")
         manifest = self.service.manifest({"limit": ["100"]}, "manifest-request")
         source = next(item for item in manifest["items"] if item["source_id"] == "memory:m1")
         self.assertEqual(source["status"], "tombstoned")
