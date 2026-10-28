@@ -106,7 +106,6 @@ class IndexService:
         if store is None:
             return
         try:
-            store.delete_source(source_id)
             rows = db.execute(
                 "SELECT * FROM representations WHERE generation_id=? AND source_id=? AND vector_json IS NOT NULL ORDER BY revision_sequence,chunk_id",
                 (generation_id, source_id),
@@ -123,7 +122,7 @@ class IndexService:
                     "scope": json.loads(row["scope_json"]), "text": row["text"],
                     "embedding": json.loads(row["vector_json"]),
                 })
-            store.upsert(records)
+            store.replace_source(source_id, records)
         except VectorStoreError as exc:
             raise _error("vector_store_unavailable", str(exc), 503) from exc
 
