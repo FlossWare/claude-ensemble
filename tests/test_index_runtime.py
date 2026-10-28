@@ -61,6 +61,9 @@ class IndexRuntimeTests(unittest.TestCase):
         self.addCleanup(self.temp.cleanup)
         self.bundle = profile()
         self.identity = {k: self.bundle[k] for k in ("name", "version", "digest")}
+        self._vector_backend_patcher = patch.dict(os.environ, {"CE_INDEX_VECTOR_BACKEND": "chromadb"})
+        self._vector_backend_patcher.start()
+        self.addCleanup(self._vector_backend_patcher.stop)
         self.service = IndexService(Path(self.temp.name) / "index.sqlite3", self.bundle)
 
     def upsert_request(self, source_id="knowledge:doc-a", sequence=1, operation_id="op-a", reps=None):
@@ -106,6 +109,198 @@ class IndexRuntimeTests(unittest.TestCase):
         result = self.service.vector_neighbors(request)
         self.assertEqual(result["candidates"][0]["chunk_id"], "chunk-a")
         self.assertEqual(result["candidates"][0]["similarity"], 1.0)
+
+    def test_chroma_scope_isolation_and_vectors_persist_across_service_restart(self):
+        self.service.upsert(self.upsert_request(), "idem-a")
+        other_scope = {"type": "project", "id": "project-b", "visibility": "private"}
+        other = self.upsert_request(
+            source_id="knowledge:doc-b", operation_id="op-b",
+            reps=[representation("chunk-b", "other project", ["other", "project"], [1.0, 0.0, 0.0])],
+        )
+        other["source"]["scope"] = other_scope
+        self.service.upsert(other, "idem-b")
+        generation_id = self.service.active_generation()["generation_id"]
+        query = {
+            "request_id": "req-scope", "scope": SCOPE, "index_profile": self.identity,
+            "embedding_profile": {"name": "technical-default", "version": "0.1"},
+            "query_vector": [1.0, 0.0, 0.0], "input_type": "query", "metric": "cosine",
+            "limit": 5, "index_generation": generation_id,
+        }
+        restarted = IndexService(Path(self.temp.name) / "index.sqlite3", self.bundle)
+        result = restarted.vector_neighbors(query)
+        self.assertEqual([item["source_id"] for item in result["candidates"]], ["knowledge:doc-a"])
+
+    def test_chroma_update_rollback_preserves_committed_revision_and_marks_filtered_results_truncated(self):
+        self.service.upsert(self.upsert_request(), "idem-a")
+        generation_id = self.service.active_generation()["generation_id"]
+        original_sync = self.service._sync_chroma_source
+
+        def sync_then_fail(db, target_generation, source_id, bundle):
+            original_sync(db, target_generation, source_id, bundle)
+            raise RuntimeError("injected failure after Chroma upsert")
+
+        with patch.object(self.service, "_sync_chroma_source", side_effect=sync_then_fail):
+            with self.assertRaisesRegex(RuntimeError, "injected failure"):
+                self.service.upsert(
+                    self.upsert_request(sequence=2, operation_id="op-b"), "idem-b"
+                )
+
+        query = {
+            "request_id": "req-rollback", "scope": SCOPE, "index_profile": self.identity,
+            "embedding_profile": {"name": "technical-default", "version": "0.1"},
+            "query_vector": [1.0, 0.0, 0.0], "input_type": "query", "metric": "cosine",
+            "limit": 5, "index_generation": generation_id,
+        }
+        result = self.service.vector_neighbors(query)
+        self.assertEqual([item["revision_sequence"] for item in result["candidates"]], [1])
+        self.assertTrue(result["truncated"])
+
+    def test_chroma_refills_past_more_than_100_stale_vectors_to_find_valid_hit(self):
+        valid = self.upsert_request(
+            reps=[representation("chunk-valid", "valid lower-ranked hit", ["valid"], [0.8, 0.6, 0.0])]
+        )
+        self.service.upsert(valid, "valid-hit")
+        generation_id = self.service.active_generation()["generation_id"]
+        store = self.service._vector_store(generation_id, self.bundle)
+        stale_records = []
+        for index in range(110):
+            stale_records.append({
+                "generation_id": generation_id,
+                "profile_digest": self.bundle["digest"],
+                "source_id": f"knowledge:orphan-{index:03d}",
+                "source_revision": "orphan-revision",
+                "revision_sequence": 1,
+                "chunk_id": "orphan-chunk",
+                "chunker_profile": "markdown-default",
+                "chunker_version": "0.1",
+                "embedding_model": "local-nomic",
+                "embedding_version": "r1",
+                "embedding_dimensions": 3,
+                "scope": SCOPE,
+                "text": "stale orphan vector",
+                "embedding": [1.0, 0.0, 0.0],
+            })
+        store.upsert(stale_records)
+        observed_limits = []
+        original_query = store.query
+
+        def observe_query(query_vector, *, scope, limit, metric, source_ids=None, source_revisions=None):
+            observed_limits.append(limit)
+            return original_query(
+                query_vector, scope=scope, limit=limit, metric=metric,
+                source_ids=source_ids, source_revisions=source_revisions,
+            )
+
+        query = {
+            "request_id": "req-refill-stale", "scope": SCOPE, "index_profile": self.identity,
+            "embedding_profile": {"name": "technical-default", "version": "0.1"},
+            "query_vector": [1.0, 0.0, 0.0], "input_type": "query", "metric": "cosine",
+            "limit": 1, "index_generation": generation_id,
+        }
+        with patch.object(store, "query", side_effect=observe_query):
+            result = self.service.vector_neighbors(query)
+        self.assertEqual([item["source_id"] for item in result["candidates"]], ["knowledge:doc-a"])
+        self.assertEqual(observed_limits, [100, 200])
+        self.assertTrue(result["truncated"])
+
+    def test_chroma_startup_migration_failure_recovers_on_next_initialization(self):
+        first = self.upsert_request(source_id="knowledge:doc-a", operation_id="startup-a")
+        second = self.upsert_request(
+            source_id="knowledge:doc-b", operation_id="startup-b",
+            reps=[representation("chunk-b", "second startup source", ["second"], [0.0, 1.0, 0.0])],
+        )
+        self.service.upsert(first, "startup-a-key")
+        self.service.upsert(second, "startup-b-key")
+        generation_id = self.service.active_generation()["generation_id"]
+        store = self.service._vector_store(generation_id, self.bundle)
+        store.replace_source("knowledge:doc-b", [])
+        from runtime.vector_store import ChromaVectorStore, VectorStoreError
+        original_upsert = ChromaVectorStore.upsert
+
+        def fail_once(adapter, records):
+            if records and records[0]["source_id"] == "knowledge:doc-b":
+                raise VectorStoreError("injected partial startup migration failure")
+            return original_upsert(adapter, records)
+
+        with patch.object(ChromaVectorStore, "upsert", fail_once):
+            with self.assertRaisesRegex(IndexError, "injected partial startup migration failure"):
+                IndexService(Path(self.temp.name) / "index.sqlite3", self.bundle)
+
+        restarted = IndexService(Path(self.temp.name) / "index.sqlite3", self.bundle)
+        query = {
+            "request_id": "req-startup-recovery", "scope": SCOPE, "index_profile": self.identity,
+            "embedding_profile": {"name": "technical-default", "version": "0.1"},
+            "query_vector": [0.0, 1.0, 0.0], "input_type": "query", "metric": "cosine",
+            "limit": 5, "index_generation": generation_id,
+        }
+        result = restarted.vector_neighbors(query)
+        self.assertIn("knowledge:doc-b", [item["source_id"] for item in result["candidates"]])
+
+    def test_chroma_partial_failure_across_generations_preserves_old_vectors(self):
+        self.service.upsert(self.upsert_request(), "idem-active")
+        active_generation = self.service.active_generation()["generation_id"]
+
+        class Headers(dict):
+            def get(self, key, default=None):
+                return super().get(key, default)
+
+        _, target_result = self.service.handle(
+            "POST", "/api/v1/index/generations", {},
+            {"index_profile": self.identity},
+            Headers({"Idempotency-Key": "generation-multi"}),
+            "generation-multi",
+        )
+        target_generation = target_result["generation_id"]
+        seed = self.upsert_request(operation_id="target-seed")
+        seed["target_generation"] = target_generation
+        self.service.upsert(seed, "idem-target-seed")
+
+        original_sync = self.service._sync_chroma_source
+        call_count = 0
+
+        def fail_on_second_generation(db, generation_id, source_id, bundle):
+            nonlocal call_count
+            original_sync(db, generation_id, source_id, bundle)
+            call_count += 1
+            if call_count == 2:
+                raise RuntimeError("injected second-generation failure")
+
+        update = self.upsert_request(sequence=2, operation_id="target-update")
+        update["target_generation"] = target_generation
+        with patch.object(self.service, "_sync_chroma_source", side_effect=fail_on_second_generation):
+            with self.assertRaisesRegex(RuntimeError, "second-generation failure"):
+                self.service.upsert(update, "idem-target-update")
+        self.assertEqual(call_count, 2)
+
+        for generation_id in (active_generation, target_generation):
+            store = self.service._vector_store(generation_id, self.bundle)
+            candidates = store.query(
+                [1.0, 0.0, 0.0], scope=SCOPE, limit=100, metric="cosine"
+            )
+            self.assertTrue(any(item["revision_sequence"] == 1 for item in candidates))
+
+    def test_chroma_delete_clears_vectors_and_remains_empty_after_restart(self):
+        self.service.upsert(self.upsert_request(), "idem-a")
+        generation_id = self.service.active_generation()["generation_id"]
+        delete = {
+            "operation_id": "delete-a", "request_id": "req-delete",
+            "source_id": "knowledge:doc-a", "source_revision": "tombstone-rev-2",
+            "revision_sequence": 2, "scope": SCOPE, "index_profile": self.identity,
+            "delete_scope": "source",
+        }
+        self.service.delete(delete, "idem-delete")
+        self.assertEqual(
+            self.service._vector_store(generation_id, self.bundle).list_ids(), set()
+        )
+        restarted = IndexService(Path(self.temp.name) / "index.sqlite3", self.bundle)
+        query = {
+            "request_id": "req-after-restart", "scope": SCOPE, "index_profile": self.identity,
+            "embedding_profile": {"name": "technical-default", "version": "0.1"},
+            "query_vector": [1.0, 0.0, 0.0], "input_type": "query", "metric": "cosine",
+            "limit": 5, "index_generation": generation_id,
+        }
+        result = restarted.vector_neighbors(query)
+        self.assertEqual(result["candidates"], [])
 
     def test_vector_neighbor_rejects_hostile_magnitudes_without_crashing_lookup(self):
         self.service.upsert(self.upsert_request(), "idem-a")

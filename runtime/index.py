@@ -20,6 +20,8 @@ from urllib.parse import unquote, parse_qs
 from pathlib import Path
 from typing import Any
 
+from runtime.vector_store import ChromaVectorStore, VectorStoreError, record_id, MAX_QUERY_RESULTS
+
 
 def _canonical(value: Any) -> bytes:
     return json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":"), allow_nan=False).encode("utf-8")
@@ -48,13 +50,24 @@ class IndexError(ValueError):
 
 
 class IndexService:
-    """SQLite-backed Index operations, independently testable without HTTP."""
+    """SQLite-authoritative Index operations with persistent Chroma vector retrieval."""
 
     def __init__(self, db_path: str | os.PathLike[str], profile_bundle: dict[str, Any] | None = None):
         self.db_path = str(Path(db_path).expanduser())
         self._lock = threading.RLock()
+        self.vector_backend = os.environ.get("CE_INDEX_VECTOR_BACKEND", "chromadb").strip().lower()
+        if self.vector_backend not in {"chromadb", "sqlite"}:
+            raise ValueError("CE_INDEX_VECTOR_BACKEND must be chromadb or sqlite")
+        self.chroma_path = str(Path(os.environ.get("CE_INDEX_CHROMA_PATH", self.db_path + ".chroma")).expanduser())
+        self._vector_stores = {}
+        self._chroma_client = None
+        self._bootstrapped_generations = set()
         Path(self.db_path).parent.mkdir(parents=True, exist_ok=True)
         self._initialize()
+        # Existing SQLite vector rows are migrated before the service is used,
+        # rather than rebuilding collections on a user query.
+        if self.vector_backend == "chromadb":
+            self._bootstrap_existing_chroma()
         if profile_bundle is not None:
             self.provision_profile(profile_bundle)
 
@@ -72,6 +85,125 @@ class IndexService:
             raise
         finally:
             conn.close()
+
+    def _vector_store(self, generation_id: str, bundle: dict[str, Any]):
+        if self.vector_backend == "sqlite":
+            return None
+        digest = profile_digest(bundle)
+        metric = bundle["embedding"]["metric"]
+        key = (generation_id, digest, metric)
+        if key not in self._vector_stores:
+            try:
+                if self._chroma_client is None:
+                    import chromadb
+                    self._chroma_client = chromadb.PersistentClient(path=self.chroma_path)
+                self._vector_stores[key] = ChromaVectorStore(
+                    self.chroma_path, profile_digest=digest,
+                    generation_id=generation_id, metric=metric, client=self._chroma_client,
+                )
+            except Exception as exc:
+                raise _error("vector_store_unavailable", "could not initialize ChromaDB vector storage", 503) from exc
+        return self._vector_stores[key]
+
+    def _bootstrap_chroma_generation(
+        self, db: sqlite3.Connection, generation_id: str, bundle: dict[str, Any]
+    ) -> None:
+        """Seed only missing vector IDs from SQLite; never clear a live collection on a query."""
+        if self.vector_backend == "sqlite" or generation_id in self._bootstrapped_generations:
+            return
+        store = self._vector_store(generation_id, bundle)
+        try:
+            expected_rows = db.execute(
+                "SELECT source_id,revision_sequence,chunk_id FROM representations WHERE generation_id=? AND vector_json IS NOT NULL",
+                (generation_id,),
+            ).fetchall()
+            existing_ids = store.list_ids()
+        except VectorStoreError as exc:
+            raise _error("vector_store_unavailable", str(exc), 503) from exc
+        missing_sources = {
+            row["source_id"] for row in expected_rows
+            if record_id({"generation_id": generation_id, "source_id": row["source_id"],
+                          "revision_sequence": row["revision_sequence"], "chunk_id": row["chunk_id"]})
+            not in existing_ids
+        }
+        # Source writes are bounded by the profile's chunk limit. A partially
+        # populated collection is filled incrementally without destructive rebuilds.
+        for source_id in sorted(missing_sources):
+            self._sync_chroma_source(db, generation_id, source_id, bundle)
+        self._bootstrapped_generations.add(generation_id)
+
+    def _bootstrap_existing_chroma(self) -> None:
+        """Migrate existing SQLite vectors during service initialization, before serving queries."""
+        with self._connect() as db:
+            generations = db.execute(
+                "SELECT generation_id,profile_name,profile_version FROM generations ORDER BY generation_id"
+            ).fetchall()
+            for generation in generations:
+                profile_row = db.execute(
+                    "SELECT bundle_json FROM profiles WHERE name=? AND version=?",
+                    (generation["profile_name"], generation["profile_version"]),
+                ).fetchone()
+                if profile_row:
+                    self._bootstrap_chroma_generation(
+                        db, generation["generation_id"], json.loads(profile_row["bundle_json"])
+                    )
+
+    def _sync_chroma_source(self, db: sqlite3.Connection, generation_id: str,
+                            source_id: str, bundle: dict[str, Any]) -> None:
+        store = self._vector_store(generation_id, bundle)
+        if store is None:
+            return
+        try:
+            rows = db.execute(
+                "SELECT * FROM representations WHERE generation_id=? AND source_id=? AND vector_json IS NOT NULL ORDER BY revision_sequence,chunk_id",
+                (generation_id, source_id),
+            ).fetchall()
+            records = []
+            for row in rows:
+                records.append({
+                    "generation_id": generation_id, "profile_digest": profile_digest(bundle),
+                    "source_id": row["source_id"], "source_revision": row["source_revision"],
+                    "revision_sequence": row["revision_sequence"], "chunk_id": row["chunk_id"],
+                    "chunker_profile": row["chunker_profile"], "chunker_version": row["chunker_version"],
+                    "embedding_model": row["embedding_model"], "embedding_version": row["embedding_version"],
+                    "embedding_dimensions": row["embedding_dimensions"],
+                    "scope": json.loads(row["scope_json"]), "text": row["text"],
+                    "embedding": json.loads(row["vector_json"]),
+                })
+            # Never delete the prior committed revision before SQLite commits.
+            # Orphaned newer vectors are harmless because query candidates must
+            # match SQLite's current representation; deterministic IDs make retry idempotent.
+            store.upsert(records)
+        except VectorStoreError as exc:
+            raise _error("vector_store_unavailable", str(exc), 503) from exc
+
+    def _prune_chroma_source(
+        self, db: sqlite3.Connection, generation_id: str, source_id: str,
+        bundle: dict[str, Any],
+    ) -> None:
+        """Best-effort post-commit removal of stale vector IDs; SQLite remains authoritative."""
+        if self.vector_backend != "chromadb":
+            return
+        try:
+            store = self._vector_store(generation_id, bundle)
+            rows = db.execute(
+                "SELECT * FROM representations WHERE generation_id=? AND source_id=? AND vector_json IS NOT NULL ORDER BY revision_sequence,chunk_id",
+                (generation_id, source_id),
+            ).fetchall()
+            records = [{
+                "generation_id": generation_id, "profile_digest": profile_digest(bundle),
+                "source_id": row["source_id"], "source_revision": row["source_revision"],
+                "revision_sequence": row["revision_sequence"], "chunk_id": row["chunk_id"],
+                "chunker_profile": row["chunker_profile"], "chunker_version": row["chunker_version"],
+                "embedding_model": row["embedding_model"], "embedding_version": row["embedding_version"],
+                "embedding_dimensions": row["embedding_dimensions"],
+                "scope": json.loads(row["scope_json"]), "text": row["text"],
+                "embedding": json.loads(row["vector_json"]),
+            } for row in rows]
+            store.replace_source(source_id, records)
+        except (IndexError, VectorStoreError, sqlite3.Error, ValueError, TypeError):
+            # Cleanup failure cannot invalidate a committed write; stale vectors are filtered by SQLite.
+            return
 
     def _initialize(self) -> None:
         with self._connect() as db:
@@ -617,7 +749,28 @@ class IndexService:
                         self._journal_change(db, target_id, source_id, seq, request["operation_id"], "upsert", payload_hash)
                 else:
                     self._journal_change(db, gen["generation_id"], source_id, seq, request["operation_id"], "upsert", payload_hash)
-                return 202, response
+                if self.vector_backend == "chromadb":
+                    generation_rows = db.execute(
+                        "SELECT generation_id FROM generations WHERE profile_digest=?",
+                        (profile_digest(bundle),),
+                    ).fetchall()
+                    for generation_row in generation_rows:
+                        self._sync_chroma_source(
+                            db, generation_row["generation_id"], source_id, bundle
+                        )
+                result = (202, response)
+            if self.vector_backend == "chromadb":
+                try:
+                    with self._connect() as cleanup_db:
+                        for generation_row in generation_rows:
+                            self._prune_chroma_source(
+                                cleanup_db, generation_row["generation_id"], source_id, bundle
+                            )
+                except (IndexError, sqlite3.Error):
+                    # The committed source remains valid; cleanup can fail without
+                    # making stale vectors visible to retrieval.
+                    pass
+            return result
     
     def delete(self, request: dict[str, Any], idempotency_key: str) -> tuple[int, dict[str, Any]]:
         if not idempotency_key:
@@ -682,7 +835,30 @@ class IndexService:
             for target_row in building:
                 self._journal_change(db, target_row["generation_id"], source_id, seq,
                                      request["operation_id"], "delete", payload_hash)
-            return 202, response
+            result = (202, response)
+        if self.vector_backend == "chromadb":
+            try:
+                with self._connect() as cleanup_db:
+                    generation_rows = cleanup_db.execute(
+                        "SELECT generation_id,profile_name,profile_version FROM generations"
+                    ).fetchall()
+                    for generation_row in generation_rows:
+                        profile_row = cleanup_db.execute(
+                            "SELECT bundle_json FROM profiles WHERE name=? AND version=?",
+                            (generation_row["profile_name"], generation_row["profile_version"]),
+                        ).fetchone()
+                        if profile_row:
+                            try:
+                                self._prune_chroma_source(
+                                    cleanup_db, generation_row["generation_id"], source_id,
+                                    json.loads(profile_row["bundle_json"]),
+                                )
+                            except IndexError:
+                                # SQLite tombstone filters stale vectors even if physical cleanup fails.
+                                continue
+            except sqlite3.Error:
+                pass
+        return result
 
     def profile_version(self, name: str, version: str) -> dict[str, Any]:
         with self._connect() as db:
@@ -826,6 +1002,78 @@ class IndexService:
             if (not isinstance(ep, dict) or ep.get("name") != emb["profile"] or ep.get("version") != emb["version"]
                     or len(vector) != emb["dimensions"] or metric != emb["metric"]):
                 raise _error("incompatible_representation", "query vector profile/dimensions/metric mismatch", 422)
+            if self.vector_backend == "chromadb":
+                store = self._vector_store(gen["generation_id"], bundle)
+                fetch_limit = 100
+                raw_candidates = []
+                candidates = []
+                discarded_candidates = False
+                while True:
+                    try:
+                        raw_candidates = store.query(
+                            vector, scope=json.loads(scope_json), limit=fetch_limit, metric=metric,
+                            source_ids=request.get("source_ids"),
+                            source_revisions=request.get("source_revisions"),
+                        )
+                    except VectorStoreError as exc:
+                        raise _error("vector_store_unavailable", str(exc), 503) from exc
+                    candidates = []
+                    for candidate in raw_candidates:
+                        row = db.execute(
+                            """SELECT * FROM representations
+                               WHERE generation_id=? AND source_id=? AND source_revision=?
+                                 AND revision_sequence=? AND chunk_id=? AND scope_json=?
+                                 AND vector_json IS NOT NULL AND embedding_model=?
+                                 AND embedding_version=? AND embedding_dimensions=?""",
+                            (gen["generation_id"], candidate["source_id"], candidate["source_revision"],
+                             candidate["revision_sequence"], candidate["chunk_id"], scope_json,
+                             emb["model"], emb["model_version"], emb["dimensions"]),
+                        ).fetchone()
+                        if row is None:
+                            discarded_candidates = True
+                            continue
+                        tomb = db.execute(
+                            "SELECT tombstone_sequence FROM tombstones WHERE source_id=?",
+                            (row["source_id"],),
+                        ).fetchone()
+                        if tomb and row["revision_sequence"] <= tomb["tombstone_sequence"]:
+                            discarded_candidates = True
+                            continue
+                        item = {
+                            "source_id": row["source_id"], "source_revision": row["source_revision"],
+                            "revision_sequence": row["revision_sequence"], "chunk_id": row["chunk_id"],
+                            "chunker": {"profile": row["chunker_profile"], "version": row["chunker_version"]},
+                            "text": row["text"],
+                            "embedding": {"model": row["embedding_model"], "version": row["embedding_version"],
+                                          "dimensions": row["embedding_dimensions"], "metric": metric,
+                                          "input_type": "document"},
+                        }
+                        item["distance" if metric == "euclidean" else "similarity"] = (
+                            candidate["distance"] if metric == "euclidean" else candidate["similarity"]
+                        )
+                        candidates.append(item)
+                    candidates.sort(key=lambda item: (
+                        item["distance"] if metric == "euclidean" else -item["similarity"],
+                        item["source_id"], -item["revision_sequence"], item["chunk_id"],
+                        item["chunker"]["profile"], item["chunker"]["version"],
+                    ))
+                    # Chroma has no offset pagination here, so increase the top-N
+                    # window until we have enough SQLite-authorized hits, exhaust
+                    # the collection, or hit the explicit bounded scan ceiling.
+                    if (len(candidates) >= limit or len(raw_candidates) < fetch_limit
+                            or fetch_limit >= MAX_QUERY_RESULTS):
+                        break
+                    fetch_limit = min(fetch_limit * 2, MAX_QUERY_RESULTS)
+                truncated = (
+                    len(candidates) > limit
+                    or len(raw_candidates) == fetch_limit
+                    or discarded_candidates
+                )
+                candidates = candidates[:limit]
+                for rank, candidate in enumerate(candidates, 1):
+                    candidate["retrieval_rank"] = rank
+                return {"candidates": candidates, "truncated": truncated,
+                        "index_generation": gen["generation_id"], "request_id": request.get("request_id", "index")}
             rows = db.execute("SELECT * FROM representations WHERE generation_id=? AND scope_json=? AND vector_json IS NOT NULL AND embedding_model=? AND embedding_version=? AND embedding_dimensions=?",
                               (gen["generation_id"], scope_json, emb["model"], emb["model_version"], emb["dimensions"])).fetchall()
             scored = []

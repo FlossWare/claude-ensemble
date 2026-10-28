@@ -74,13 +74,21 @@ class FakeCollection:
             "distances": [[row[3] for row in selected]],
         }
 
-    def delete(self, *, where):
-        self.delete_calls.append(where)
-        self.records = {item_id: row for item_id, row in self.records.items()
-                        if row[2].get("source_id") != where.get("source_id")}
+    def delete(self, *, where=None, ids=None):
+        self.delete_calls.append(where if where is not None else {"ids": ids})
+        if ids is not None:
+            self.records = {item_id: row for item_id, row in self.records.items() if item_id not in ids}
+        else:
+            self.records = {item_id: row for item_id, row in self.records.items()
+                            if row[2].get("source_id") != where.get("source_id")}
 
-    def get(self, *, include):
-        return {"ids": list(self.records)}
+    def get(self, *, include, where=None):
+        selected = [(item_id, row) for item_id, row in self.records.items()
+                    if where is None or self._matches(row[2], where)]
+        result = {"ids": [item_id for item_id, _ in selected]}
+        if "metadatas" in include:
+            result["metadatas"] = [row[2] for _, row in selected]
+        return result
 
 
 class FakeClient:
@@ -159,7 +167,17 @@ class VectorStoreTests(unittest.TestCase):
         with self.assertRaises(VectorStoreError):
             self.store.query([float("nan")], scope=SCOPE, limit=5, metric="cosine")
         with self.assertRaises(VectorStoreError):
-            self.store.query([1.0], scope=SCOPE, limit=101, metric="cosine")
+            self.store.query([1.0], scope=SCOPE, limit=1001, metric="cosine")
+
+    def test_replace_source_upserts_before_removing_stale_vectors(self):
+        first = record(source_id="knowledge:doc-a", chunk_id="chunk-1")
+        second = record(source_id="knowledge:doc-a", chunk_id="chunk-2")
+        self.store.replace_source("knowledge:doc-a", [first, second])
+        self.assertEqual(len(self.store.list_ids()), 2)
+        replacement = record(source_id="knowledge:doc-a", chunk_id="chunk-3")
+        self.store.replace_source("knowledge:doc-a", [replacement])
+        self.assertEqual(self.store.list_ids(), {record_id(replacement)})
+        self.assertEqual(len(self.client.collections[self.store.name].records), 1)
 
     def test_source_deletion_and_id_enumeration(self):
         self.store.upsert([record()])

@@ -1,8 +1,9 @@
-"""Local persistent ChromaDB vector-store adapter primitives.
+"""Persistent ChromaDB vector storage for Index.
 
-This module is deliberately not wired into IndexService yet. SQLite remains the
-active vector backend until the durable cross-store intent/replay protocol is
-integrated. Keep the adapter's metadata and metric semantics contract-tested.
+SQLite remains authoritative for revisions, scopes, and tombstones. Index
+writes vector IDs synchronously and validates every query candidate against
+SQLite before returning it. Older vectors may remain physically stored after
+an update or tombstone, but cannot be returned unless SQLite still authorizes them.
 """
 from __future__ import annotations
 
@@ -15,7 +16,7 @@ from typing import Any, Protocol
 
 
 SUPPORTED_METRICS = {"cosine", "dot_product", "euclidean"}
-MAX_QUERY_RESULTS = 100
+MAX_QUERY_RESULTS = 1000
 
 
 class VectorStoreError(RuntimeError):
@@ -252,6 +253,27 @@ class ChromaVectorStore:
             })
         return candidates
 
+    def replace_source(self, source_id: str, records: list[dict[str, Any]]) -> None:
+        """Synchronously replace one source without deleting good vectors before upsert succeeds."""
+        if not isinstance(source_id, str) or not source_id:
+            raise VectorStoreError("source_id is required")
+        if any(record.get("source_id") != source_id for record in records):
+            raise VectorStoreError("all replacement records must belong to source_id")
+        self.upsert(records)
+        keep_ids = {record_id(record) for record in records}
+        try:
+            existing = self._collection.get(where={"source_id": source_id}, include=[])
+            existing_ids = existing.get("ids")
+            if not isinstance(existing_ids, list) or any(not isinstance(item, str) for item in existing_ids):
+                raise VectorStoreError("Chroma returned a malformed source listing")
+            stale_ids = [item for item in existing_ids if item not in keep_ids]
+            if stale_ids:
+                self._collection.delete(ids=stale_ids)
+        except VectorStoreError:
+            raise
+        except Exception as exc:
+            raise VectorStoreError("Chroma source replacement cleanup failed") from exc
+
     def delete_source(self, source_id: str) -> None:
         if not isinstance(source_id, str) or not source_id:
             raise VectorStoreError("source_id is required")
@@ -259,6 +281,16 @@ class ChromaVectorStore:
             self._collection.delete(where={"source_id": source_id})
         except Exception as exc:
             raise VectorStoreError("Chroma source deletion failed") from exc
+
+    def clear(self) -> None:
+        """Remove all vector records before a simple SQLite-driven bootstrap rebuild."""
+        ids = self.list_ids()
+        if not ids:
+            return
+        try:
+            self._collection.delete(ids=list(ids))
+        except Exception as exc:
+            raise VectorStoreError("Chroma collection clear failed") from exc
 
     def list_ids(self) -> set[str]:
         try:
