@@ -81,6 +81,29 @@ class GraphRuntimeTests(unittest.TestCase):
             ["knowledge:k1", "memory:m1"],
         )
 
+    def test_parallel_relationship_types_and_source_edge_ids_survive_traversal(self):
+        request = self.projection(edges=[
+            {"edge_id": "edge-uses-1", "source_node_id": "node-a", "target_node_id": "node-b",
+             "relationship_type": "uses", "directed": True, "provenance": {"origin": "design"}},
+            {"edge_id": "edge-depends-2", "source_node_id": "node-a", "target_node_id": "node-b",
+             "relationship_type": "depends_on", "directed": True, "provenance": {"origin": "build"}},
+        ])
+        self.service.project(request, "parallel-edges")
+        result = self.service.traverse({
+            "scope": SCOPE, "start_node_ids": ["node-a"], "direction": "outgoing"
+        }, "parallel-query")
+
+        self.assertEqual(len(result["paths"]), 2)
+        returned = [
+            (path["edges"][0]["relationship_type"], path["edges"][0]["supports"][0]["source_edge_id"])
+            for path in result["paths"]
+        ]
+        self.assertEqual(returned, [
+            ("depends_on", "edge-depends-2"),
+            ("uses", "edge-uses-1"),
+        ])
+        self.assertEqual(len({path["path_id"] for path in result["paths"]}), 2)
+
     def test_entity_mentions_use_exact_casefolded_label_and_alias_support(self):
         self.service.project(self.projection(), "r1")
         result = self.service.traverse({"scope": SCOPE, "entity_mentions": ["sOlR"]}, "query-2")
