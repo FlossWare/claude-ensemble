@@ -43,6 +43,7 @@ MAX_INTENT_REQUEST_BYTES = 1_048_576
 MAX_ENTITY_REQUEST_BYTES = 1_048_576
 DEFAULT_REQUEST_TIMEOUT_SECONDS = 30.0
 SUPPORTED_PROFILES = {"markdown-default": {"0.1"}}
+_MEMORY_RECOVERY_LOCK = threading.Lock()
 
 
 def _profile_digest(bundle: dict[str, Any]) -> str:
@@ -482,8 +483,10 @@ class Handler(BaseHTTPRequestHandler):
         elif self.path == "/api/v1/memory/health":
             self._send(200, {"service": "memory", "status": "alive"}, request_id)
         elif self.path == "/api/v1/memory/ready":
+            self._start_memory_recovery()
             self._send(200, {"service": "memory", "status": "ready", "ready": True,
-                             "checks": [{"name": "canonical_store", "status": "ok"}]}, request_id)
+                             "checks": [{"name": "canonical_store", "status": "ok"},
+                                        {"name": "pending_ingestion_recovery", "status": "scheduled"}]}, request_id)
         elif urlsplit(self.path).path.startswith("/api/v1/memories/operations/"):
             try:
                 operation_id = urlsplit(self.path).path.rsplit("/", 1)[-1]
@@ -741,6 +744,29 @@ class Handler(BaseHTTPRequestHandler):
                 "tokenization_base": os.environ.get("CE_TOKENIZATION_BASE_URL", local_base),
                 "embedding_base": os.environ.get("CE_EMBEDDING_BASE_URL", local_base),
                 "local_base": local_base}
+
+    def _start_memory_recovery(self) -> None:
+        """Run one startup recovery pass for durable, unfinished Memory ingestion."""
+        with _MEMORY_RECOVERY_LOCK:
+            if getattr(self.server, "_memory_recovery_started", False):
+                return
+            self.server._memory_recovery_started = True
+        service = get_memory_service()
+        threading.Thread(target=self._recover_pending_memory, args=(service,), daemon=True).start()
+
+    def _recover_pending_memory(self, service: Any) -> None:
+        for item in service.pending_ingestions():
+            accepted = item["accepted"]
+            request = item["request"]
+            request_id = accepted.get("request_id", accepted["operation_id"])
+            try:
+                context = self._memory_preflight(request, request_id)
+                self._memory_ingest(service, accepted, request, context)
+            except Exception:
+                try:
+                    service.update_operation(accepted["operation_id"], "failed", "index_failed")
+                except Exception:
+                    pass
 
     def _memory_ingest(self, service: Any, accepted: dict[str, Any], original_request: dict[str, Any],
                        context: dict[str, Any]) -> None:
