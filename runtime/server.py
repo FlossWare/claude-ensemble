@@ -42,6 +42,7 @@ MAX_TOKENIZATION_BATCH_REQUEST_BYTES = 524_288
 MAX_RANKING_REQUEST_BYTES = 1_048_576
 MAX_INTENT_REQUEST_BYTES = 1_048_576
 MAX_ENTITY_REQUEST_BYTES = 1_048_576
+MAX_GRAPH_REQUEST_BYTES = 1_048_576
 DEFAULT_REQUEST_TIMEOUT_SECONDS = 30.0
 SUPPORTED_PROFILES = {"markdown-default": {"0.1"}}
 _MEMORY_RECOVERY_LOCK = threading.Lock()
@@ -590,6 +591,8 @@ class Handler(BaseHTTPRequestHandler):
             length = int(length_text)
             if is_index_route:
                 limit = MAX_PROFILE_REQUEST_BYTES
+            elif is_graph_route:
+                limit = MAX_GRAPH_REQUEST_BYTES
             elif self.path == "/api/v1/chunking/chunks":
                 limit = MAX_REQUEST_BYTES
             elif self.path == "/api/v1/chunking/preflight":
