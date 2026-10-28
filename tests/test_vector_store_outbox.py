@@ -33,7 +33,10 @@ class VectorStoreOutboxTests(unittest.TestCase):
         with self.assertRaises(RuntimeError):
             with sqlite3.connect(self.db_path) as db:
                 db.execute("INSERT INTO canonical VALUES ('knowledge:doc-a')")
-                self.enqueue()
+                VectorStoreOutbox.enqueue(
+                    db, generation_id="gen-1", source_id="knowledge:doc-a",
+                    revision_sequence=1, operation_id="op-1", operation_kind="upsert",
+                )
                 raise RuntimeError("simulated crash before commit")
         with sqlite3.connect(self.db_path) as db:
             self.assertEqual(db.execute("SELECT COUNT(*) FROM canonical").fetchone()[0], 0)
