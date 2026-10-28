@@ -23,6 +23,23 @@ python scripts/benchmark_graph_libraries.py
 
 Use --quick for a short smoke run. The default run includes a larger scenario capped at CE's 10,000 materialized-edge contract limit. GitHub Actions runs the comparison on changes to the harness or this document and retains the JSON results as an artifact. These are synthetic stress cases, not claims about production traffic. If results are close, add workload shapes based on measured CE traces before choosing a winner.
 
+## Initial simulated-load results
+
+First three-round GitHub Actions run (Ubuntu runner, Python 3.12; medians across rounds):
+
+| Nodes / edges | Library | Build ms | 100-query total ms | Median query ms | p95 query ms | Python-tracked peak |
+|---|---|---:|---:|---:|---:|---:|
+| 1,000 / 5,189 | NetworkX | 16.268 | 30.762 | 0.290 | 0.458 | 1,150,960 B |
+| 1,000 / 5,189 | rustworkx | 2.598 | 33.283 | 0.315 | 0.501 | 203,600 B |
+| 1,000 / 5,189 | igraph | 0.886 | 33.464 | 0.323 | 0.507 | 38,096 B |
+| 5,000 / 10,000 | NetworkX | 34.956 | 9.074 | 0.094 | 0.134 | 3,618,296 B |
+| 5,000 / 10,000 | rustworkx | 5.919 | 10.298 | 0.104 | 0.157 | 504,796 B |
+| 5,000 / 10,000 | igraph | 1.434 | 10.047 | 0.102 | 0.151 | 38,608 B |
+
+All candidates produced identical result signatures for the tested workloads. The compiled libraries built graphs substantially faster; NetworkX had slightly lower query latency in this harness, which uses the same Python-level bounded traversal for all candidates. This is a data-structure/integration comparison, **not** a comparison of each library's native path algorithms. The memory column is not a fair total-memory comparison because tracemalloc misses native allocations, particularly for rustworkx and igraph.
+
+These results do not establish a winner. The workloads are synthetic, only two graph sizes/shapes have been exercised, and CE's full traversal includes direction, source supports, scope filtering, and deterministic result rules. Next, run the candidate structures through representative contract-level scenarios and measure native/process memory if memory is a deciding factor. If the current query algorithm remains NetworkX-specific, separately compare native algorithm implementations before claiming equivalent coverage.
+
 ## Contract constraints that remain CE-owned
 
 Regardless of library choice, CE must continue to enforce:
