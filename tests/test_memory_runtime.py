@@ -82,6 +82,37 @@ class MemoryOwnerTests(unittest.TestCase):
             self.service.update(created["memory_id"], update, "update-stale", "req-3", SCOPE)
         self.assertEqual(caught.exception.code, "revision_conflict")
 
+    def test_ingestion_requires_the_exact_current_revision(self):
+        _, created = self.service.create(create_request(), "create-1", "req-1")
+        self.assertEqual(self.service.read_for_ingestion(
+            created["memory_id"], SCOPE, created["revision_sequence"])["content"], "remember the REST contract")
+        update = {
+            "expected_base_revision_sequence": created["revision_sequence"],
+            "content": "newer revision",
+            "provenance": {"origin": "test"},
+            "index_profile": PROFILE,
+        }
+        _, updated = self.service.update(created["memory_id"], update, "update-1", "req-2", SCOPE)
+        with self.assertRaises(MemoryError) as caught:
+            self.service.read_for_ingestion(created["memory_id"], SCOPE, created["revision_sequence"])
+        self.assertEqual(caught.exception.code, "stale_revision")
+        self.assertEqual(self.service.read_for_ingestion(
+            created["memory_id"], SCOPE, updated["revision_sequence"])["content"], "newer revision")
+
+    def test_update_rejects_wrong_scope(self):
+        _, created = self.service.create(create_request(), "create-1", "req-1")
+        update = {
+            "expected_base_revision_sequence": created["revision_sequence"],
+            "content": "unauthorized update",
+            "provenance": {"origin": "test"},
+            "index_profile": PROFILE,
+        }
+        with self.assertRaises(MemoryError) as caught:
+            self.service.update(created["memory_id"], update, "wrong-scope", "req-2",
+                                {"type": "project", "id": "other", "visibility": "private"})
+        self.assertEqual(caught.exception.status, 404)
+        self.assertEqual(self.service.read(created["memory_id"], SCOPE)["content"], "remember the REST contract")
+
     def test_tombstone_blocks_reads_and_survives_restart(self):
         _, created = self.service.create(create_request(), "create-1", "req-1")
         _, deleted = self.service.delete(created["memory_id"], SCOPE, "source", "delete-1", "req-2")
