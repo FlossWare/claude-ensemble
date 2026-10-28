@@ -381,11 +381,23 @@ class IndexRuntimeTests(unittest.TestCase):
         self.assertEqual(raised.exception.code, "not_ready")
 
     def test_active_same_revision_is_idempotent_only_for_matching_payload(self):
+        class Headers(dict):
+            def get(self, key, default=None):
+                return super().get(key, default)
         first = self.upsert_request(operation_id="active-same-first")
         self.service.upsert(first, "active-same-key-1")
+        _, generation = self.service.handle(
+            "POST", "/api/v1/index/generations", {},
+            {"index_profile": self.identity}, Headers({"Idempotency-Key": "build-after-active"}), "build"
+        )
+        target = generation["generation_id"]
         matching = self.upsert_request(operation_id="active-same-second")
         status, _ = self.service.upsert(matching, "active-same-key-2")
         self.assertEqual(status, 202)
+        with self.service._connect() as db:
+            copied = db.execute("SELECT COUNT(*) AS count FROM representations WHERE generation_id=? AND source_id=?",
+                                (target, "knowledge:doc-a")).fetchone()["count"]
+        self.assertEqual(copied, 1)
         conflicting = self.upsert_request(
             operation_id="active-same-conflict",
             reps=[representation("chunk-a", "different payload", ["different"], [0.0, 1.0, 0.0])]
