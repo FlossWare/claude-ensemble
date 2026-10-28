@@ -167,7 +167,7 @@ class VectorStoreTests(unittest.TestCase):
         with self.assertRaises(VectorStoreError):
             self.store.query([float("nan")], scope=SCOPE, limit=5, metric="cosine")
         with self.assertRaises(VectorStoreError):
-            self.store.query([1.0], scope=SCOPE, limit=101, metric="cosine")
+            self.store.query([1.0], scope=SCOPE, limit=1001, metric="cosine")
 
     def test_replace_source_upserts_before_removing_stale_vectors(self):
         first = record(source_id="knowledge:doc-a", chunk_id="chunk-1")
