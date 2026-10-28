@@ -23,6 +23,7 @@ from .entity_extraction import EntityExtractionError, PROFILE_NAME as ENTITY_PRO
 from .reranking import RerankingError, get_engine as get_reranking_engine
 from .retrieval import RetrievalError, configured_retrieval_services, retrieval_readiness
 from .index import IndexError as IndexServiceError, get_index_service
+from .memory import MemoryError as MemoryServiceError, get_memory_service
 from .internal_calls import INTERNAL_CALL_TOKEN
 from .chunking import (
     MAX_CONTENT_BYTES, MAX_CHUNKS, DEFAULT_POLICY, ChunkingError, Policy, chunk_document, chunk_spans, validate_index_profile,
@@ -369,7 +370,46 @@ class Handler(BaseHTTPRequestHandler):
         self._method_not_allowed()
 
     def do_DELETE(self) -> None:
-        self._dispatch_index_method("DELETE", False)
+        if not urlsplit(self.path).path.startswith("/api/v1/memories/"):
+            self._dispatch_index_method("DELETE", False)
+            return
+        request_id, invalid_id = self._request_id()
+        if invalid_id:
+            self._send(400, _error("invalid_parameter", "X-CE-Request-ID contains invalid characters or length"), request_id)
+            return
+        if (deadline_error := self._deadline_error()) is not None:
+            self._fail(deadline_error, request_id)
+            return
+        try:
+            if self.headers.get_content_type() != "application/json":
+                self._send(415, _error("unsupported_media_type", "Content-Type must be application/json"), request_id)
+                return
+            length_text = self.headers.get("Content-Length")
+            if length_text is None or not length_text.isdecimal():
+                raise ChunkingError("invalid_request", "a valid Content-Length is required", status=400)
+            length = int(length_text)
+            if length > MAX_REQUEST_BYTES:
+                self.close_connection = True
+                raise ChunkingError("request_too_large", "request exceeds configured byte limit", status=413)
+            body = json.loads(self._read_body(length).decode("utf-8"), object_pairs_hook=_unique_json_object,
+                              parse_constant=_reject_json_constant)
+            _validate_json_unicode(body)
+            if not isinstance(body, dict):
+                raise ChunkingError("invalid_request", "request body must be a JSON object", status=400)
+            memory_id = urlsplit(self.path).path.rsplit("/", 1)[-1]
+            status, response = get_memory_service().delete(
+                memory_id, body.get("scope"), body.get("delete_scope"),
+                self.headers.get("Idempotency-Key", ""), request_id)
+            response["request_id"] = request_id
+            self._send(status, response, request_id)
+        except MemoryServiceError as exc:
+            self._send(exc.status, _error(exc.code, str(exc), retryable=exc.status >= 500), request_id)
+        except (UnicodeDecodeError, json.JSONDecodeError, ValueError):
+            self._send(400, _error("invalid_request", "request body must be valid UTF-8 JSON"), request_id)
+        except ChunkingError as exc:
+            self._fail(exc, request_id)
+        except Exception:
+            self._send(500, _error("internal_error", "request could not be processed"), request_id)
 
     def do_OPTIONS(self) -> None:
         self._method_not_allowed()
@@ -436,6 +476,34 @@ class Handler(BaseHTTPRequestHandler):
             service = "lexical-retrieval" if "lexical-retrieval" in self.path else "vector-retrieval"
             response = retrieval_readiness(service)
             self._send(200 if response["ready"] else 503, response, request_id)
+        elif self.path == "/api/v1/memory/health":
+            self._send(200, {"service": "memory", "status": "alive"}, request_id)
+        elif self.path == "/api/v1/memory/ready":
+            self._send(200, {"service": "memory", "status": "ready", "ready": True,
+                             "checks": [{"name": "canonical_store", "status": "ok"}]}, request_id)
+        elif urlsplit(self.path).path.startswith("/api/v1/memories/operations/"):
+            try:
+                operation_id = urlsplit(self.path).path.rsplit("/", 1)[-1]
+                response = get_memory_service().operation(operation_id)
+                response["request_id"] = request_id
+                self._send(200, response, request_id)
+            except MemoryServiceError as exc:
+                self._send(exc.status, _error(exc.code, str(exc), retryable=exc.status >= 500), request_id)
+        elif urlsplit(self.path).path.startswith("/api/v1/memories/"):
+            try:
+                parsed = urlsplit(self.path)
+                memory_id = parsed.path.rsplit("/", 1)[-1]
+                query = parse_qs(parsed.query)
+                scope = {
+                    "type": query.get("scope_type", [""])[0],
+                    "id": query.get("scope_id", [""])[0],
+                    "visibility": query.get("visibility", [""])[0],
+                }
+                response = get_memory_service().read(memory_id, scope)
+                response["request_id"] = request_id
+                self._send(200, response, request_id)
+            except MemoryServiceError as exc:
+                self._send(exc.status, _error(exc.code, str(exc), retryable=exc.status >= 500), request_id)
         elif urlsplit(self.path).path.startswith("/api/v1/index/"):
             try:
                 parsed = urlsplit(self.path)
@@ -459,7 +527,10 @@ class Handler(BaseHTTPRequestHandler):
             self._fail(deadline_error, request_id)
             return
         is_index_route = urlsplit(self.path).path.startswith("/api/v1/index/")
-        if not is_index_route and self.path not in (
+        memory_path = urlsplit(self.path).path
+        is_memory_route = memory_path == "/api/v1/memories" or memory_path == "/api/v1/memories/verify-revisions" or (
+            memory_path.startswith("/api/v1/memories/") and memory_path.endswith("/revisions"))
+        if not is_index_route and not is_memory_route and self.path not in (
             "/api/v1/chunking/chunks", "/api/v1/chunking/preflight",
             "/api/v1/tokenization/lexical", "/api/v1/tokenization/lexical/batch",
             "/api/v1/embeddings", "/api/v1/ranking/rank",
@@ -508,6 +579,24 @@ class Handler(BaseHTTPRequestHandler):
             except (UnicodeDecodeError, json.JSONDecodeError, ValueError) as exc:
                 raise ChunkingError("invalid_request", "request body must be valid UTF-8 JSON without duplicate object keys", status=400) from exc
             _validate_json_unicode(request)
+            if is_memory_route:
+                parsed = urlsplit(self.path)
+                path = parsed.path
+                request["request_id"] = request_id
+                service = get_memory_service()
+                if path == "/api/v1/memories":
+                    status, response = service.create(request, self.headers.get("Idempotency-Key", ""), request_id)
+                elif path == "/api/v1/memories/verify-revisions":
+                    if set(request) - {"items", "request_id"} or "items" not in request:
+                        raise MemoryServiceError("invalid_request", "verification request has missing or unknown fields", 400)
+                    response = {"results": service.verify_revisions(request["items"]), "request_id": request_id}
+                    status = 200
+                else:
+                    memory_id = path.split("/")[-2]
+                    status, response = service.update(memory_id, request, self.headers.get("Idempotency-Key", ""), request_id)
+                response["request_id"] = request_id
+                self._send(status, response, request_id)
+                return
             if is_index_route:
                 parsed = urlsplit(self.path)
                 request["request_id"] = request_id
@@ -567,6 +656,8 @@ class Handler(BaseHTTPRequestHandler):
         except RerankingError as exc:
             self._send(exc.status, _error(exc.code, str(exc), retryable=exc.status >= 500), request_id)
         except RetrievalError as exc:
+            self._send(exc.status, _error(exc.code, str(exc), retryable=exc.status >= 500), request_id)
+        except MemoryServiceError as exc:
             self._send(exc.status, _error(exc.code, str(exc), retryable=exc.status >= 500), request_id)
         except IndexServiceError as exc:
             self._send(exc.status, _error(exc.code, str(exc), retryable=exc.status >= 500), request_id)
