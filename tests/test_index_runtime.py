@@ -388,7 +388,7 @@ class IndexRuntimeTests(unittest.TestCase):
                             "profile": rerank_request["profile"],
                             "candidates": [
                                 {**candidate, "score": 1.0, "rerank": index + 1,
-                                 "score_semantics": "cross-encoder"}
+                                 "score_semantics": "cross-encoder-profile-score-v1"}
                                 for index, candidate in enumerate(rerank_request["candidates"])
                             ][:rerank_request["limit"]],
                         }
