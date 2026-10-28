@@ -252,6 +252,27 @@ class ChromaVectorStore:
             })
         return candidates
 
+    def replace_source(self, source_id: str, records: list[dict[str, Any]]) -> None:
+        """Synchronously replace one source without deleting good vectors before upsert succeeds."""
+        if not isinstance(source_id, str) or not source_id:
+            raise VectorStoreError("source_id is required")
+        if any(record.get("source_id") != source_id for record in records):
+            raise VectorStoreError("all replacement records must belong to source_id")
+        self.upsert(records)
+        keep_ids = {record_id(record) for record in records}
+        try:
+            existing = self._collection.get(where={"source_id": source_id}, include=[])
+            existing_ids = existing.get("ids")
+            if not isinstance(existing_ids, list) or any(not isinstance(item, str) for item in existing_ids):
+                raise VectorStoreError("Chroma returned a malformed source listing")
+            stale_ids = [item for item in existing_ids if item not in keep_ids]
+            if stale_ids:
+                self._collection.delete(ids=stale_ids)
+        except VectorStoreError:
+            raise
+        except Exception as exc:
+            raise VectorStoreError("Chroma source replacement cleanup failed") from exc
+
     def delete_source(self, source_id: str) -> None:
         if not isinstance(source_id, str) or not source_id:
             raise VectorStoreError("source_id is required")
