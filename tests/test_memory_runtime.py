@@ -112,14 +112,14 @@ class MemoryOwnerTests(unittest.TestCase):
             with urlopen(req, timeout=3) as response:
                 self.assertEqual(response.status, 202)
                 created = json.loads(response.read())
-            self.assertEqual(list(Draft202012Validator(SCHEMA["$defs"]["createResponse"]).iter_errors(created)), [])
+            self.assertEqual(list(Draft202012Validator({"$schema": SCHEMA["$schema"], "$defs": SCHEMA["$defs"], **SCHEMA["$defs"]["createResponse"]}).iter_errors(created)), [])
             memory_id = created["memory_id"]
             read_url = (base + f"/api/v1/memories/{memory_id}"
                         + "?scope_type=project&scope_id=project-a&visibility=private")
             with urlopen(read_url, timeout=3) as response:
                 read_result = json.loads(response.read())
                 self.assertEqual(read_result["content"], "remember the REST contract")
-                self.assertEqual(list(Draft202012Validator(SCHEMA["$defs"]["canonicalReadResponse"]).iter_errors(read_result)), [])
+                self.assertEqual(list(Draft202012Validator({"$schema": SCHEMA["$schema"], "$defs": SCHEMA["$defs"], **SCHEMA["$defs"]["canonicalReadResponse"]}).iter_errors(read_result)), [])
             verify = json.dumps({"items": [{"source_id": created["source_id"],
                                             "revision_sequence": created["revision_sequence"]}]}).encode()
             req = Request(base + "/api/v1/memories/verify-revisions", data=verify, method="POST",
@@ -132,10 +132,10 @@ class MemoryOwnerTests(unittest.TestCase):
             with urlopen(req, timeout=3) as response:
                 self.assertEqual(response.status, 202)
                 deleted = json.loads(response.read())
-            self.assertEqual(list(Draft202012Validator(SCHEMA["$defs"]["deleteResponse"]).iter_errors(deleted)), [])
+            self.assertEqual(list(Draft202012Validator({"$schema": SCHEMA["$schema"], "$defs": SCHEMA["$defs"], **SCHEMA["$defs"]["deleteResponse"]}).iter_errors(deleted)), [])
             with urlopen(base + "/api/v1/memories/operations/" + created["operation_id"] + "?scope_type=project&scope_id=project-a&visibility=private", timeout=3) as response:
                 operation = json.loads(response.read())
-            self.assertEqual(list(Draft202012Validator(SCHEMA["$defs"]["operationStatusResponse"]).iter_errors(operation)), [])
+            self.assertEqual(list(Draft202012Validator({"$schema": SCHEMA["$schema"], "$defs": SCHEMA["$defs"], **SCHEMA["$defs"]["operationStatusResponse"]}).iter_errors(operation)), [])
             with self.assertRaises(HTTPError) as caught:
                 urlopen(read_url, timeout=3)
             self.assertEqual(caught.exception.code, 404)
