@@ -7,6 +7,7 @@ import json
 import os
 import threading
 from urllib.request import Request, urlopen
+from urllib.error import HTTPError
 from unittest.mock import patch
 from pathlib import Path
 
@@ -149,6 +150,12 @@ class IndexRuntimeTests(unittest.TestCase):
                 base = f"http://127.0.0.1:{server.server_address[1]}"
                 health = json.loads(urlopen(base + "/api/v1/index/health", timeout=2).read())
                 self.assertEqual(health["status"], "alive")
+                expired = Request(base + "/api/v1/index/health",
+                                  headers={"X-CE-Deadline": "2000-01-01T00:00:00Z"})
+                with self.assertRaises(HTTPError) as timeout_error:
+                    urlopen(expired, timeout=2)
+                self.assertEqual(timeout_error.exception.code, 504)
+                self.assertEqual(json.loads(timeout_error.exception.read())["error"]["code"], "deadline_exceeded")
                 request_body = self.upsert_request()
                 request = Request(base + "/api/v1/index/operations/upsert",
                                   data=json.dumps(request_body).encode("utf-8"),
@@ -295,6 +302,23 @@ class IndexRuntimeTests(unittest.TestCase):
         self.assertEqual([item["source_id"] for item in result["candidates"]], ["knowledge:doc-a"])
         details = self.service.handle("GET", f"/api/v1/index/generations/{target}", {}, None, Headers(), "status")[1]
         self.assertGreater(int(details["dual_apply_journal_position"]), 0)
+
+    def test_cutover_remains_fail_closed_until_owner_replay_protocol_is_integrated(self):
+        class Headers(dict):
+            def get(self, key, default=None):
+                return super().get(key, default)
+        status, generation = self.service.handle(
+            "POST", "/api/v1/index/generations", {},
+            {"index_profile": self.identity}, Headers({"Idempotency-Key": "build-cutover"}), "build"
+        )
+        self.assertEqual(status, 202)
+        status, result = self.service.handle(
+            "POST", f"/api/v1/index/generations/{generation['generation_id']}/cutover", {},
+            {"expected_active_generation": self.service.active_generation()["generation_id"],
+             "owner_fences": []}, Headers({"Idempotency-Key": "cutover-key"}), "cutover"
+        )
+        self.assertEqual(status, 503)
+        self.assertEqual(result["error"]["code"], "not_ready")
 
     def test_target_generation_source_failure_is_durable_and_blocks_eligibility(self):
         class Headers(dict):
