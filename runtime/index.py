@@ -237,6 +237,8 @@ class IndexService:
                     raise _error("idempotency_conflict", "operation identity was reused with different content", 409)
                 return 200, json.loads(prior["response_json"])
             bundle, _ = self._profile(db, request.get("index_profile"))
+            if bundle.get("status") == "retired":
+                raise _error("profile_retired", "retired profiles cannot accept new writes", 409)
             target = request.get("target_generation")
             gen = self._generation(db, target, request["index_profile"])
             tomb = db.execute("SELECT tombstone_sequence FROM tombstones WHERE source_id=?", (source_id,)).fetchone()
@@ -244,6 +246,8 @@ class IndexService:
             if tomb and seq <= tomb["tombstone_sequence"]:
                 raise _error("revision_sequence_regression", "upsert is at or below the durable tombstone sequence", 409)
             old = db.execute("SELECT latest_sequence FROM sources WHERE source_id=?", (source_id,)).fetchone()
+            if old and scope_json != old["scope_json"]:
+                raise _error("conflict", "a source identity cannot change scope partition", 409)
             if old and seq <= old["latest_sequence"]:
                 raise _error("revision_sequence_regression", "a source revision sequence must strictly increase for a new operation", 409)
             validated = [self._check_representation(rep, bundle) for rep in reps]
@@ -277,8 +281,8 @@ class IndexService:
             raise _error("invalid_request", "Idempotency-Key header is required")
         source_id = request.get("source_id")
         seq = request.get("revision_sequence")
-        if not isinstance(source_id, str) or type(seq) is not int or seq < 1 or request.get("delete_scope") != "source":
-            raise _error("invalid_request", "source-wide tombstone with a positive sequence is required")
+        if not isinstance(source_id, str) or not (source_id.startswith("memory:") or source_id.startswith("knowledge:")) or type(seq) is not int or seq < 1 or request.get("delete_scope") != "source" or not isinstance(request.get("operation_id"), str) or not request["operation_id"]:
+            raise _error("invalid_request", "source-wide tombstone with a valid source, operation ID, and positive sequence is required")
         payload_hash = hashlib.sha256(_canonical(request)).hexdigest()
         with self._lock, self._connect() as db:
             prior = db.execute("SELECT * FROM operations WHERE operation_id=? OR idempotency_key=?", (request.get("operation_id"), idempotency_key)).fetchone()
@@ -286,9 +290,14 @@ class IndexService:
                 if prior["payload_hash"] != payload_hash or prior["idempotency_key"] != idempotency_key:
                     raise _error("idempotency_conflict", "operation identity was reused with different content", 409)
                 return 200, json.loads(prior["response_json"])
-            self._profile(db, request.get("index_profile"))
+            bundle, _ = self._profile(db, request.get("index_profile"))
+            if bundle.get("status") == "retired":
+                raise _error("profile_retired", "retired profiles cannot accept new writes", 409)
             active = self._generation(db, None, request["index_profile"])
             existing = db.execute("SELECT tombstone_sequence FROM tombstones WHERE source_id=?", (source_id,)).fetchone()
+            source_row = db.execute("SELECT latest_sequence FROM sources WHERE source_id=?", (source_id,)).fetchone()
+            if source_row and seq <= source_row["latest_sequence"]:
+                raise _error("revision_sequence_regression", "tombstone sequence must exceed every allocated source revision", 409)
             if existing and seq < existing["tombstone_sequence"]:
                 raise _error("revision_sequence_regression", "tombstone sequence cannot regress", 409)
             db.execute("INSERT INTO tombstones(source_id,tombstone_sequence,source_revision,scope_json) VALUES(?,?,?,?) ON CONFLICT(source_id) DO UPDATE SET tombstone_sequence=MAX(tombstone_sequence,excluded.tombstone_sequence), source_revision=excluded.source_revision, scope_json=excluded.scope_json",
@@ -459,7 +468,7 @@ class IndexService:
                              "request_id": request_id}
         if method == "GET" and tail == ["generations", "active"]:
             return 200, self.active_generation()
-        if method == "GET" and len(tail) == 5 and tail[0] == "profiles" and tail[2] == "versions":
+        if method == "GET" and len(tail) == 4 and tail[0] == "profiles" and tail[2] == "versions":
             return 200, self.profile_version(tail[1], tail[3])
         if method == "GET" and len(tail) == 3 and tail[0] == "profiles" and tail[2] == "current":
             with self._connect() as db:
