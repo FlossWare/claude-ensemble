@@ -947,7 +947,7 @@ class IndexService:
                     rows = json.loads(snapshot["items_json"])
                 else:
                     raw_rows = db.execute("""SELECT ids.source_id AS source_id,
-                                      COALESCE(s.latest_sequence,h.highest_sequence,t.tombstone_sequence) AS latest_sequence,
+                                      MAX(COALESCE(s.latest_sequence,0),COALESCE(h.highest_sequence,0),COALESCE(t.tombstone_sequence,0)) AS latest_sequence,
                                       s.indexed_sequence AS indexed_sequence,t.tombstone_sequence AS tombstone_sequence
                                       FROM (SELECT source_id FROM sources UNION SELECT source_id FROM tombstones
                                             UNION SELECT source_id FROM source_high_water) ids
