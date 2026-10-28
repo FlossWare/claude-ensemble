@@ -218,6 +218,7 @@ class MemoryService:
         semantic_request = {k: v for k, v in request.items() if k != "request_id"}
         payload_hash = _payload_hash(semantic_request)
         with self._lock, self._connect() as db:
+            db.execute("BEGIN IMMEDIATE")
             prior = db.execute("SELECT payload_hash,response_json FROM memory_idempotency WHERE idempotency_key=?", (idempotency_key,)).fetchone()
             if prior:
                 if prior["payload_hash"] != payload_hash:
@@ -348,6 +349,7 @@ class MemoryService:
         semantic_request = {"memory_id": memory_id, **{k: v for k, v in request.items() if k != "request_id"}}
         payload_hash = _payload_hash(semantic_request)
         with self._lock, self._connect() as db:
+            db.execute("BEGIN IMMEDIATE")
             row = db.execute("SELECT * FROM memories WHERE memory_id=?", (memory_id,)).fetchone()
             if row is None or row["tombstone_sequence"] is not None or json.loads(row["scope_json"]) != scope:
                 raise MemoryError("not_found", "memory was not found in this scope", 404)
@@ -396,6 +398,7 @@ class MemoryService:
             raise MemoryError("invalid_request", "Idempotency-Key is required and must be 1 to 256 characters", 400)
         payload_hash = _payload_hash({"memory_id": memory_id, "scope": scope, "delete_scope": delete_scope})
         with self._lock, self._connect() as db:
+            db.execute("BEGIN IMMEDIATE")
             prior = db.execute("SELECT payload_hash,response_json FROM memory_idempotency WHERE idempotency_key=?", (idempotency_key,)).fetchone()
             if prior:
                 if prior["payload_hash"] != payload_hash:
