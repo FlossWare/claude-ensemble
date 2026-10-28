@@ -494,7 +494,7 @@
             "minLength": 1,
             "maxLength": 512
           },
-          "maxItems": 100,
+          "maxItems": 16,
           "minItems": 1
         },
         "relationship_types": {
@@ -556,12 +556,22 @@
         {
           "required": [
             "start_node_ids"
-          ]
+          ],
+          "not": {
+            "required": [
+              "entity_mentions"
+            ]
+          }
         },
         {
           "required": [
             "entity_mentions"
-          ]
+          ],
+          "not": {
+            "required": [
+              "start_node_ids"
+            ]
+          }
         }
       ]
     },
