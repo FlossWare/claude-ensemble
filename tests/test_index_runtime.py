@@ -107,6 +107,19 @@ class IndexRuntimeTests(unittest.TestCase):
         self.assertEqual(result["candidates"][0]["chunk_id"], "chunk-a")
         self.assertEqual(result["candidates"][0]["similarity"], 1.0)
 
+    def test_vector_neighbor_rejects_hostile_magnitudes_without_crashing_lookup(self):
+        self.service.upsert(self.upsert_request(), "idem-a")
+        request = {
+            "request_id": "req-hostile-vector", "scope": SCOPE, "index_profile": self.identity,
+            "embedding_profile": {"name": "technical-default", "version": "0.1"},
+            "query_vector": [1e200, 0.0, 0.0], "input_type": "query", "metric": "cosine", "limit": 5,
+            "index_generation": self.service.active_generation()["generation_id"],
+        }
+        with self.assertRaisesRegex(IndexError, "query vector"):
+            self.service.vector_neighbors(request)
+        request["query_vector"] = [1.0, 0.0, 0.0]
+        self.assertEqual(self.service.vector_neighbors(request)["candidates"][0]["chunk_id"], "chunk-a")
+
     def test_tombstone_is_durable_and_blocks_stale_upsert(self):
         self.service.upsert(self.upsert_request(), "idem-a")
         delete = {
@@ -153,6 +166,15 @@ class IndexRuntimeTests(unittest.TestCase):
                 base = f"http://127.0.0.1:{server.server_address[1]}"
                 health = json.loads(urlopen(base + "/api/v1/index/health", timeout=2).read())
                 self.assertEqual(health["status"], "alive")
+                malformed_number = Request(
+                    base + "/api/v1/index/lexical/lookup",
+                    data=b'{"overflow":1e999}',
+                    headers={"Content-Type": "application/json"},
+                    method="POST",
+                )
+                with self.assertRaises(HTTPError) as malformed_error:
+                    urlopen(malformed_number, timeout=2)
+                self.assertEqual(malformed_error.exception.code, 400)
                 profile_request = Request(base + "/api/v1/index/profiles/test-profile/versions/0.1",
                                           headers={"X-CE-Request-ID": "profile-http"})
                 with urlopen(profile_request, timeout=2) as response:
