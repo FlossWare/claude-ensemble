@@ -440,165 +440,167 @@ class IndexService:
         reps = request.get("representations")
         if not isinstance(reps, list) or not 1 <= len(reps) <= 256:
             raise _error("invalid_request", "representations must contain 1 to 256 items")
-        payload_hash = _payload_hash(request)
-        # Resolve an existing binding before validation can create durable
-        # rebuild-failure side effects. Recheck below while holding the write
-        # lock to serialize concurrent first submissions.
-        with self._lock, self._connect() as db:
-            prior = db.execute("SELECT * FROM operations WHERE operation_id=? OR idempotency_key=?",
-                               (request["operation_id"], idempotency_key)).fetchone()
-            if prior:
-                if (prior["idempotency_key"] == idempotency_key
-                        and prior["status"] not in {"pending", "accepted", "reconciliation_required"}
-                        and self._idempotency_expired(prior["terminal_at"] or prior["created_at"])):
-                    raise _error("idempotency_key_expired", "terminal idempotency binding expired after 30 days; use a fresh key", 409)
-                if prior["payload_hash"] != payload_hash or prior["idempotency_key"] != idempotency_key or prior["operation_id"] != request["operation_id"]:
-                    raise _error("idempotency_conflict", "operation identity was reused with different content", 409)
-                return 200, json.loads(prior["response_json"])
-            bundle_for_limits, _ = self._profile(db, request.get("index_profile"))
-        target = request.get("target_generation")
-        try:
-            if len(reps) > bundle_for_limits["limits"]["max_chunks"]:
-                raise _error("source_too_large", "representation count exceeds the pinned profile chunk limit", 422)
-            if len(_canonical(request)) > bundle_for_limits["limits"]["max_request_bytes"]:
-                raise _error("request_too_large", "upsert exceeds the pinned profile request byte limit", 413)
-            validated = [self._check_representation(rep, bundle_for_limits) for rep in reps]
-            if len({rep["chunk_id"] for rep in validated}) != len(validated):
-                raise _error("invalid_request", "chunk_id values must be unique within a source revision")
-        except IndexError as exc:
-            if target is not None and exc.code in {"source_too_large", "unsupported_profile", "incompatible_representation"}:
-                self._record_source_failure(target, source_id, source["revision_sequence"], exc.code,
-                                            request.get("index_profile", {}), str(exc))
-            raise
-        with self._lock, self._connect() as db:
-            prior = db.execute("SELECT * FROM operations WHERE operation_id=? OR idempotency_key=?", (request["operation_id"], idempotency_key)).fetchone()
-            if prior:
-                if (prior["idempotency_key"] == idempotency_key
-                        and prior["status"] not in {"pending", "accepted", "reconciliation_required"}
-                        and self._idempotency_expired(prior["terminal_at"] or prior["created_at"])):
-                    raise _error("idempotency_key_expired", "terminal idempotency binding expired after 30 days; use a fresh key", 409)
-                if prior["payload_hash"] != payload_hash or prior["idempotency_key"] != idempotency_key or prior["operation_id"] != request["operation_id"]:
-                    raise _error("idempotency_conflict", "operation identity was reused with different content", 409)
-                return 200, json.loads(prior["response_json"])
-            bundle, _ = self._profile(db, request.get("index_profile"))
-            if bundle.get("status") == "retired":
-                raise _error("profile_retired", "retired profiles cannot accept new writes", 409)
-            gen = self._generation(db, target, request["index_profile"], allow_building=target is not None)
-            active_row = db.execute("SELECT generation_id FROM active_generation WHERE singleton=1").fetchone()
-            is_active_generation = active_row is not None and active_row["generation_id"] == gen["generation_id"]
-            tomb = db.execute("SELECT tombstone_sequence,scope_json FROM tombstones WHERE source_id=?", (source_id,)).fetchone()
-            seq = source["revision_sequence"]
-            if tomb and scope_json != tomb["scope_json"]:
-                raise _error("scope_conflict", "upsert scope does not match the durable tombstone partition", 409)
-            if tomb and seq <= tomb["tombstone_sequence"]:
-                raise _error("revision_sequence_regression", "upsert is at or below the durable tombstone sequence", 409)
-            old = db.execute("SELECT latest_sequence,scope_json FROM sources WHERE source_id=?", (source_id,)).fetchone()
-            high_water = db.execute("SELECT highest_sequence,scope_json FROM source_high_water WHERE source_id=?", (source_id,)).fetchone()
-            if old and scope_json != old["scope_json"]:
-                raise _error("scope_conflict", "a source identity cannot change scope partition", 409)
-            if high_water and scope_json != high_water["scope_json"]:
-                raise _error("scope_conflict", "source identity cannot change its durable scope partition", 409)
-            if is_active_generation and high_water and seq < high_water["highest_sequence"]:
-                raise _error("revision_sequence_regression", "active revision sequence is below the highest accepted source revision", 409)
-            if is_active_generation:
-                if old and seq < old["latest_sequence"]:
-                    raise _error("revision_sequence_regression", "a source revision sequence cannot regress", 409)
-                if old and seq == old["latest_sequence"] and not self._representations_match(
-                        db, gen["generation_id"], source_id, source["revision"], scope_json, validated):
-                    raise _error("revision_conflict", "same source revision sequence has a different canonical payload", 409)
-            else:
-                prior_target = db.execute("SELECT MAX(revision_sequence) AS sequence FROM representations WHERE generation_id=? AND source_id=?",
-                                          (gen["generation_id"], source_id)).fetchone()
-                prior_sequence = prior_target["sequence"]
-                if prior_sequence is not None and seq < prior_sequence:
-                    raise _error("revision_sequence_regression", "target-generation revisions cannot regress within that generation", 409)
-                if prior_sequence == seq and not self._representations_match(
-                        db, gen["generation_id"], source_id, source["revision"], scope_json, validated):
-                    raise _error("revision_conflict", "same target-generation revision sequence has a different canonical payload", 409)
-                db.execute("UPDATE generations SET status='building' WHERE generation_id=? AND status='eligible'",
-                           (gen["generation_id"],))
-            db.execute("DELETE FROM representations WHERE generation_id=? AND source_id=? AND revision_sequence<?",
-                       (gen["generation_id"], source_id, seq))
-            for rep in validated:
-                lexical = rep["lexical"] or {}
-                vector = rep["vector"] or {}
-                db.execute("""INSERT OR REPLACE INTO representations
-                    (generation_id,source_id,source_revision,revision_sequence,scope_json,chunk_id,
-                     chunker_profile,chunker_version,text,lexical_profile,lexical_version,terms_json,
-                     vector_json,embedding_model,embedding_version,embedding_dimensions,metadata_json)
-                    VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
-                    (gen["generation_id"], source_id, source["revision"], seq, scope_json, rep["chunk_id"],
-                     rep["chunker"]["profile"], rep["chunker"]["version"], rep["text"],
-                     lexical.get("profile"), lexical.get("version"), _canonical(rep["terms"]).decode(),
-                     _canonical(vector.get("values")).decode() if vector else None,
-                     vector.get("model"), vector.get("version"), vector.get("dimensions"),
-                     _canonical(rep["metadata"]).decode()))
-            if not is_active_generation:
-                db.execute("DELETE FROM generation_source_failures WHERE generation_id=? AND source_id=? AND revision_sequence<=?",
-                           (gen["generation_id"], source_id, seq))
-            if is_active_generation:
-                db.execute("INSERT INTO sources(source_id,latest_sequence,indexed_sequence,scope_json) VALUES(?,?,?,?) ON CONFLICT(source_id) DO UPDATE SET latest_sequence=MAX(latest_sequence,excluded.latest_sequence), indexed_sequence=MAX(indexed_sequence,excluded.indexed_sequence), scope_json=excluded.scope_json",
-                           (source_id, seq, seq, scope_json))
-            db.execute("INSERT INTO source_high_water(source_id,highest_sequence,scope_json) VALUES(?,?,?) ON CONFLICT(source_id) DO UPDATE SET highest_sequence=MAX(highest_sequence,excluded.highest_sequence)",
-                       (source_id, seq, scope_json))
-            response = {"operation_id": request["operation_id"], "source_id": source_id, "source_revision": source["revision"],
-                        "revision_sequence": seq, "status": "complete", "index_generation": gen["generation_id"],
-                        "request_id": request.get("request_id", "index")}
-            db.execute("INSERT INTO operations(operation_id,idempotency_key,payload_hash,status,response_json,terminal_at) VALUES(?,?,?,?,?,CURRENT_TIMESTAMP)",
-                       (request["operation_id"], idempotency_key, payload_hash, "complete", _canonical(response).decode()))
-            if is_active_generation:
-                # Active writes and idempotent replays repair/maintain compatible target
-                # generations before this transaction commits.
-                db.execute("UPDATE generations SET status='building' WHERE status='eligible' AND profile_digest=?",
-                           (gen["profile_digest"],))
-                building = db.execute("SELECT generation_id FROM generations WHERE status='building' AND profile_digest=? AND generation_id<>?",
-                                      (gen["profile_digest"], gen["generation_id"])).fetchall()
-                for target_row in building:
-                    target_id = target_row["generation_id"]
+        # Serialize key lookup, validation side effects, and the eventual write.
+        with self._lock:
+            payload_hash = _payload_hash(request)
+            # Resolve an existing binding before validation can create durable
+            # rebuild-failure side effects. Recheck below while holding the write
+            # lock to serialize concurrent first submissions.
+            with self._lock, self._connect() as db:
+                prior = db.execute("SELECT * FROM operations WHERE operation_id=? OR idempotency_key=?",
+                                   (request["operation_id"], idempotency_key)).fetchone()
+                if prior:
+                    if (prior["idempotency_key"] == idempotency_key
+                            and prior["status"] not in {"pending", "accepted", "reconciliation_required"}
+                            and self._idempotency_expired(prior["terminal_at"] or prior["created_at"])):
+                        raise _error("idempotency_key_expired", "terminal idempotency binding expired after 30 days; use a fresh key", 409)
+                    if prior["payload_hash"] != payload_hash or prior["idempotency_key"] != idempotency_key or prior["operation_id"] != request["operation_id"]:
+                        raise _error("idempotency_conflict", "operation identity was reused with different content", 409)
+                    return 200, json.loads(prior["response_json"])
+                bundle_for_limits, _ = self._profile(db, request.get("index_profile"))
+            target = request.get("target_generation")
+            try:
+                if len(reps) > bundle_for_limits["limits"]["max_chunks"]:
+                    raise _error("source_too_large", "representation count exceeds the pinned profile chunk limit", 422)
+                if len(_canonical(request)) > bundle_for_limits["limits"]["max_request_bytes"]:
+                    raise _error("request_too_large", "upsert exceeds the pinned profile request byte limit", 413)
+                validated = [self._check_representation(rep, bundle_for_limits) for rep in reps]
+                if len({rep["chunk_id"] for rep in validated}) != len(validated):
+                    raise _error("invalid_request", "chunk_id values must be unique within a source revision")
+            except IndexError as exc:
+                if target is not None and exc.code in {"source_too_large", "unsupported_profile", "incompatible_representation"}:
+                    self._record_source_failure(target, source_id, source["revision_sequence"], exc.code,
+                                                request.get("index_profile", {}), str(exc))
+                raise
+            with self._lock, self._connect() as db:
+                prior = db.execute("SELECT * FROM operations WHERE operation_id=? OR idempotency_key=?", (request["operation_id"], idempotency_key)).fetchone()
+                if prior:
+                    if (prior["idempotency_key"] == idempotency_key
+                            and prior["status"] not in {"pending", "accepted", "reconciliation_required"}
+                            and self._idempotency_expired(prior["terminal_at"] or prior["created_at"])):
+                        raise _error("idempotency_key_expired", "terminal idempotency binding expired after 30 days; use a fresh key", 409)
+                    if prior["payload_hash"] != payload_hash or prior["idempotency_key"] != idempotency_key or prior["operation_id"] != request["operation_id"]:
+                        raise _error("idempotency_conflict", "operation identity was reused with different content", 409)
+                    return 200, json.loads(prior["response_json"])
+                bundle, _ = self._profile(db, request.get("index_profile"))
+                if bundle.get("status") == "retired":
+                    raise _error("profile_retired", "retired profiles cannot accept new writes", 409)
+                gen = self._generation(db, target, request["index_profile"], allow_building=target is not None)
+                active_row = db.execute("SELECT generation_id FROM active_generation WHERE singleton=1").fetchone()
+                is_active_generation = active_row is not None and active_row["generation_id"] == gen["generation_id"]
+                tomb = db.execute("SELECT tombstone_sequence,scope_json FROM tombstones WHERE source_id=?", (source_id,)).fetchone()
+                seq = source["revision_sequence"]
+                if tomb and scope_json != tomb["scope_json"]:
+                    raise _error("scope_conflict", "upsert scope does not match the durable tombstone partition", 409)
+                if tomb and seq <= tomb["tombstone_sequence"]:
+                    raise _error("revision_sequence_regression", "upsert is at or below the durable tombstone sequence", 409)
+                old = db.execute("SELECT latest_sequence,scope_json FROM sources WHERE source_id=?", (source_id,)).fetchone()
+                high_water = db.execute("SELECT highest_sequence,scope_json FROM source_high_water WHERE source_id=?", (source_id,)).fetchone()
+                if old and scope_json != old["scope_json"]:
+                    raise _error("scope_conflict", "a source identity cannot change scope partition", 409)
+                if high_water and scope_json != high_water["scope_json"]:
+                    raise _error("scope_conflict", "source identity cannot change its durable scope partition", 409)
+                if is_active_generation and high_water and seq < high_water["highest_sequence"]:
+                    raise _error("revision_sequence_regression", "active revision sequence is below the highest accepted source revision", 409)
+                if is_active_generation:
+                    if old and seq < old["latest_sequence"]:
+                        raise _error("revision_sequence_regression", "a source revision sequence cannot regress", 409)
+                    if old and seq == old["latest_sequence"] and not self._representations_match(
+                            db, gen["generation_id"], source_id, source["revision"], scope_json, validated):
+                        raise _error("revision_conflict", "same source revision sequence has a different canonical payload", 409)
+                else:
                     prior_target = db.execute("SELECT MAX(revision_sequence) AS sequence FROM representations WHERE generation_id=? AND source_id=?",
-                                              (target_id, source_id)).fetchone()["sequence"]
-                    if prior_target == seq and not self._representations_match(
-                            db, target_id, source_id, source["revision"], scope_json, validated):
-                        db.execute("""INSERT INTO generation_source_failures
-                            (generation_id,source_id,revision_sequence,reason_code,profile_json,retryable,details)
-                            VALUES(?,?,?,?,?,?,?) ON CONFLICT(generation_id,source_id,revision_sequence,reason_code)
-                            DO UPDATE SET profile_json=excluded.profile_json,retryable=excluded.retryable,details=excluded.details""",
-                            (target_id, source_id, seq, "incompatible_representation",
-                             _canonical(request.get("index_profile", {})).decode(), 0,
-                             "active mutation conflicts with an existing target-generation revision"))
-                        self._journal_change(db, target_id, source_id, seq, request["operation_id"],
-                                             "upsert", payload_hash)
-                        continue
-                    if prior_target is not None and seq < prior_target:
-                        # The target already has newer evidence. Record the active
-                        # mutation as observed but not applied to this generation.
-                        self._journal_change(db, target_id, source_id, seq, request["operation_id"],
-                                             "upsert", payload_hash, status="skipped_stale")
-                        continue
-                    if prior_target is None or seq > prior_target:
-                        db.execute("DELETE FROM representations WHERE generation_id=? AND source_id=? AND revision_sequence<?",
-                                   (target_id, source_id, seq))
-                        for rep in validated:
-                            lexical = rep["lexical"] or {}
-                            vector = rep["vector"] or {}
-                            db.execute("""INSERT OR REPLACE INTO representations
-                                (generation_id,source_id,source_revision,revision_sequence,scope_json,chunk_id,
-                                 chunker_profile,chunker_version,text,lexical_profile,lexical_version,terms_json,
-                                 vector_json,embedding_model,embedding_version,embedding_dimensions,metadata_json)
-                                VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
-                                (target_id, source_id, source["revision"], seq, scope_json, rep["chunk_id"],
-                                 rep["chunker"]["profile"], rep["chunker"]["version"], rep["text"],
-                                 lexical.get("profile"), lexical.get("version"), _canonical(rep["terms"]).decode(),
-                                 _canonical(vector.get("values")).decode() if vector else None,
-                                 vector.get("model"), vector.get("version"), vector.get("dimensions"),
-                                 _canonical(rep["metadata"]).decode()))
+                                              (gen["generation_id"], source_id)).fetchone()
+                    prior_sequence = prior_target["sequence"]
+                    if prior_sequence is not None and seq < prior_sequence:
+                        raise _error("revision_sequence_regression", "target-generation revisions cannot regress within that generation", 409)
+                    if prior_sequence == seq and not self._representations_match(
+                            db, gen["generation_id"], source_id, source["revision"], scope_json, validated):
+                        raise _error("revision_conflict", "same target-generation revision sequence has a different canonical payload", 409)
+                    db.execute("UPDATE generations SET status='building' WHERE generation_id=? AND status='eligible'",
+                               (gen["generation_id"],))
+                db.execute("DELETE FROM representations WHERE generation_id=? AND source_id=? AND revision_sequence<?",
+                           (gen["generation_id"], source_id, seq))
+                for rep in validated:
+                    lexical = rep["lexical"] or {}
+                    vector = rep["vector"] or {}
+                    db.execute("""INSERT OR REPLACE INTO representations
+                        (generation_id,source_id,source_revision,revision_sequence,scope_json,chunk_id,
+                         chunker_profile,chunker_version,text,lexical_profile,lexical_version,terms_json,
+                         vector_json,embedding_model,embedding_version,embedding_dimensions,metadata_json)
+                        VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
+                        (gen["generation_id"], source_id, source["revision"], seq, scope_json, rep["chunk_id"],
+                         rep["chunker"]["profile"], rep["chunker"]["version"], rep["text"],
+                         lexical.get("profile"), lexical.get("version"), _canonical(rep["terms"]).decode(),
+                         _canonical(vector.get("values")).decode() if vector else None,
+                         vector.get("model"), vector.get("version"), vector.get("dimensions"),
+                         _canonical(rep["metadata"]).decode()))
+                if not is_active_generation:
                     db.execute("DELETE FROM generation_source_failures WHERE generation_id=? AND source_id=? AND revision_sequence<=?",
-                               (target_id, source_id, seq))
-                    self._journal_change(db, target_id, source_id, seq, request["operation_id"], "upsert", payload_hash)
-            else:
-                self._journal_change(db, gen["generation_id"], source_id, seq, request["operation_id"], "upsert", payload_hash)
-            return 202, response
-
+                               (gen["generation_id"], source_id, seq))
+                if is_active_generation:
+                    db.execute("INSERT INTO sources(source_id,latest_sequence,indexed_sequence,scope_json) VALUES(?,?,?,?) ON CONFLICT(source_id) DO UPDATE SET latest_sequence=MAX(latest_sequence,excluded.latest_sequence), indexed_sequence=MAX(indexed_sequence,excluded.indexed_sequence), scope_json=excluded.scope_json",
+                               (source_id, seq, seq, scope_json))
+                db.execute("INSERT INTO source_high_water(source_id,highest_sequence,scope_json) VALUES(?,?,?) ON CONFLICT(source_id) DO UPDATE SET highest_sequence=MAX(highest_sequence,excluded.highest_sequence)",
+                           (source_id, seq, scope_json))
+                response = {"operation_id": request["operation_id"], "source_id": source_id, "source_revision": source["revision"],
+                            "revision_sequence": seq, "status": "complete", "index_generation": gen["generation_id"],
+                            "request_id": request.get("request_id", "index")}
+                db.execute("INSERT INTO operations(operation_id,idempotency_key,payload_hash,status,response_json,terminal_at) VALUES(?,?,?,?,?,CURRENT_TIMESTAMP)",
+                           (request["operation_id"], idempotency_key, payload_hash, "complete", _canonical(response).decode()))
+                if is_active_generation:
+                    # Active writes and idempotent replays repair/maintain compatible target
+                    # generations before this transaction commits.
+                    db.execute("UPDATE generations SET status='building' WHERE status='eligible' AND profile_digest=?",
+                               (gen["profile_digest"],))
+                    building = db.execute("SELECT generation_id FROM generations WHERE status='building' AND profile_digest=? AND generation_id<>?",
+                                          (gen["profile_digest"], gen["generation_id"])).fetchall()
+                    for target_row in building:
+                        target_id = target_row["generation_id"]
+                        prior_target = db.execute("SELECT MAX(revision_sequence) AS sequence FROM representations WHERE generation_id=? AND source_id=?",
+                                                  (target_id, source_id)).fetchone()["sequence"]
+                        if prior_target == seq and not self._representations_match(
+                                db, target_id, source_id, source["revision"], scope_json, validated):
+                            db.execute("""INSERT INTO generation_source_failures
+                                (generation_id,source_id,revision_sequence,reason_code,profile_json,retryable,details)
+                                VALUES(?,?,?,?,?,?,?) ON CONFLICT(generation_id,source_id,revision_sequence,reason_code)
+                                DO UPDATE SET profile_json=excluded.profile_json,retryable=excluded.retryable,details=excluded.details""",
+                                (target_id, source_id, seq, "incompatible_representation",
+                                 _canonical(request.get("index_profile", {})).decode(), 0,
+                                 "active mutation conflicts with an existing target-generation revision"))
+                            self._journal_change(db, target_id, source_id, seq, request["operation_id"],
+                                                 "upsert", payload_hash)
+                            continue
+                        if prior_target is not None and seq < prior_target:
+                            # The target already has newer evidence. Record the active
+                            # mutation as observed but not applied to this generation.
+                            self._journal_change(db, target_id, source_id, seq, request["operation_id"],
+                                                 "upsert", payload_hash, status="skipped_stale")
+                            continue
+                        if prior_target is None or seq > prior_target:
+                            db.execute("DELETE FROM representations WHERE generation_id=? AND source_id=? AND revision_sequence<?",
+                                       (target_id, source_id, seq))
+                            for rep in validated:
+                                lexical = rep["lexical"] or {}
+                                vector = rep["vector"] or {}
+                                db.execute("""INSERT OR REPLACE INTO representations
+                                    (generation_id,source_id,source_revision,revision_sequence,scope_json,chunk_id,
+                                     chunker_profile,chunker_version,text,lexical_profile,lexical_version,terms_json,
+                                     vector_json,embedding_model,embedding_version,embedding_dimensions,metadata_json)
+                                    VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
+                                    (target_id, source_id, source["revision"], seq, scope_json, rep["chunk_id"],
+                                     rep["chunker"]["profile"], rep["chunker"]["version"], rep["text"],
+                                     lexical.get("profile"), lexical.get("version"), _canonical(rep["terms"]).decode(),
+                                     _canonical(vector.get("values")).decode() if vector else None,
+                                     vector.get("model"), vector.get("version"), vector.get("dimensions"),
+                                     _canonical(rep["metadata"]).decode()))
+                        db.execute("DELETE FROM generation_source_failures WHERE generation_id=? AND source_id=? AND revision_sequence<=?",
+                                   (target_id, source_id, seq))
+                        self._journal_change(db, target_id, source_id, seq, request["operation_id"], "upsert", payload_hash)
+                else:
+                    self._journal_change(db, gen["generation_id"], source_id, seq, request["operation_id"], "upsert", payload_hash)
+                return 202, response
+    
     def delete(self, request: dict[str, Any], idempotency_key: str) -> tuple[int, dict[str, Any]]:
         if not idempotency_key:
             raise _error("invalid_request", "Idempotency-Key header is required")
