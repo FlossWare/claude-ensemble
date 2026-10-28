@@ -267,7 +267,7 @@ class KnowledgeService:
                         json.dumps(payload["index_profile"], sort_keys=True)))
             db.execute("UPDATE knowledge_sources SET current_revision=?,revision_sequence=? WHERE source_key=?",
                        (revision, sequence, source_key))
-            operation_id = self._record_operation(db, source_key, revision, sequence, "accepted", "pending_index", request_id)
+            operation_id = self._record_operation(db, source_key, revision, sequence, "accepted", "pending_index", request_id, payload["index_profile"])
             db.execute("INSERT INTO knowledge_idempotency(idempotency_key,payload_hash,operation_id) VALUES(?,?,?)",
                        (idempotency_key, digest, operation_id))
             row = db.execute("SELECT * FROM knowledge_operations WHERE operation_id=?", (operation_id,)).fetchone()
