@@ -3,6 +3,8 @@ from __future__ import annotations
 
 import json
 import re
+import select
+import socket
 import threading
 import time
 import uuid
@@ -811,44 +813,79 @@ class Handler(BaseHTTPRequestHandler):
 
 
 class BoundedThreadingHTTPServer(ThreadingHTTPServer):
-    """Threaded local server with a hard cap on active handlers.
+    """Bound handlers while reserving capacity for nested in-process REST calls.
 
-    Excess connections receive a correlated 503 instead of creating unbounded
-    request threads. This is a local-runtime guardrail, not deployment admission control.
+    External requests can consume at most 24 of 32 workers. Requests carrying
+    X-CE-Internal-Call: true use the reserved eight-worker pool. This prevents
+    retrieval fan-out from occupying every worker while waiting on sibling REST
+    calls handled by this same server. The marker is capacity classification,
+    not an authentication mechanism.
     """
     max_workers = 32
+    max_internal_workers = 8
+    max_external_workers = max_workers - max_internal_workers
     request_queue_size = 64
     daemon_threads = True
 
     def __init__(self, server_address: Any, RequestHandlerClass: type[BaseHTTPRequestHandler],
                  bind_and_activate: bool = True):
         self._worker_slots = threading.BoundedSemaphore(self.max_workers)
+        self._internal_slots = threading.BoundedSemaphore(self.max_internal_workers)
+        self._external_slots = threading.BoundedSemaphore(self.max_external_workers)
+        self._slot_lock = threading.Lock()
+        self._request_slots: dict[Any, threading.BoundedSemaphore] = {}
         super().__init__(server_address, RequestHandlerClass, bind_and_activate)
 
+    @staticmethod
+    def _is_internal_request(request: Any) -> bool:
+        # The accepted socket is readable before its worker is started in the
+        # normal client path. Peek only; BaseHTTPRequestHandler reads the bytes.
+        try:
+            readable, _, _ = select.select([request], [], [], 0.05)
+            if not readable:
+                return False
+            head = request.recv(8192, socket.MSG_PEEK).split(b"\\r\\n\\r\\n", 1)[0].lower()
+            return b"\\r\\nx-ce-internal-call: true" in head
+        except (OSError, ValueError):
+            return False
+
+    def _reject_capacity(self, request: Any) -> None:
+        request_id = str(uuid.uuid4())
+        body = _error("service_unavailable", "request capacity is temporarily exhausted", retryable=True)
+        body["request_id"] = request_id
+        payload = json.dumps(body, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
+        response = (
+            b"HTTP/1.1 503 Service Unavailable\\r\\n"
+            b"Content-Type: application/json; charset=utf-8\\r\\n"
+            + f"Content-Length: {len(payload)}\\r\\n".encode("ascii")
+            + f"X-CE-Request-ID: {request_id}\\r\\n".encode("ascii")
+            + b"Connection: close\\r\\n\\r\\n"
+            + payload
+        )
+        try:
+            request.sendall(response)
+        except OSError:
+            pass
+        finally:
+            self.shutdown_request(request)
+
     def process_request(self, request: Any, client_address: Any) -> None:
-        if not self._worker_slots.acquire(blocking=False):
-            request_id = str(uuid.uuid4())
-            body = _error("service_unavailable", "request capacity is temporarily exhausted", retryable=True)
-            body["request_id"] = request_id
-            payload = json.dumps(body, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
-            response = (
-                b"HTTP/1.1 503 Service Unavailable\r\n"
-                b"Content-Type: application/json; charset=utf-8\r\n"
-                + f"Content-Length: {len(payload)}\r\n".encode("ascii")
-                + f"X-CE-Request-ID: {request_id}\r\n".encode("ascii")
-                + b"Connection: close\r\n\r\n"
-                + payload
-            )
-            try:
-                request.sendall(response)
-            except OSError:
-                pass
-            finally:
-                self.shutdown_request(request)
+        slot = self._internal_slots if self._is_internal_request(request) else self._external_slots
+        if not slot.acquire(blocking=False):
+            self._reject_capacity(request)
             return
+        if not self._worker_slots.acquire(blocking=False):
+            slot.release()
+            self._reject_capacity(request)
+            return
+        with self._slot_lock:
+            self._request_slots[request] = slot
         try:
             super().process_request(request, client_address)
         except Exception:
+            with self._slot_lock:
+                self._request_slots.pop(request, None)
+            slot.release()
             self._worker_slots.release()
             raise
 
@@ -856,6 +893,10 @@ class BoundedThreadingHTTPServer(ThreadingHTTPServer):
         try:
             super().process_request_thread(request, client_address)
         finally:
+            with self._slot_lock:
+                slot = self._request_slots.pop(request, None)
+            if slot is not None:
+                slot.release()
             self._worker_slots.release()
 
 
