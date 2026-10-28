@@ -20,7 +20,7 @@ from urllib.parse import unquote, parse_qs
 from pathlib import Path
 from typing import Any
 
-from runtime.vector_store import ChromaVectorStore, VectorStoreError, record_id
+from runtime.vector_store import ChromaVectorStore, VectorStoreError, record_id, MAX_QUERY_RESULTS
 
 
 def _canonical(value: Any) -> bytes:
@@ -1004,57 +1004,71 @@ class IndexService:
                 raise _error("incompatible_representation", "query vector profile/dimensions/metric mismatch", 422)
             if self.vector_backend == "chromadb":
                 store = self._vector_store(gen["generation_id"], bundle)
-                try:
-                    raw_candidates = store.query(
-                        vector, scope=json.loads(scope_json), limit=100, metric=metric,
-                        source_ids=request.get("source_ids"),
-                        source_revisions=request.get("source_revisions"),
-                    )
-                except VectorStoreError as exc:
-                    raise _error("vector_store_unavailable", str(exc), 503) from exc
+                fetch_limit = 100
+                raw_candidates = []
                 candidates = []
                 discarded_candidates = False
-                for candidate in raw_candidates:
-                    row = db.execute(
-                        """SELECT * FROM representations
-                           WHERE generation_id=? AND source_id=? AND source_revision=?
-                             AND revision_sequence=? AND chunk_id=? AND scope_json=?
-                             AND vector_json IS NOT NULL AND embedding_model=?
-                             AND embedding_version=? AND embedding_dimensions=?""",
-                        (gen["generation_id"], candidate["source_id"], candidate["source_revision"],
-                         candidate["revision_sequence"], candidate["chunk_id"], scope_json,
-                         emb["model"], emb["model_version"], emb["dimensions"]),
-                    ).fetchone()
-                    if row is None:
-                        discarded_candidates = True
-                        continue
-                    tomb = db.execute(
-                        "SELECT tombstone_sequence FROM tombstones WHERE source_id=?",
-                        (row["source_id"],),
-                    ).fetchone()
-                    if tomb and row["revision_sequence"] <= tomb["tombstone_sequence"]:
-                        discarded_candidates = True
-                        continue
-                    item = {
-                        "source_id": row["source_id"], "source_revision": row["source_revision"],
-                        "revision_sequence": row["revision_sequence"], "chunk_id": row["chunk_id"],
-                        "chunker": {"profile": row["chunker_profile"], "version": row["chunker_version"]},
-                        "text": row["text"],
-                        "embedding": {"model": row["embedding_model"], "version": row["embedding_version"],
-                                      "dimensions": row["embedding_dimensions"], "metric": metric,
-                                      "input_type": "document"},
-                    }
-                    item["distance" if metric == "euclidean" else "similarity"] = (
-                        candidate["distance"] if metric == "euclidean" else candidate["similarity"]
-                    )
-                    candidates.append(item)
-                candidates.sort(key=lambda item: (
-                    item["distance"] if metric == "euclidean" else -item["similarity"],
-                    item["source_id"], -item["revision_sequence"], item["chunk_id"],
-                    item["chunker"]["profile"], item["chunker"]["version"],
-                ))
-                truncated = (len(candidates) > limit or len(raw_candidates) == 100
-                             or discarded_candidates)
+                while True:
+                    try:
+                        raw_candidates = store.query(
+                            vector, scope=json.loads(scope_json), limit=fetch_limit, metric=metric,
+                            source_ids=request.get("source_ids"),
+                            source_revisions=request.get("source_revisions"),
+                        )
+                    except VectorStoreError as exc:
+                        raise _error("vector_store_unavailable", str(exc), 503) from exc
+                    candidates = []
+                    for candidate in raw_candidates:
+                        row = db.execute(
+                            """SELECT * FROM representations
+                               WHERE generation_id=? AND source_id=? AND source_revision=?
+                                 AND revision_sequence=? AND chunk_id=? AND scope_json=?
+                                 AND vector_json IS NOT NULL AND embedding_model=?
+                                 AND embedding_version=? AND embedding_dimensions=?""",
+                            (gen["generation_id"], candidate["source_id"], candidate["source_revision"],
+                             candidate["revision_sequence"], candidate["chunk_id"], scope_json,
+                             emb["model"], emb["model_version"], emb["dimensions"]),
+                        ).fetchone()
+                        if row is None:
+                            discarded_candidates = True
+                            continue
+                        tomb = db.execute(
+                            "SELECT tombstone_sequence FROM tombstones WHERE source_id=?",
+                            (row["source_id"],),
+                        ).fetchone()
+                        if tomb and row["revision_sequence"] <= tomb["tombstone_sequence"]:
+                            discarded_candidates = True
+                            continue
+                        item = {
+                            "source_id": row["source_id"], "source_revision": row["source_revision"],
+                            "revision_sequence": row["revision_sequence"], "chunk_id": row["chunk_id"],
+                            "chunker": {"profile": row["chunker_profile"], "version": row["chunker_version"]},
+                            "text": row["text"],
+                            "embedding": {"model": row["embedding_model"], "version": row["embedding_version"],
+                                          "dimensions": row["embedding_dimensions"], "metric": metric,
+                                          "input_type": "document"},
+                        }
+                        item["distance" if metric == "euclidean" else "similarity"] = (
+                            candidate["distance"] if metric == "euclidean" else candidate["similarity"]
+                        )
+                        candidates.append(item)
+                    candidates.sort(key=lambda item: (
+                        item["distance"] if metric == "euclidean" else -item["similarity"],
+                        item["source_id"], -item["revision_sequence"], item["chunk_id"],
+                        item["chunker"]["profile"], item["chunker"]["version"],
+                    ))
+                    # Chroma has no offset pagination here, so increase the top-N
+                    # window until we have enough SQLite-authorized hits, exhaust
+                    # the collection, or hit the explicit bounded scan ceiling.
+                    if (len(candidates) >= limit or len(raw_candidates) < fetch_limit
+                            or fetch_limit >= MAX_QUERY_RESULTS):
+                        break
+                    fetch_limit = min(fetch_limit * 2, MAX_QUERY_RESULTS)
+                truncated = (
+                    len(candidates) > limit
+                    or len(raw_candidates) == fetch_limit
+                    or discarded_candidates
+                )
                 candidates = candidates[:limit]
                 for rank, candidate in enumerate(candidates, 1):
                     candidate["retrieval_rank"] = rank
