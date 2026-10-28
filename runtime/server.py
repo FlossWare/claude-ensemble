@@ -661,7 +661,7 @@ class Handler(BaseHTTPRequestHandler):
                         ingestion_request = {**request, "scope": scope}
                         _MEMORY_INGEST_EXECUTOR.submit(self._memory_ingest, service, response, ingestion_request, context)
                 if response.get("source_id", "").startswith("memory:") and response.get("graph_status") != "indexed":
-                    threading.Thread(target=self._memory_graph_project, args=(service,), daemon=True).start()
+                    _MEMORY_GRAPH_EXECUTOR.submit(self._memory_graph_project, service)
                 response["request_id"] = request_id
                 self._send(status, response, request_id)
                 return
