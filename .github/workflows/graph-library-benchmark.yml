@@ -1,0 +1,44 @@
+name: Graph library simulated-load comparison
+
+on:
+  pull_request:
+    paths:
+      - "scripts/benchmark_graph_libraries.py"
+      - "docs/GRAPH-LIBRARY-EVALUATION.md"
+      - ".github/workflows/graph-library-benchmark.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  compare:
+    name: Compare NetworkX, rustworkx, and igraph
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install all candidates
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install 'networkx==3.5' 'rustworkx>=0.17,<1' 'igraph>=0.11,<1'
+
+      - name: Run deterministic simulated load
+        run: |
+          python scripts/benchmark_graph_libraries.py | tee graph-library-benchmark.json
+
+      - name: Upload benchmark results
+        uses: actions/upload-artifact@v4
+        with:
+          name: graph-library-benchmark
+          path: graph-library-benchmark.json
+          if-no-files-found: error
+          retention-days: 30
