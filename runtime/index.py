@@ -20,6 +20,8 @@ from urllib.parse import unquote, parse_qs
 from pathlib import Path
 from typing import Any
 
+from runtime.vector_store import ChromaVectorStore, VectorStoreError
+
 
 def _canonical(value: Any) -> bytes:
     return json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":"), allow_nan=False).encode("utf-8")
@@ -53,6 +55,11 @@ class IndexService:
     def __init__(self, db_path: str | os.PathLike[str], profile_bundle: dict[str, Any] | None = None):
         self.db_path = str(Path(db_path).expanduser())
         self._lock = threading.RLock()
+        self.vector_backend = os.environ.get("CE_INDEX_VECTOR_BACKEND", "chromadb").strip().lower()
+        if self.vector_backend not in {"chromadb", "sqlite"}:
+            raise ValueError("CE_INDEX_VECTOR_BACKEND must be chromadb or sqlite")
+        self.chroma_path = str(Path(os.environ.get("CE_INDEX_CHROMA_PATH", self.db_path + ".chroma")).expanduser())
+        self._vector_stores = {}
         Path(self.db_path).parent.mkdir(parents=True, exist_ok=True)
         self._initialize()
         if profile_bundle is not None:
@@ -72,6 +79,49 @@ class IndexService:
             raise
         finally:
             conn.close()
+
+    def _vector_store(self, generation_id: str, bundle: dict[str, Any]):
+        if self.vector_backend == "sqlite":
+            return None
+        digest = profile_digest(bundle)
+        metric = bundle["embedding"]["metric"]
+        key = (generation_id, digest, metric)
+        if key not in self._vector_stores:
+            try:
+                self._vector_stores[key] = ChromaVectorStore(
+                    self.chroma_path, profile_digest=digest,
+                    generation_id=generation_id, metric=metric,
+                )
+            except VectorStoreError as exc:
+                raise _error("vector_store_unavailable", str(exc), 503) from exc
+        return self._vector_stores[key]
+
+    def _sync_chroma_source(self, db: sqlite3.Connection, generation_id: str,
+                            source_id: str, bundle: dict[str, Any]) -> None:
+        store = self._vector_store(generation_id, bundle)
+        if store is None:
+            return
+        try:
+            store.delete_source(source_id)
+            rows = db.execute(
+                "SELECT * FROM representations WHERE generation_id=? AND source_id=? AND vector_json IS NOT NULL ORDER BY revision_sequence,chunk_id",
+                (generation_id, source_id),
+            ).fetchall()
+            records = []
+            for row in rows:
+                records.append({
+                    "generation_id": generation_id, "profile_digest": profile_digest(bundle),
+                    "source_id": row["source_id"], "source_revision": row["source_revision"],
+                    "revision_sequence": row["revision_sequence"], "chunk_id": row["chunk_id"],
+                    "chunker_profile": row["chunker_profile"], "chunker_version": row["chunker_version"],
+                    "embedding_model": row["embedding_model"], "embedding_version": row["embedding_version"],
+                    "embedding_dimensions": row["embedding_dimensions"],
+                    "scope": json.loads(row["scope_json"]), "text": row["text"],
+                    "embedding": json.loads(row["vector_json"]),
+                })
+            store.upsert(records)
+        except VectorStoreError as exc:
+            raise _error("vector_store_unavailable", str(exc), 503) from exc
 
     def _initialize(self) -> None:
         with self._connect() as db:
@@ -617,6 +667,15 @@ class IndexService:
                         self._journal_change(db, target_id, source_id, seq, request["operation_id"], "upsert", payload_hash)
                 else:
                     self._journal_change(db, gen["generation_id"], source_id, seq, request["operation_id"], "upsert", payload_hash)
+                if self.vector_backend == "chromadb":
+                    generation_rows = db.execute(
+                        "SELECT generation_id FROM generations WHERE profile_digest=?",
+                        (profile_digest(bundle),),
+                    ).fetchall()
+                    for generation_row in generation_rows:
+                        self._sync_chroma_source(
+                            db, generation_row["generation_id"], source_id, bundle
+                        )
                 return 202, response
     
     def delete(self, request: dict[str, Any], idempotency_key: str) -> tuple[int, dict[str, Any]]:
@@ -682,6 +741,20 @@ class IndexService:
             for target_row in building:
                 self._journal_change(db, target_row["generation_id"], source_id, seq,
                                      request["operation_id"], "delete", payload_hash)
+            if self.vector_backend == "chromadb":
+                generation_rows = db.execute(
+                    "SELECT generation_id,profile_name,profile_version FROM generations"
+                ).fetchall()
+                for generation_row in generation_rows:
+                    profile_row = db.execute(
+                        "SELECT bundle_json FROM profiles WHERE name=? AND version=?",
+                        (generation_row["profile_name"], generation_row["profile_version"]),
+                    ).fetchone()
+                    if profile_row:
+                        self._sync_chroma_source(
+                            db, generation_row["generation_id"], source_id,
+                            json.loads(profile_row["bundle_json"]),
+                        )
             return 202, response
 
     def profile_version(self, name: str, version: str) -> dict[str, Any]:
@@ -826,6 +899,53 @@ class IndexService:
             if (not isinstance(ep, dict) or ep.get("name") != emb["profile"] or ep.get("version") != emb["version"]
                     or len(vector) != emb["dimensions"] or metric != emb["metric"]):
                 raise _error("incompatible_representation", "query vector profile/dimensions/metric mismatch", 422)
+            if self.vector_backend == "chromadb":
+                store = self._vector_store(gen["generation_id"], bundle)
+                try:
+                    raw_candidates = store.query(
+                        vector, scope=json.loads(scope_json), limit=100, metric=metric,
+                        source_ids=request.get("source_ids"),
+                        source_revisions=request.get("source_revisions"),
+                    )
+                except VectorStoreError as exc:
+                    raise _error("vector_store_unavailable", str(exc), 503) from exc
+                candidates = []
+                for candidate in raw_candidates:
+                    row = db.execute(
+                        """SELECT * FROM representations
+                           WHERE generation_id=? AND source_id=? AND source_revision=?
+                             AND revision_sequence=? AND chunk_id=? AND scope_json=?
+                             AND vector_json IS NOT NULL AND embedding_model=?
+                             AND embedding_version=? AND embedding_dimensions=?""",
+                        (gen["generation_id"], candidate["source_id"], candidate["source_revision"],
+                         candidate["revision_sequence"], candidate["chunk_id"], scope_json,
+                         emb["model"], emb["model_version"], emb["dimensions"]),
+                    ).fetchone()
+                    if row is None:
+                        continue
+                    tomb = db.execute(
+                        "SELECT tombstone_sequence FROM tombstones WHERE source_id=?",
+                        (row["source_id"],),
+                    ).fetchone()
+                    if tomb and row["revision_sequence"] <= tomb["tombstone_sequence"]:
+                        continue
+                    item = {
+                        "source_id": row["source_id"], "source_revision": row["source_revision"],
+                        "revision_sequence": row["revision_sequence"], "chunk_id": row["chunk_id"],
+                        "chunker": {"profile": row["chunker_profile"], "version": row["chunker_version"]},
+                        "text": row["text"], "retrieval_rank": len(candidates) + 1,
+                        "embedding": {"model": row["embedding_model"], "version": row["embedding_version"],
+                                      "dimensions": row["embedding_dimensions"], "metric": metric,
+                                      "input_type": "document"},
+                    }
+                    item["distance" if metric == "euclidean" else "similarity"] = (
+                        candidate["distance"] if metric == "euclidean" else candidate["similarity"]
+                    )
+                    candidates.append(item)
+                    if len(candidates) >= limit:
+                        break
+                return {"candidates": candidates, "truncated": len(raw_candidates) > len(candidates),
+                        "index_generation": gen["generation_id"], "request_id": request.get("request_id", "index")}
             rows = db.execute("SELECT * FROM representations WHERE generation_id=? AND scope_json=? AND vector_json IS NOT NULL AND embedding_model=? AND embedding_version=? AND embedding_dimensions=?",
                               (gen["generation_id"], scope_json, emb["model"], emb["model_version"], emb["dimensions"])).fetchall()
             scored = []
