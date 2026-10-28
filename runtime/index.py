@@ -15,8 +15,6 @@ import uuid
 from pathlib import Path
 from typing import Any
 
-from .chunking import ChunkingError
-
 
 def _canonical(value: Any) -> bytes:
     return json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":"), allow_nan=False).encode("utf-8")
@@ -244,8 +242,8 @@ class IndexService:
             if tomb and seq <= tomb["tombstone_sequence"]:
                 raise _error("revision_sequence_regression", "upsert is at or below the durable tombstone sequence", 409)
             old = db.execute("SELECT latest_sequence FROM sources WHERE source_id=?", (source_id,)).fetchone()
-            if old and seq < old["latest_sequence"]:
-                raise _error("revision_sequence_regression", "older source revisions cannot overwrite newer revisions", 409)
+            if old and seq <= old["latest_sequence"]:
+                raise _error("revision_sequence_regression", "a source revision sequence must strictly increase for a new operation", 409)
             validated = [self._check_representation(rep, bundle) for rep in reps]
             db.execute("DELETE FROM representations WHERE generation_id=? AND source_id=? AND revision_sequence<?",
                        (gen["generation_id"], source_id, seq))
@@ -359,11 +357,9 @@ class IndexService:
                 raise _error("unsupported_profile", "lexical profile does not match pinned bundle", 422)
             rows = db.execute("SELECT * FROM representations WHERE generation_id=? AND scope_json=? AND lexical_profile=? AND lexical_version=?",
                               (gen["generation_id"], scope_json, lexical["profile"], lexical["version"])).fetchall()
+            rows = [row for row in rows if not (lambda tomb: tomb and row["revision_sequence"] <= tomb["tombstone_sequence"])(db.execute("SELECT tombstone_sequence FROM tombstones WHERE source_id=?", (row["source_id"],)).fetchone())]
             eligible = []
             for row in rows:
-                tomb = db.execute("SELECT tombstone_sequence FROM tombstones WHERE source_id=?", (row["source_id"],)).fetchone()
-                if tomb and row["revision_sequence"] <= tomb["tombstone_sequence"]:
-                    continue
                 if request.get("source_ids") and row["source_id"] not in request["source_ids"]:
                     continue
                 if request.get("source_revisions") and row["source_revision"] not in request["source_revisions"]:
