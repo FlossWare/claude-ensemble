@@ -187,7 +187,7 @@ class RetrievalAlgorithmTests(unittest.TestCase):
         self.assertEqual(result["candidates"][0]["source_revision"], "rev-2")
         self.assertEqual(result["reranking_profile"], {"name": "default-reranker", "version": "0.1"})
 
-    def _vector_service_for_rerank_contract_test(self, rerank):
+    def _vector_service_for_rerank_contract_test(self, rerank, candidate_count=2):
         def resolve(req):
             return {"profile_bundle": {
                 "name": "default", "version": "0.1", "digest": "a" * 64,
@@ -199,18 +199,21 @@ class RetrievalAlgorithmTests(unittest.TestCase):
                     "model": {"model_id": "local-nomic", "model_version": "r1", "dimensions": 3},
                     "results": [{"input_id": "q1", "status": "complete", "vector": [1.0, 0.0, 0.0]}]}
         def neighbors(req):
-            first = dict(CANDIDATE, distance=0.9, retrieval_rank=1)
-            second = dict(CANDIDATE, source_id="knowledge:doc-b", source_revision="rev-2", revision_sequence=2,
-                          chunk_id="chunk-b", distance=0.8, retrieval_rank=2)
-            return {"index_generation": "g1", "truncated": False, "candidates": [first, second]}
+            candidates = [
+                dict(CANDIDATE, source_id=f"knowledge:doc-{index}", source_revision=f"rev-{index}",
+                     revision_sequence=index, chunk_id=f"chunk-{index}", distance=1.0 - index / 100,
+                     retrieval_rank=index)
+                for index in range(1, candidate_count + 1)
+            ]
+            return {"index_generation": "g1", "truncated": False, "candidates": candidates}
         return VectorRetrievalService(embed, neighbors, resolve, rerank)
 
-    def _run_vector_rerank_contract_test(self, rerank):
-        service = self._vector_service_for_rerank_contract_test(rerank)
+    def _run_vector_rerank_contract_test(self, rerank, *, candidate_count=2, limit=5):
+        service = self._vector_service_for_rerank_contract_test(rerank, candidate_count)
         return service.search({
             "request_id": "r1", "query_id": "q1", "scope": SCOPE, "index_profile": PROFILE,
             "embedding_profile": {"name": "technical-default", "version": "0.1"},
-            "index_generation": "g1", "limit": 5, "query": {"text": "ranking algorithm"},
+            "index_generation": "g1", "limit": limit, "query": {"text": "ranking algorithm"},
         })
 
     def _valid_rerank_response(self, req):
@@ -219,6 +222,13 @@ class RetrievalAlgorithmTests(unittest.TestCase):
             {**item, "score": 0.75, "score_semantics": "cross-encoder-profile-score-v1", "rerank": rank}
             for rank, item in enumerate(ranked, 1)
         ]}
+
+    def test_vector_reranking_marks_truncation_when_top_twenty_cap_drops_candidates(self):
+        result = self._run_vector_rerank_contract_test(
+            self._valid_rerank_response, candidate_count=21, limit=25
+        )
+        self.assertEqual(len(result["candidates"]), 20)
+        self.assertTrue(result["truncated"])
 
     def test_vector_reranking_rejects_missing_candidate(self):
         def rerank(req):
