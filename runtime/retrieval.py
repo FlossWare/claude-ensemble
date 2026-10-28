@@ -331,6 +331,9 @@ class VectorRetrievalService:
         }
         rerank_query = query.get("text", request.get("rerank_query"))
         shortlist = candidates[:min(limit, 20)]
+        if limit > 20 and len(candidates) > len(shortlist):
+            # The reranker only scores the top 20; make any resulting loss visible.
+            response["truncated"] = True
         if shortlist:
             if self._rerank_call is None:
                 raise RetrievalError("dependency_unavailable", "reranking endpoint is required for vector retrieval", 503)
