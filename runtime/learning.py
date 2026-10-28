@@ -136,6 +136,7 @@ class LearningService:
             raise LearningError("invalid_request", "Idempotency-Key is required")
         payload = self._validate(request)
         digest = self._hash(payload)
+        existing_operation = None
         with self._lock, self._connect() as db:
             db.execute("BEGIN IMMEDIATE")
             existing = db.execute(
@@ -147,28 +148,28 @@ class LearningService:
                     raise LearningError("idempotency_conflict", "event ID or Idempotency-Key was reused with a different payload", 409)
                 response = self._response(existing, request_id)
                 if existing["status"] in {"pending", "reconciliation_required"}:
-                    self._apply_thompson(existing["operation_id"], payload, request_id)
-                    refreshed = db.execute("SELECT * FROM learning_events WHERE event_id=?", (payload["event_id"],)).fetchone()
-                    response = self._response(refreshed, request_id)
-                return 202, response
-            operation_id = "learning:op:" + secrets.token_hex(16)
-            initial = {
-                "event_id": payload["event_id"], "operation_id": operation_id, "status": "pending",
-                "request_id": request_id,
-            }
-            db.execute("""INSERT INTO learning_events(
-                event_id,operation_id,idempotency_key,payload_hash,scope_id,selection_id,context_id,arm_id,
-                result,evidence_json,occurred_at,policy_version,status,response_json)
-                VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
-                (payload["event_id"], operation_id, idempotency_key, digest, payload["context_id"],
-                 payload["selection_id"], payload["context_id"], payload["arm_id"], payload["outcome"]["result"],
-                 json.dumps(payload["evidence"], separators=(",", ":")), payload["occurred_at"],
-                 payload["policy_version"], "pending", json.dumps(initial, separators=(",", ":"))))
-            row = db.execute("SELECT * FROM learning_events WHERE event_id=?", (payload["event_id"],)).fetchone()
-        self._apply_thompson(operation_id, payload, request_id)
-        with self._connect() as db:
-            row = db.execute("SELECT * FROM learning_events WHERE event_id=?", (payload["event_id"],)).fetchone()
+                    existing_operation = existing["operation_id"]
+            else:
+                operation_id = "learning:op:" + secrets.token_hex(16)
+                initial = {
+                    "event_id": payload["event_id"], "operation_id": operation_id, "status": "pending",
+                    "request_id": request_id,
+                }
+                db.execute("""INSERT INTO learning_events(
+                    event_id,operation_id,idempotency_key,payload_hash,scope_id,selection_id,context_id,arm_id,
+                    result,evidence_json,occurred_at,policy_version,status,response_json)
+                    VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
+                    (payload["event_id"], operation_id, idempotency_key, digest, payload["context_id"],
+                     payload["selection_id"], payload["context_id"], payload["arm_id"], payload["outcome"]["result"],
+                     json.dumps(payload["evidence"], separators=(",", ":")), payload["occurred_at"],
+                     payload["policy_version"], "pending", json.dumps(initial, separators=(",", ":"))))
+                existing_operation = operation_id
+        if existing_operation is not None:
+            self._apply_thompson(existing_operation, payload, request_id)
+            with self._connect() as db:
+                row = db.execute("SELECT * FROM learning_events WHERE operation_id=?", (existing_operation,)).fetchone()
             return 202, self._response(row, request_id)
+        return 202, response
 
     def _apply_thompson(self, operation_id: str, payload: dict[str, Any], request_id: str) -> None:
         reward = 1 if payload["outcome"]["result"] == "success" else 0
