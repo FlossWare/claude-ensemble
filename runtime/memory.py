@@ -1,0 +1,245 @@
+"""Durable canonical Memory owner state for the first CE ingestion slice.
+
+This module owns canonical records, immutable revisions, operation status, and
+idempotency bindings. It deliberately does not import or access other services.
+Service-to-service ingestion orchestration is performed by the REST dispatcher.
+"""
+from __future__ import annotations
+
+import hashlib
+import json
+import re
+import sqlite3
+import threading
+import uuid
+from contextlib import contextmanager
+from pathlib import Path
+from typing import Any
+
+MEMORY_ID = re.compile(r"^[A-Za-z0-9._~-]{1,128}$")
+MAX_CONTENT_BYTES = 262_144
+MAX_SEQUENCE = 9_007_199_254_740_991
+
+
+class MemoryError(ValueError):
+    def __init__(self, code: str, message: str, status: int = 400):
+        super().__init__(message)
+        self.code = code
+        self.status = status
+
+
+def _canonical(value: Any) -> bytes:
+    return json.dumps(value, ensure_ascii=False, sort_keys=True,
+                      separators=(",", ":"), allow_nan=False).encode("utf-8")
+
+
+def _payload_hash(value: dict[str, Any]) -> str:
+    return hashlib.sha256(_canonical(value)).hexdigest()
+
+
+def _validate_text(value: Any, field: str) -> str:
+    if not isinstance(value, str) or not value:
+        raise MemoryError("invalid_request", f"{field} must be a non-empty string", 400)
+    try:
+        encoded = value.encode("utf-8")
+    except UnicodeEncodeError as exc:
+        raise MemoryError("invalid_request", f"{field} contains invalid Unicode", 400) from exc
+    if len(encoded) > MAX_CONTENT_BYTES:
+        raise MemoryError("source_too_large", f"{field} exceeds the UTF-8 byte limit", 413)
+    return value
+
+
+def _validate_scope(value: Any) -> dict[str, str]:
+    if not isinstance(value, dict) or set(value) != {"type", "id", "visibility"}:
+        raise MemoryError("invalid_request", "scope must contain type, id, and visibility", 400)
+    if value["type"] not in {"user", "project", "shared", "global"}:
+        raise MemoryError("invalid_request", "scope.type is invalid", 400)
+    if not isinstance(value["id"], str) or not 1 <= len(value["id"]) <= 256:
+        raise MemoryError("invalid_request", "scope.id is invalid", 400)
+    if value["visibility"] not in {"private", "shared", "global"}:
+        raise MemoryError("invalid_request", "scope.visibility is invalid", 400)
+    return dict(value)
+
+
+def _validate_profile(value: Any) -> dict[str, str]:
+    if not isinstance(value, dict) or set(value) != {"name", "version", "digest"}:
+        raise MemoryError("invalid_request", "index_profile must contain name, version, and digest", 400)
+    if not isinstance(value["name"], str) or not 1 <= len(value["name"]) <= 128:
+        raise MemoryError("invalid_request", "index_profile.name is invalid", 400)
+    if not isinstance(value["version"], str) or not 1 <= len(value["version"]) <= 64:
+        raise MemoryError("invalid_request", "index_profile.version is invalid", 400)
+    digest = value["digest"]
+    if not isinstance(digest, str) or not re.fullmatch(r"[0-9a-fA-F]{64}", digest):
+        raise MemoryError("invalid_request", "index_profile.digest is invalid", 400)
+    return {"name": value["name"], "version": value["version"], "digest": digest}
+
+
+class MemoryService:
+    """SQLite-backed canonical owner with durable sequence/tombstone state."""
+
+    def __init__(self, db_path: str | Path):
+        self.db_path = str(Path(db_path).expanduser())
+        self._lock = threading.RLock()
+        Path(self.db_path).parent.mkdir(parents=True, exist_ok=True)
+        self._initialize()
+
+    @contextmanager
+    def _connect(self):
+        db = sqlite3.connect(self.db_path, timeout=5.0)
+        db.row_factory = sqlite3.Row
+        db.execute("PRAGMA busy_timeout=5000")
+        db.execute("PRAGMA foreign_keys=ON")
+        try:
+            yield db
+            db.commit()
+        except Exception:
+            db.rollback()
+            raise
+        finally:
+            db.close()
+
+    def _initialize(self) -> None:
+        with self._connect() as db:
+            db.executescript("""
+                CREATE TABLE IF NOT EXISTS memories(
+                    memory_id TEXT PRIMARY KEY,
+                    scope_json TEXT NOT NULL,
+                    memory_type TEXT NOT NULL,
+                    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                    updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                    current_sequence INTEGER NOT NULL,
+                    current_revision TEXT NOT NULL,
+                    tombstone_sequence INTEGER,
+                    index_profile_json TEXT NOT NULL
+                );
+                CREATE TABLE IF NOT EXISTS revisions(
+                    memory_id TEXT NOT NULL,
+                    revision_sequence INTEGER NOT NULL,
+                    revision_id TEXT NOT NULL,
+                    content TEXT NOT NULL,
+                    provenance_json TEXT NOT NULL,
+                    retention_json TEXT NOT NULL,
+                    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                    PRIMARY KEY(memory_id, revision_sequence),
+                    UNIQUE(memory_id, revision_id)
+                );
+                CREATE TABLE IF NOT EXISTS memory_operations(
+                    operation_id TEXT PRIMARY KEY,
+                    memory_id TEXT NOT NULL,
+                    operation_kind TEXT NOT NULL,
+                    status TEXT NOT NULL,
+                    indexing_status TEXT NOT NULL,
+                    revision_sequence INTEGER NOT NULL,
+                    response_json TEXT NOT NULL,
+                    updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+                );
+                CREATE TABLE IF NOT EXISTS memory_idempotency(
+                    idempotency_key TEXT PRIMARY KEY,
+                    payload_hash TEXT NOT NULL,
+                    operation_id TEXT NOT NULL,
+                    response_json TEXT NOT NULL,
+                    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+                );
+                CREATE TABLE IF NOT EXISTS memory_sequence(
+                    singleton INTEGER PRIMARY KEY CHECK(singleton=1),
+                    next_sequence INTEGER NOT NULL
+                );
+                INSERT OR IGNORE INTO memory_sequence(singleton,next_sequence) VALUES(1,1);
+            """)
+
+    def _allocate_sequence(self, db: sqlite3.Connection) -> int:
+        row = db.execute("SELECT next_sequence FROM memory_sequence WHERE singleton=1").fetchone()
+        sequence = int(row["next_sequence"])
+        if sequence > MAX_SEQUENCE:
+            raise MemoryError("sequence_exhausted", "Memory revision sequence space is exhausted", 503)
+        db.execute("UPDATE memory_sequence SET next_sequence=? WHERE singleton=1", (sequence + 1,))
+        return sequence
+
+    def create(self, request: dict[str, Any], idempotency_key: str, request_id: str) -> tuple[int, dict[str, Any]]:
+        required = {"scope", "type", "content", "provenance", "retention_policy", "index_profile"}
+        if set(request) - (required | {"request_id"}) or not required.issubset(request):
+            raise MemoryError("invalid_request", "create request has missing or unknown fields", 400)
+        if not isinstance(idempotency_key, str) or not 1 <= len(idempotency_key) <= 256:
+            raise MemoryError("invalid_request", "Idempotency-Key is required and must be 1 to 256 characters", 400)
+        scope = _validate_scope(request["scope"])
+        memory_type = request["type"]
+        if memory_type not in {"episodic", "semantic", "decision", "fact", "preference", "task"}:
+            raise MemoryError("invalid_request", "type is invalid", 400)
+        content = _validate_text(request["content"], "content")
+        if not isinstance(request["provenance"], dict):
+            raise MemoryError("invalid_request", "provenance must be an object", 400)
+        retention = request["retention_policy"]
+        if not isinstance(retention, dict) or set(retention) - {"kind", "expires_at"} or retention.get("kind") not in {"standard", "ephemeral", "retained"}:
+            raise MemoryError("invalid_request", "retention_policy is invalid", 400)
+        profile = _validate_profile(request["index_profile"])
+        semantic_request = {k: v for k, v in request.items() if k != "request_id"}
+        payload_hash = _payload_hash(semantic_request)
+        with self._lock, self._connect() as db:
+            prior = db.execute("SELECT payload_hash,response_json FROM memory_idempotency WHERE idempotency_key=?", (idempotency_key,)).fetchone()
+            if prior:
+                if prior["payload_hash"] != payload_hash:
+                    raise MemoryError("idempotency_conflict", "Idempotency-Key was already used with a different payload", 409)
+                response = json.loads(prior["response_json"])
+                response["request_id"] = request_id
+                return 202, response
+            memory_id = uuid.uuid4().hex
+            revision = uuid.uuid4().hex
+            operation_id = "memory:op:" + uuid.uuid4().hex
+            sequence = self._allocate_sequence(db)
+            response = {
+                "operation_id": operation_id, "memory_id": memory_id,
+                "revision": revision, "revision_sequence": sequence,
+                "status": "accepted", "indexing_status": "pending_index",
+                "source_id": "memory:" + memory_id, "index_profile": profile,
+                "request_id": request_id,
+            }
+            db.execute("""INSERT INTO memories(memory_id,scope_json,memory_type,current_sequence,current_revision,index_profile_json)
+                          VALUES(?,?,?,?,?,?)""",
+                       (memory_id, _canonical(scope).decode(), memory_type, sequence, revision, _canonical(profile).decode()))
+            db.execute("""INSERT INTO revisions(memory_id,revision_sequence,revision_id,content,provenance_json,retention_json)
+                          VALUES(?,?,?,?,?,?)""",
+                       (memory_id, sequence, revision, content, _canonical(request["provenance"]).decode(), _canonical(retention).decode()))
+            db.execute("""INSERT INTO memory_operations(operation_id,memory_id,operation_kind,status,indexing_status,revision_sequence,response_json)
+                          VALUES(?,?,?,?,?,?,?)""",
+                       (operation_id, memory_id, "create", "accepted", "pending_index", sequence, _canonical(response).decode()))
+            db.execute("INSERT INTO memory_idempotency(idempotency_key,payload_hash,operation_id,response_json) VALUES(?,?,?,?)",
+                       (idempotency_key, payload_hash, operation_id, _canonical(response).decode()))
+            return 202, response
+
+    def read(self, memory_id: str, scope: dict[str, Any]) -> dict[str, Any]:
+        if not MEMORY_ID.fullmatch(memory_id or ""):
+            raise MemoryError("invalid_parameter", "memory_id is invalid", 400)
+        scope = _validate_scope(scope)
+        with self._connect() as db:
+            row = db.execute("SELECT * FROM memories WHERE memory_id=?", (memory_id,)).fetchone()
+            if row is None:
+                raise MemoryError("not_found", "memory was not found", 404)
+            if row["tombstone_sequence"] is not None:
+                raise MemoryError("not_found", "memory was deleted", 404)
+            if json.loads(row["scope_json"]) != scope:
+                raise MemoryError("not_found", "memory was not found in this scope", 404)
+            rev = db.execute("SELECT * FROM revisions WHERE memory_id=? AND revision_sequence=?",
+                             (memory_id, row["current_sequence"])).fetchone()
+            return {
+                "memory_id": memory_id, "source_id": "memory:" + memory_id,
+                "scope": scope, "type": row["memory_type"],
+                "revision": row["current_revision"], "revision_sequence": row["current_sequence"],
+                "content": rev["content"], "provenance": json.loads(rev["provenance_json"]),
+                "retention_policy": json.loads(rev["retention_json"]),
+                "index_profile": json.loads(row["index_profile_json"]),
+            }
+
+    def operation(self, operation_id: str, memory_id: str | None = None) -> dict[str, Any]:
+        with self._connect() as db:
+            if memory_id is None:
+                row = db.execute("SELECT response_json FROM memory_operations WHERE operation_id=?", (operation_id,)).fetchone()
+            else:
+                row = db.execute("SELECT response_json FROM memory_operations WHERE operation_id=? AND memory_id=?", (operation_id, memory_id)).fetchone()
+            if row is None:
+                raise MemoryError("not_found", "operation was not found", 404)
+            return json.loads(row["response_json"])
+
+    def list_records_for_tests(self) -> int:
+        """Small diagnostic used by tests; not exposed through REST."""
+        with self._connect() as db:
+            return int(db.execute("SELECT COUNT(*) AS n FROM memories").fetchone()["n"])
