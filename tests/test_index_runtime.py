@@ -294,12 +294,13 @@ class IndexRuntimeTests(unittest.TestCase):
         self.assertEqual(status, 202)
         target = generation["generation_id"]
         self.service.upsert(self.upsert_request(), "idem-dual")
-        result = self.service.lexical_lookup({
-            "request_id": "lookup-target", "scope": SCOPE, "index_profile": self.identity,
-            "lexical_profile": {"name": "bm25-v1", "version": "0.1"},
-            "terms": ["ranking"], "limit": 10, "index_generation": target,
-        })
-        self.assertEqual([item["source_id"] for item in result["candidates"]], ["knowledge:doc-a"])
+        with self.service._connect() as db:
+            copied = db.execute(
+                "SELECT source_id,revision_sequence FROM representations WHERE generation_id=?",
+                (target,)
+            ).fetchall()
+            self.assertEqual([(item["source_id"], item["revision_sequence"]) for item in copied],
+                             [("knowledge:doc-a", 1)])
         details = self.service.handle("GET", f"/api/v1/index/generations/{target}", {}, None, Headers(), "status")[1]
         self.assertGreater(int(details["dual_apply_journal_position"]), 0)
 
