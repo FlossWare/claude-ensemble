@@ -200,7 +200,6 @@ def main() -> int:
                 candidates = candidates[rotate:] + candidates[:rotate]
                 for name, builder in candidates:
                     result = measure(name, builder, starts, shape, nodes, len(edges), round_id)
-                    signature = json.dumps(result.pop("signature"), separators=(",", ":"))
                     bounded_values = result.pop("signature")
                     native_values = result.pop("native_signature")
                     signature = json.dumps(bounded_values, separators=(",", ":"))
