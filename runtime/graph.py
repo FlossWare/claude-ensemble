@@ -279,6 +279,9 @@ class GraphService:
                     "revision_sequence": revision_sequence, "request_id": request_id,
                     "owner": owner, "owner_projection_sequence": owner_sequence}
         with self._connect() as db:
+            # Serialize read-check-write sequences so concurrent owner events cannot
+            # race past the sequence check and commit a partial projection.
+            db.execute("BEGIN IMMEDIATE")
             cached = self._cached_operation(db, operation_id, payload_hash)
             if cached is not None:
                 cached["request_id"] = request_id
@@ -363,6 +366,9 @@ class GraphService:
                     "revision_sequence": revision_sequence, "request_id": request_id,
                     "owner": owner, "owner_projection_sequence": owner_sequence}
         with self._connect() as db:
+            # Serialize read-check-write sequences so concurrent owner events cannot
+            # race past the sequence check and commit a partial projection.
+            db.execute("BEGIN IMMEDIATE")
             cached = self._cached_operation(db, operation_id, payload_hash)
             if cached is not None:
                 cached["request_id"] = request_id
