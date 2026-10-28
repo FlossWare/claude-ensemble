@@ -70,7 +70,7 @@ class ThompsonService:
                 payload_hash TEXT NOT NULL, response_json TEXT NOT NULL,
                 created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP);
               CREATE TABLE IF NOT EXISTS updates(
-                event_id TEXT PRIMARY KEY, selection_id TEXT NOT NULL UNIQUE,
+                event_id TEXT PRIMARY KEY, selection_id TEXT NOT NULL UNIQUE, idempotency_key TEXT NOT NULL UNIQUE,
                 context_id TEXT NOT NULL, arm_id TEXT NOT NULL, reward INTEGER NOT NULL,
                 payload_hash TEXT NOT NULL, response_json TEXT NOT NULL,
                 created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP);
@@ -173,9 +173,13 @@ class ThompsonService:
                 response = json.loads(prior["response_json"])
                 response["request_id"] = request_id
                 return response
-            duplicate_key = db.execute("SELECT payload_hash,response_json FROM updates WHERE event_id=?", (key,)).fetchone()
-            if duplicate_key and duplicate_key["payload_hash"] != digest:
-                raise ThompsonError("idempotency_conflict", "Idempotency-Key was reused with a different payload", 409)
+            duplicate_key = db.execute("SELECT payload_hash,response_json FROM updates WHERE idempotency_key=?", (key,)).fetchone()
+            if duplicate_key:
+                if duplicate_key["payload_hash"] != digest:
+                    raise ThompsonError("idempotency_conflict", "Idempotency-Key was reused with a different payload", 409)
+                response = json.loads(duplicate_key["response_json"])
+                response["request_id"] = request_id
+                return response
             prior_selection = db.execute("SELECT * FROM updates WHERE selection_id=?", (selection_id,)).fetchone()
             if prior_selection:
                 raise ThompsonError("selection_outcome_conflict", "selection already has a terminal outcome", 409)
@@ -193,9 +197,9 @@ class ThompsonService:
             operation_id = "thompson:op:" + secrets.token_hex(16)
             response = {"event_id": event_id, "operation_id": operation_id, "applied": True,
                         "state_version": version, "request_id": request_id}
-            db.execute("""INSERT INTO updates(event_id,selection_id,context_id,arm_id,reward,payload_hash,response_json)
-                          VALUES(?,?,?,?,?,?,?)""",
-                       (event_id, selection_id, context, arm, request["reward"], digest,
+            db.execute("""INSERT INTO updates(event_id,selection_id,idempotency_key,context_id,arm_id,reward,payload_hash,response_json)
+                          VALUES(?,?,?,?,?,?,?,?)""",
+                       (event_id, selection_id, key, context, arm, request["reward"], digest,
                         json.dumps(response, separators=(",", ":"))))
             return response
 
