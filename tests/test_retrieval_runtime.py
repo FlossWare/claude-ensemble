@@ -287,6 +287,16 @@ class RetrievalAlgorithmTests(unittest.TestCase):
             self._run_vector_rerank_contract_test(rerank)
         self.assertEqual(raised.exception.status, 503)
 
+    def test_vector_reranking_rejects_unhashable_candidate_identity(self):
+        def rerank(req):
+            response = self._valid_rerank_response(req)
+            response["candidates"][0]["source_id"] = {"unexpected": "object"}
+            return response
+        with self.assertRaises(RetrievalError) as raised:
+            self._run_vector_rerank_contract_test(rerank)
+        self.assertEqual(raised.exception.code, "dependency_unavailable")
+        self.assertEqual(raised.exception.status, 503)
+
     def test_vector_service_requires_reranking_dependency_by_default(self):
         def resolve(req):
             return {"profile_bundle": {
