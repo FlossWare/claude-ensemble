@@ -60,6 +60,7 @@ class IndexService:
             raise ValueError("CE_INDEX_VECTOR_BACKEND must be chromadb or sqlite")
         self.chroma_path = str(Path(os.environ.get("CE_INDEX_CHROMA_PATH", self.db_path + ".chroma")).expanduser())
         self._vector_stores = {}
+        self._chroma_client = None
         Path(self.db_path).parent.mkdir(parents=True, exist_ok=True)
         self._initialize()
         if profile_bundle is not None:
@@ -88,12 +89,15 @@ class IndexService:
         key = (generation_id, digest, metric)
         if key not in self._vector_stores:
             try:
+                if self._chroma_client is None:
+                    import chromadb
+                    self._chroma_client = chromadb.PersistentClient(path=self.chroma_path)
                 self._vector_stores[key] = ChromaVectorStore(
                     self.chroma_path, profile_digest=digest,
-                    generation_id=generation_id, metric=metric,
+                    generation_id=generation_id, metric=metric, client=self._chroma_client,
                 )
-            except VectorStoreError as exc:
-                raise _error("vector_store_unavailable", str(exc), 503) from exc
+            except Exception as exc:
+                raise _error("vector_store_unavailable", "could not initialize ChromaDB vector storage", 503) from exc
         return self._vector_stores[key]
 
     def _sync_chroma_source(self, db: sqlite3.Connection, generation_id: str,
