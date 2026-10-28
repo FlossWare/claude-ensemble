@@ -65,11 +65,11 @@ class DispatcherSaturationTests(unittest.TestCase):
     def test_internal_classifier_waits_for_headers_after_accept(self):
         server_side, client_side = socket.socketpair()
         try:
-            client_side.sendall(b"GET / HTTP/1.1\\r\\nHost: localhost\\r\\n")
+            client_side.sendall(b"GET / HTTP/1.1\r\nHost: localhost\r\n")
             sender = threading.Thread(
                 target=lambda: (threading.Event().wait(0.02), client_side.sendall(
-                    b"X-CE-Internal-Call: true\\r\\n"
-                    + f"X-CE-Internal-Token: {INTERNAL_CALL_TOKEN}\\r\\n\\r\\n".encode("ascii")
+                    b"X-CE-Internal-Call: true\r\n"
+                    + f"X-CE-Internal-Token: {INTERNAL_CALL_TOKEN}\r\n\r\n".encode("ascii")
                 )),
                 daemon=True,
             )
