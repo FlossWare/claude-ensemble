@@ -1,0 +1,261 @@
+{
+  "fixture_version": "1",
+  "query_id": "index-stale-revision",
+  "query": "How does Index enforce `revision_sequence` to prevent stale source revisions from overwriting newer indexed data?",
+  "relevant_chunk_ids": [
+    "index-revision-fencing",
+    "index-tombstone-high-water",
+    "index-idempotent-upsert"
+  ],
+  "candidates": [
+    {
+      "chunk_id": "gateway-generation-pinning",
+      "source_id": "knowledge:ce-gateway-generation-pinning",
+      "source_revision": "fixture-1",
+      "revision_sequence": 1,
+      "chunker": {
+        "profile": "markdown-default",
+        "version": "0.1"
+      },
+      "text": "Gateway resolves the active Index generation once at the start of a query and pins all lexical and vector retrieval calls to the same generation and immutable profile digest.",
+      "prior_rank": 1
+    },
+    {
+      "chunk_id": "tokenization-identifiers",
+      "source_id": "knowledge:ce-tokenization-identifiers",
+      "source_revision": "fixture-1",
+      "revision_sequence": 1,
+      "chunker": {
+        "profile": "markdown-default",
+        "version": "0.1"
+      },
+      "text": "Tokenization preserves technical identifiers and produces normalized lexical terms with stable Unicode code-point offsets under a pinned tokenization profile.",
+      "prior_rank": 2
+    },
+    {
+      "chunk_id": "ranking-rrf",
+      "source_id": "knowledge:ce-ranking-rrf",
+      "source_revision": "fixture-1",
+      "revision_sequence": 1,
+      "chunker": {
+        "profile": "markdown-default",
+        "version": "0.1"
+      },
+      "text": "Ranking combines lexical and vector candidate lists using deterministic reciprocal rank fusion and does not compare their raw scores directly.",
+      "prior_rank": 3
+    },
+    {
+      "chunk_id": "embedding-nomic",
+      "source_id": "knowledge:ce-embedding-nomic",
+      "source_revision": "fixture-1",
+      "revision_sequence": 1,
+      "chunker": {
+        "profile": "markdown-default",
+        "version": "0.1"
+      },
+      "text": "Embedding uses Nomic Embed Text v1.5 locally on CPU and prepends distinct search_query and search_document task prefixes.",
+      "prior_rank": 4
+    },
+    {
+      "chunk_id": "chunking-boundaries",
+      "source_id": "knowledge:ce-chunking-boundaries",
+      "source_revision": "fixture-1",
+      "revision_sequence": 1,
+      "chunker": {
+        "profile": "markdown-default",
+        "version": "0.1"
+      },
+      "text": "Chunking splits a source into bounded chunks while preserving source revision identity and structural line spans.",
+      "prior_rank": 5
+    },
+    {
+      "chunk_id": "index-profile-digest",
+      "source_id": "knowledge:ce-index-profile-digest",
+      "source_revision": "fixture-1",
+      "revision_sequence": 1,
+      "chunker": {
+        "profile": "markdown-default",
+        "version": "0.1"
+      },
+      "text": "Every Index generation is bound to an immutable profile identity and digest. Retrieval rejects incompatible component profiles instead of falling back to a current profile.",
+      "prior_rank": 6
+    },
+    {
+      "chunk_id": "lexical-bm25",
+      "source_id": "knowledge:ce-lexical-bm25",
+      "source_revision": "fixture-1",
+      "revision_sequence": 1,
+      "chunker": {
+        "profile": "markdown-default",
+        "version": "0.1"
+      },
+      "text": "Lexical Retrieval calculates BM25 scores from term frequency, document frequency, and scope-specific corpus statistics supplied by Index.",
+      "prior_rank": 7
+    },
+    {
+      "chunk_id": "vector-metric",
+      "source_id": "knowledge:ce-vector-metric",
+      "source_revision": "fixture-1",
+      "revision_sequence": 1,
+      "chunker": {
+        "profile": "markdown-default",
+        "version": "0.1"
+      },
+      "text": "Vector Retrieval orders candidates by the configured cosine, dot-product, or Euclidean metric and checks query vector dimensions against the pinned profile.",
+      "prior_rank": 8
+    },
+    {
+      "chunk_id": "index-revision-fencing",
+      "source_id": "knowledge:ce-index-revision-fencing",
+      "source_revision": "fixture-1",
+      "revision_sequence": 1,
+      "chunker": {
+        "profile": "markdown-default",
+        "version": "0.1"
+      },
+      "text": "Index rejects upserts whose revision_sequence is older than the latest indexed revision. Revision sequences are monotonic per source, and opaque source revision IDs are never ordered lexicographically.",
+      "prior_rank": 9,
+      "matched_exact_identifiers": [
+        "revision_sequence"
+      ]
+    },
+    {
+      "chunk_id": "index-rebuild",
+      "source_id": "knowledge:ce-index-rebuild",
+      "source_revision": "fixture-1",
+      "revision_sequence": 1,
+      "chunker": {
+        "profile": "markdown-default",
+        "version": "0.1"
+      },
+      "text": "Index rebuilds create a separate non-queryable generation, replay canonical changes, validate readiness, and cut over only after owners confirm their change journals are caught up.",
+      "prior_rank": 10
+    },
+    {
+      "chunk_id": "memory-journal",
+      "source_id": "knowledge:ce-memory-journal",
+      "source_revision": "fixture-1",
+      "revision_sequence": 1,
+      "chunker": {
+        "profile": "markdown-default",
+        "version": "0.1"
+      },
+      "text": "Memory retains a durable owner journal and retries or reconciles accepted source operations after failures between canonical persistence and Index persistence.",
+      "prior_rank": 11
+    },
+    {
+      "chunk_id": "provenance-evidence",
+      "source_id": "knowledge:ce-provenance-evidence",
+      "source_revision": "fixture-1",
+      "revision_sequence": 1,
+      "chunker": {
+        "profile": "markdown-default",
+        "version": "0.1"
+      },
+      "text": "Candidate provenance records source identity, revision sequence, chunk identity, and the profiles used to derive the indexed representation.",
+      "prior_rank": 12
+    },
+    {
+      "chunk_id": "scope-partitions",
+      "source_id": "knowledge:ce-scope-partitions",
+      "source_revision": "fixture-1",
+      "revision_sequence": 1,
+      "chunker": {
+        "profile": "markdown-default",
+        "version": "0.1"
+      },
+      "text": "Index applies canonical scope partitions to retrieval queries and computes lexical corpus statistics only within the selected partition.",
+      "prior_rank": 13
+    },
+    {
+      "chunk_id": "reranking-cross-encoder",
+      "source_id": "knowledge:ce-reranking-cross-encoder",
+      "source_revision": "fixture-1",
+      "revision_sequence": 1,
+      "chunker": {
+        "profile": "markdown-default",
+        "version": "0.1"
+      },
+      "text": "Reranking applies a local cross-encoder to a bounded set of already-ranked candidates and preserves candidate identities and exact identifier evidence.",
+      "prior_rank": 14
+    },
+    {
+      "chunk_id": "index-manifest",
+      "source_id": "knowledge:ce-index-manifest",
+      "source_revision": "fixture-1",
+      "revision_sequence": 1,
+      "chunker": {
+        "profile": "markdown-default",
+        "version": "0.1"
+      },
+      "text": "The Index source manifest reports indexed source identities and revision sequences to support owner-led reconciliation and completeness checks.",
+      "prior_rank": 15
+    },
+    {
+      "chunk_id": "rest-errors",
+      "source_id": "knowledge:ce-rest-errors",
+      "source_revision": "fixture-1",
+      "revision_sequence": 1,
+      "chunker": {
+        "profile": "markdown-default",
+        "version": "0.1"
+      },
+      "text": "CE REST services return a common error envelope with stable error codes, retryability, and correlation request IDs.",
+      "prior_rank": 16
+    },
+    {
+      "chunk_id": "local-cpu",
+      "source_id": "knowledge:ce-local-cpu",
+      "source_revision": "fixture-1",
+      "revision_sequence": 1,
+      "chunker": {
+        "profile": "markdown-default",
+        "version": "0.1"
+      },
+      "text": "All inference runs locally on CPU; model files are provisioned before startup and no service downloads weights at request time.",
+      "prior_rank": 17
+    },
+    {
+      "chunk_id": "index-tombstone-high-water",
+      "source_id": "knowledge:ce-index-tombstone-high-water",
+      "source_revision": "fixture-1",
+      "revision_sequence": 1,
+      "chunker": {
+        "profile": "markdown-default",
+        "version": "0.1"
+      },
+      "text": "Index stores a durable source-wide tombstone high-water mark and rejects upserts whose revision_sequence is at or below that mark, including delayed operations after restart or during rebuild.",
+      "prior_rank": 18,
+      "matched_exact_identifiers": [
+        "revision_sequence"
+      ]
+    },
+    {
+      "chunk_id": "deadline-budgets",
+      "source_id": "knowledge:ce-deadline-budgets",
+      "source_revision": "fixture-1",
+      "revision_sequence": 1,
+      "chunker": {
+        "profile": "markdown-default",
+        "version": "0.1"
+      },
+      "text": "CE services propagate request identifiers and deadlines, bound retry behavior, and return explicit deadline errors instead of false successful no-match results.",
+      "prior_rank": 19
+    },
+    {
+      "chunk_id": "index-idempotent-upsert",
+      "source_id": "knowledge:ce-index-idempotent-upsert",
+      "source_revision": "fixture-1",
+      "revision_sequence": 1,
+      "chunker": {
+        "profile": "markdown-default",
+        "version": "0.1"
+      },
+      "text": "Index upsert operations are idempotent per target generation, source_id, revision_sequence, and index profile digest. Reusing the same operation identity with a conflicting canonical payload is rejected.",
+      "prior_rank": 20,
+      "matched_exact_identifiers": [
+        "revision_sequence"
+      ]
+    }
+  ]
+}
