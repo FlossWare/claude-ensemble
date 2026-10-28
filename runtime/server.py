@@ -489,8 +489,26 @@ class Handler(BaseHTTPRequestHandler):
                                         {"name": "pending_ingestion_recovery", "status": "scheduled"}]}, request_id)
         elif urlsplit(self.path).path.startswith("/api/v1/memories/operations/"):
             try:
-                operation_id = urlsplit(self.path).path.rsplit("/", 1)[-1]
-                response = get_memory_service().operation(operation_id)
+                parsed = urlsplit(self.path)
+                query = parse_qs(parsed.query)
+                scope = {"type": query.get("scope_type", [""])[0],
+                         "id": query.get("scope_id", [""])[0],
+                         "visibility": query.get("visibility", [""])[0]}
+                operation_id = parsed.path.rsplit("/", 1)[-1]
+                response = get_memory_service().operation(operation_id, scope_value=scope)
+                response["request_id"] = request_id
+                self._send(200, response, request_id)
+            except MemoryServiceError as exc:
+                self._send(exc.status, _error(exc.code, str(exc), retryable=exc.status >= 500), request_id)
+        elif len(urlsplit(self.path).path.strip("/").split("/")) == 5 and urlsplit(self.path).path.startswith("/api/v1/memories/") and urlsplit(self.path).path.split("/")[-2] == "operations":
+            try:
+                parsed = urlsplit(self.path)
+                query = parse_qs(parsed.query)
+                scope = {"type": query.get("scope_type", [""])[0],
+                         "id": query.get("scope_id", [""])[0],
+                         "visibility": query.get("visibility", [""])[0]}
+                parts = parsed.path.strip("/").split("/")
+                response = get_memory_service().operation(parts[-1], memory_id=parts[-3], scope_value=scope)
                 response["request_id"] = request_id
                 self._send(200, response, request_id)
             except MemoryServiceError as exc:
