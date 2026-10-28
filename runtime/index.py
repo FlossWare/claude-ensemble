@@ -831,6 +831,34 @@ class IndexService:
         payload = dict(body or {})
         payload["request_id"] = payload.get("request_id", request_id)
 
+        # Resolve the path shape before dispatching on the verb. Otherwise a
+        # known endpoint requested with the wrong method can fall through to a
+        # misleading 404 (and /operations/upsert can be mistaken for an ID).
+        allowed_methods = None
+        if tail in (["health"], ["ready"], ["generations", "active"], ["sources", "manifest"]):
+            allowed_methods = {"GET"}
+        elif tail == ["generations"]:
+            allowed_methods = {"POST"}
+        elif tail in (["operations", "upsert"], ["operations", "delete"],
+                      ["lexical", "lookup"], ["vector-neighbors"]):
+            allowed_methods = {"POST"}
+        elif len(tail) == 2 and tail[0] == "operations":
+            allowed_methods = {"GET"} if tail[1] not in {"upsert", "delete"} else {"POST"}
+        elif len(tail) == 4 and tail[0] == "profiles" and tail[2] == "versions":
+            allowed_methods = {"GET"}
+        elif len(tail) == 3 and tail[0] == "profiles" and tail[2] == "current":
+            allowed_methods = {"GET"}
+        elif len(tail) == 3 and tail[0] == "sources" and tail[2] == "status":
+            allowed_methods = {"GET"}
+        elif len(tail) == 2 and tail[0] == "generations":
+            allowed_methods = {"GET"}
+        elif len(tail) == 3 and tail[0] == "generations" and tail[2] in {"abandon", "owner-checkpoints", "cutover"}:
+            allowed_methods = {"POST"}
+        elif len(tail) == 5 and tail[0] == "generations" and tail[2] == "owner-fences":
+            allowed_methods = {"PUT", "DELETE"}
+        if allowed_methods is not None and method not in allowed_methods:
+            raise _error("method_not_allowed", "HTTP method is not supported for this Index endpoint", 405)
+
         if method == "GET" and tail == ["health"]:
             return 200, {"service": "index", "status": "alive", "request_id": request_id}
         if method == "GET" and tail == ["ready"]:
