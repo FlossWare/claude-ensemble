@@ -128,7 +128,12 @@ class RetrievalAlgorithmTests(unittest.TestCase):
             self.assertEqual(req["input_type"], "query")
             return {"index_generation": "g1", "request_id": "r1", "truncated": False,
                     "candidates": [dict(CANDIDATE, similarity=0.9, embedding={"metric": "cosine"})]}
-        service = VectorRetrievalService(embed, neighbors, resolve)
+        def rerank(req):
+            return {"request_id": req["request_id"], "profile": req["profile"], "candidates": [
+                {**item, "score": 0.75, "score_semantics": "cross-encoder-profile-score-v1", "rerank": rank}
+                for rank, item in enumerate(req["candidates"], 1)
+            ]}
+        service = VectorRetrievalService(embed, neighbors, resolve, rerank)
         result = service.search({
             "request_id": "r1", "query_id": "q1", "scope": SCOPE, "index_profile": PROFILE,
             "embedding_profile": {"name": "technical-default", "version": "0.1"},
@@ -137,6 +142,8 @@ class RetrievalAlgorithmTests(unittest.TestCase):
         self.assertEqual(result["metric"], "cosine")
         self.assertEqual(result["candidates"][0]["distance"], 0.9)
         self.assertEqual(result["candidates"][0]["retrieval_rank"], 1)
+        self.assertEqual(result["candidates"][0]["rerank_score"], 0.75)
+        self.assertEqual(result["reranking_profile"], {"name": "default-reranker", "version": "0.1"})
         self.assertNotIn("embedding", result["candidates"][0])
 
 
@@ -180,7 +187,7 @@ class RetrievalAlgorithmTests(unittest.TestCase):
         self.assertEqual(result["candidates"][0]["source_revision"], "rev-2")
         self.assertEqual(result["reranking_profile"], {"name": "default-reranker", "version": "0.1"})
 
-    def test_vector_service_reranking_requires_configured_dependency(self):
+    def test_vector_service_requires_reranking_dependency_by_default(self):
         def resolve(req):
             return {"profile_bundle": {
                 "name": "default", "version": "0.1", "digest": "a" * 64,
@@ -195,7 +202,7 @@ class RetrievalAlgorithmTests(unittest.TestCase):
             service.search({
                 "request_id": "r1", "query_id": "q1", "scope": SCOPE, "index_profile": PROFILE,
                 "embedding_profile": {"name": "technical-default", "version": "0.1"},
-                "index_generation": "g1", "limit": 5, "query": {"text": "ranking algorithm"}, "rerank": True,
+                "index_generation": "g1", "limit": 5, "query": {"text": "ranking algorithm"},
             })
         self.assertEqual(raised.exception.status, 503)
 
