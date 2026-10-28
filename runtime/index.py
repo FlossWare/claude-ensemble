@@ -849,11 +849,11 @@ class IndexService:
                         ).fetchone()
                         if profile_row:
                             try:
-                                self._vector_store(
-                                    generation_row["generation_id"],
+                                self._prune_chroma_source(
+                                    cleanup_db, generation_row["generation_id"], source_id,
                                     json.loads(profile_row["bundle_json"]),
-                                ).delete_source(source_id)
-                            except (IndexError, VectorStoreError):
+                                )
+                            except IndexError:
                                 # SQLite tombstone filters stale vectors even if physical cleanup fails.
                                 continue
             except sqlite3.Error:
