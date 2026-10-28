@@ -113,3 +113,34 @@ def test_invalid_policy_and_no_eligible_arms_fail_explicitly(tmp_path):
     with pytest.raises(ThompsonError) as empty:
         svc.select({**selection_request(), "eligible_arms": []}, "key-b", "req")
     assert empty.value.code == "no_eligible_arms"
+
+
+
+def test_thompson_rest_routes_are_reachable(tmp_path):
+    import json
+    import threading
+    from urllib.request import Request, urlopen
+    from unittest.mock import patch
+    from runtime.server import BoundedThreadingHTTPServer, Handler
+
+    svc = service(tmp_path)
+    server = BoundedThreadingHTTPServer(("127.0.0.1", 0), Handler)
+    thread = threading.Thread(target=server.serve_forever, daemon=True)
+    thread.start()
+    try:
+        with patch("runtime.server.get_thompson_service", return_value=svc):
+            base = f"http://127.0.0.1:{server.server_port}"
+            with urlopen(base + "/api/v1/thompson/health", timeout=2) as response:
+                assert response.status == 200
+                assert json.loads(response.read())["service"] == "thompson"
+            body = json.dumps(selection_request()).encode()
+            request = Request(base + "/api/v1/thompson/selections", data=body, method="POST",
+                              headers={"Content-Type": "application/json", "Idempotency-Key": "http-selection-key"})
+            with urlopen(request, timeout=2) as response:
+                selected = json.loads(response.read())
+                assert response.status == 200
+                assert selected["chosen_arm_id"] in {"bm25", "hybrid"}
+    finally:
+        server.shutdown()
+        server.server_close()
+        thread.join(timeout=2)

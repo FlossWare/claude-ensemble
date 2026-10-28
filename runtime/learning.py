@@ -19,6 +19,8 @@ from urllib.parse import unquote
 from urllib.request import Request, urlopen
 from typing import Any
 
+from .internal_calls import INTERNAL_CALL_TOKEN
+
 
 _ID = re.compile(r"^[A-Za-z0-9._~-]{1,128}$")
 _POLICY = "binary-reward-v1"
@@ -182,7 +184,7 @@ class LearningService:
         headers = {
             "Accept": "application/json", "Content-Type": "application/json",
             "Idempotency-Key": "learning-" + payload["event_id"],
-            "X-CE-Request-ID": request_id, "X-CE-Internal-Call": "true",
+            "X-CE-Request-ID": request_id, "X-CE-Internal-Call": "true", "X-CE-Internal-Token": INTERNAL_CALL_TOKEN,
         }
         request = Request(self.thompson_base_url + "/api/v1/thompson/updates",
                           data=json.dumps(body, separators=(",", ":")).encode(), headers=headers, method="POST")
