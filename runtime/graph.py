@@ -283,6 +283,7 @@ class GraphService:
             if prior_event:
                 if prior_event["operation_id"] != operation_id or prior_event["payload_hash"] != payload_hash:
                     db.execute("UPDATE graph_owner_state SET reconciliation_required=1 WHERE owner=?", (owner,))
+                    db.commit()
                     raise GraphError("revision_conflict", "owner projection sequence was reused with a different operation or payload", 409)
             current = db.execute("SELECT * FROM graph_sources WHERE source_id=?", (source_id,)).fetchone()
             if current and revision_sequence <= current["revision_sequence"]:
@@ -397,6 +398,11 @@ class GraphService:
                 raise GraphError("revision_conflict", "sealed projection checkpoint cannot move backwards", 409)
             db.execute("UPDATE graph_owner_state SET sealed_sequence=? WHERE owner=?", (sealed, owner))
             state = db.execute("SELECT * FROM graph_owner_state WHERE owner=?", (owner,)).fetchone()
+            if state["terminal_sequence"] >= sealed:
+                # The owner checkpoint is its durable assertion that replay through
+                # this sealed journal position is consistent.
+                db.execute("UPDATE graph_owner_state SET reconciliation_required=0 WHERE owner=?", (owner,))
+                state = db.execute("SELECT * FROM graph_owner_state WHERE owner=?", (owner,)).fetchone()
             ready = state["terminal_sequence"] >= sealed and not state["reconciliation_required"]
             overall_ready = self._ready(db)
             response = {"owner": owner, "sealed_projection_sequence": sealed,
