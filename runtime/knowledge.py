@@ -395,7 +395,7 @@ class KnowledgeService:
             return 200, self.operation(unquote(path.rsplit("/", 1)[-1]), None, request_id)
         if method == "GET" and path.startswith("/api/v1/knowledge/sources/"):
             parts = path.strip("/").split("/")
-            source_key = unquote(parts[-1]) if len(parts) == 4 else unquote(parts[3])
+            source_key = unquote(parts[3]) if len(parts) == 4 else unquote(parts[4])
             scope = {"type": query.get("scope_type", [""])[0], "id": query.get("scope_id", [""])[0],
                      "visibility": query.get("visibility", [""])[0]}
             if len(parts) >= 6 and parts[-2] == "operations":
