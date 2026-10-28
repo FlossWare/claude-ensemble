@@ -64,6 +64,10 @@ class IndexService:
         self._bootstrapped_generations = set()
         Path(self.db_path).parent.mkdir(parents=True, exist_ok=True)
         self._initialize()
+        # Existing SQLite vector rows are migrated before the service is used,
+        # rather than rebuilding collections on a user query.
+        if self.vector_backend == "chromadb":
+            self._bootstrap_existing_chroma()
         if profile_bundle is not None:
             self.provision_profile(profile_bundle)
 
@@ -127,6 +131,22 @@ class IndexService:
         for source_id in sorted(missing_sources):
             self._sync_chroma_source(db, generation_id, source_id, bundle)
         self._bootstrapped_generations.add(generation_id)
+
+    def _bootstrap_existing_chroma(self) -> None:
+        """Migrate existing SQLite vectors during service initialization, before serving queries."""
+        with self._connect() as db:
+            generations = db.execute(
+                "SELECT generation_id,profile_name,profile_version FROM generations ORDER BY generation_id"
+            ).fetchall()
+            for generation in generations:
+                profile_row = db.execute(
+                    "SELECT bundle_json FROM profiles WHERE name=? AND version=?",
+                    (generation["profile_name"], generation["profile_version"]),
+                ).fetchone()
+                if profile_row:
+                    self._bootstrap_chroma_generation(
+                        db, generation["generation_id"], json.loads(profile_row["bundle_json"])
+                    )
 
     def _sync_chroma_source(self, db: sqlite3.Connection, generation_id: str,
                             source_id: str, bundle: dict[str, Any]) -> None:
@@ -707,9 +727,6 @@ class IndexService:
                         (profile_digest(bundle),),
                     ).fetchall()
                     for generation_row in generation_rows:
-                        self._bootstrap_chroma_generation(
-                            db, generation_row["generation_id"], bundle
-                        )
                         self._sync_chroma_source(
                             db, generation_row["generation_id"], source_id, bundle
                         )
@@ -778,24 +795,6 @@ class IndexService:
             for target_row in building:
                 self._journal_change(db, target_row["generation_id"], source_id, seq,
                                      request["operation_id"], "delete", payload_hash)
-            if self.vector_backend == "chromadb":
-                generation_rows = db.execute(
-                    "SELECT generation_id,profile_name,profile_version FROM generations"
-                ).fetchall()
-                for generation_row in generation_rows:
-                    profile_row = db.execute(
-                        "SELECT bundle_json FROM profiles WHERE name=? AND version=?",
-                        (generation_row["profile_name"], generation_row["profile_version"]),
-                    ).fetchone()
-                    if profile_row:
-                        bundle_for_generation = json.loads(profile_row["bundle_json"])
-                        self._bootstrap_chroma_generation(
-                            db, generation_row["generation_id"], bundle_for_generation
-                        )
-                        self._sync_chroma_source(
-                            db, generation_row["generation_id"], source_id,
-                            bundle_for_generation,
-                        )
             return 202, response
 
     def profile_version(self, name: str, version: str) -> dict[str, Any]:
@@ -941,7 +940,6 @@ class IndexService:
                     or len(vector) != emb["dimensions"] or metric != emb["metric"]):
                 raise _error("incompatible_representation", "query vector profile/dimensions/metric mismatch", 422)
             if self.vector_backend == "chromadb":
-                self._bootstrap_chroma_generation(db, gen["generation_id"], bundle)
                 store = self._vector_store(gen["generation_id"], bundle)
                 try:
                     raw_candidates = store.query(
