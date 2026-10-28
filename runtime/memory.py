@@ -396,6 +396,31 @@ class MemoryService:
                 results.append(result)
         return results
 
+    def deletion_details(self, operation_id: str) -> dict[str, Any]:
+        with self._connect() as db:
+            row = db.execute("""SELECT o.operation_id,o.revision_sequence,m.memory_id,m.scope_json,m.index_profile_json
+                                FROM memory_operations o JOIN memories m ON m.memory_id=o.memory_id
+                                WHERE o.operation_id=? AND o.operation_kind='delete'""", (operation_id,)).fetchone()
+            if row is None:
+                raise MemoryError("not_found", "delete operation was not found", 404)
+            return {
+                "operation_id": row["operation_id"],
+                "source_id": "memory:" + row["memory_id"],
+                "revision_sequence": row["revision_sequence"],
+                "scope": json.loads(row["scope_json"]),
+                "index_profile": json.loads(row["index_profile_json"]),
+            }
+
+    def pending_deletions(self) -> list[dict[str, Any]]:
+        with self._connect() as db:
+            rows = db.execute("""SELECT operation_id,response_json FROM memory_operations
+                                 WHERE operation_kind='delete'
+                                   AND status IN ('accepted','pending','failed')
+                                   AND indexing_status IN ('pending_index','index_failed')
+                                 ORDER BY updated_at,operation_id""").fetchall()
+            return [{"accepted": json.loads(row["response_json"]),
+                     "details": self.deletion_details(row["operation_id"])} for row in rows]
+
     def pending_ingestions(self) -> list[dict[str, Any]]:
         """Return durable, current ingestion work for startup recovery."""
         stale_operations: list[str] = []
