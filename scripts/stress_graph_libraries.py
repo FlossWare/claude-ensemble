@@ -201,7 +201,10 @@ def main() -> int:
                 for name, builder in candidates:
                     result = measure(name, builder, starts, shape, nodes, len(edges), round_id)
                     signature = json.dumps(result.pop("signature"), separators=(",", ":"))
-                    native_signature = json.dumps(result.pop("native_signature"), separators=(",", ":"))
+                    bounded_values = result.pop("signature")
+                    native_values = result.pop("native_signature")
+                    signature = json.dumps(bounded_values, separators=(",", ":"))
+                    native_signature = json.dumps(native_values, separators=(",", ":"))
                     if expected_bounded is None:
                         expected_bounded = signature
                     elif signature != expected_bounded:
@@ -210,7 +213,14 @@ def main() -> int:
                     if expected_native is None:
                         expected_native = native_signature
                     elif native_signature != expected_native:
-                        print(json.dumps({"error": "native shortest-path mismatch", "shape": shape, "round": round_id, "library": name}))
+                        print(json.dumps({
+                            "error": "native shortest-path mismatch",
+                            "shape": shape,
+                            "round": round_id,
+                            "library": name,
+                            "expected_first_queries": json.loads(expected_native)[:3],
+                            "actual_first_queries": native_values[:3],
+                        }))
                         return 1
                     results.append(result)
 
