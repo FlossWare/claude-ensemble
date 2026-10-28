@@ -218,6 +218,15 @@ class MemoryOwnerTests(unittest.TestCase):
             if path == "/api/v1/embeddings":
                 return {"model": {"model_id": "test-model", "model_version": "test-v1", "dimensions": 3},
                         "results": [{"input_id": "chk_test", "status": "complete", "vector": [1.0, 0.0, 0.0]}]}
+            if path == "/api/v1/graph/source-projections":
+                self.assertEqual(payload["source_id"].split(":", 1)[0], "memory")
+                self.assertEqual(payload["nodes"][0]["node_id"], payload["source_id"])
+                self.assertEqual(extra_headers["Idempotency-Key"], payload["operation_id"])
+                return {"status": "applied"}
+            if path == "/api/v1/graph/source-deletions":
+                self.assertEqual(payload["delete_scope"], "source")
+                self.assertEqual(extra_headers["Idempotency-Key"], payload["operation_id"])
+                return {"status": "applied"}
             if path == "/api/v1/index/operations/upsert":
                 self.assertEqual(payload["representations"][0]["lexical"]["terms"], ["remember", "rest"])
                 self.assertEqual(payload["representations"][0]["vector"]["values"], [1.0, 0.0, 0.0])
@@ -259,6 +268,77 @@ class MemoryOwnerTests(unittest.TestCase):
         self.assertEqual(details["revision_sequence"], deleted["revision_sequence"])
         self.assertEqual(details["scope"], SCOPE)
         self.assertEqual(details["index_profile"], PROFILE)
+
+    def test_graph_projection_journal_is_atomic_ordered_and_replayable(self):
+        _, created = self.service.create(create_request(), "create-1", "req-1")
+        first = self.service.pending_graph_projections()
+        self.assertEqual(len(first), 1)
+        self.assertEqual(first[0]["operation_id"], created["operation_id"])
+        self.assertEqual(first[0]["payload"]["revision_sequence"], created["revision_sequence"])
+        self.assertEqual(first[0]["payload"]["owner_projection_sequence"], 1)
+        self.assertEqual(first[0]["payload"]["nodes"][0]["label"], "remember the REST contract")
+
+        update = {
+            "expected_base_revision_sequence": created["revision_sequence"],
+            "content": "newer canonical content",
+            "provenance": {"origin": "test-update"},
+            "index_profile": PROFILE,
+        }
+        _, updated = self.service.update(created["memory_id"], update, "update-1", "req-2", SCOPE)
+        pending = self.service.pending_graph_projections()
+        self.assertEqual([item["owner_projection_sequence"] for item in pending], [1, 2])
+        self.assertEqual(pending[1]["payload"]["revision_sequence"], updated["revision_sequence"])
+        self.assertEqual(pending[1]["payload"]["nodes"][0]["label"], "newer canonical content")
+
+        self.service.update_operation(created["operation_id"], "complete", "indexed")
+        self.assertEqual(self.service.operation(created["operation_id"], scope_value=SCOPE)["status"], "pending")
+        self.service.update_graph_operation(created["operation_id"], "indexed")
+        self.assertEqual(self.service.operation(created["operation_id"], scope_value=SCOPE)["status"], "complete")
+
+    def test_concurrent_creates_allocate_unique_contiguous_graph_sequences(self):
+        results = []
+        failures = []
+        result_lock = threading.Lock()
+
+        def create_one(index):
+            try:
+                result = self.service.create(create_request(f"memory-{index}"), f"concurrent-{index}", f"req-{index}")
+                with result_lock:
+                    results.append(result[1])
+            except Exception as exc:
+                with result_lock:
+                    failures.append(exc)
+
+        workers = [threading.Thread(target=create_one, args=(index,)) for index in range(12)]
+        for worker in workers:
+            worker.start()
+        for worker in workers:
+            worker.join(3)
+        self.assertFalse(failures, failures)
+        self.assertEqual(len(results), 12)
+        sequences = [item["owner_projection_sequence"] for item in self.service.pending_graph_projections()]
+        self.assertEqual(sequences, list(range(1, 13)))
+
+    def test_graph_deletion_journal_uses_later_owner_sequence_and_tombstone(self):
+        _, created = self.service.create(create_request(), "create-1", "req-1")
+        _, deleted = self.service.delete(created["memory_id"], SCOPE, "source", "delete-1", "req-2")
+        pending = self.service.pending_graph_projections()
+        self.assertEqual([item["owner_projection_sequence"] for item in pending], [1, 2])
+        tombstone = pending[1]["payload"]
+        self.assertEqual(tombstone["operation_id"], deleted["operation_id"])
+        self.assertEqual(tombstone["revision_sequence"], deleted["revision_sequence"])
+        self.assertEqual(tombstone["delete_scope"], "source")
+        self.assertEqual(tombstone["source_id"], created["source_id"])
+        restarted = MemoryService(self.path)
+        self.assertEqual([item["operation_id"] for item in restarted.pending_graph_projections()],
+                         [created["operation_id"], deleted["operation_id"]])
+
+    def test_graph_acknowledgement_can_precede_index_acknowledgement(self):
+        _, created = self.service.create(create_request(), "create-1", "req-1")
+        self.service.update_graph_operation(created["operation_id"], "indexed")
+        self.assertEqual(self.service.operation(created["operation_id"], scope_value=SCOPE)["status"], "pending")
+        self.service.update_operation(created["operation_id"], "pending", "indexed")
+        self.assertEqual(self.service.operation(created["operation_id"], scope_value=SCOPE)["status"], "complete")
 
     def test_scope_mismatch_does_not_disclose_record(self):
         _, created = self.service.create(create_request(), "create-1", "req-1")

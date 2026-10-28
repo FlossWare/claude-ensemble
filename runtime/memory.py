@@ -146,6 +146,15 @@ class MemoryService:
                     next_sequence INTEGER NOT NULL
                 );
                 INSERT OR IGNORE INTO memory_sequence(singleton,next_sequence) VALUES(1,1);
+                CREATE TABLE IF NOT EXISTS memory_graph_sequence(singleton INTEGER PRIMARY KEY CHECK(singleton=1), next_sequence INTEGER NOT NULL);
+                INSERT OR IGNORE INTO memory_graph_sequence(singleton,next_sequence) VALUES(1,1);
+                CREATE TABLE IF NOT EXISTS memory_graph_journal(
+                    operation_id TEXT PRIMARY KEY, owner_projection_sequence INTEGER NOT NULL UNIQUE,
+                    operation_kind TEXT NOT NULL, source_id TEXT NOT NULL, revision_sequence INTEGER NOT NULL,
+                    payload_json TEXT NOT NULL, status TEXT NOT NULL DEFAULT 'pending', last_error TEXT,
+                    updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+                );
+                CREATE INDEX IF NOT EXISTS memory_graph_journal_pending ON memory_graph_journal(status, owner_projection_sequence);
             """)
 
     def _allocate_sequence(self, db: sqlite3.Connection) -> int:
@@ -155,6 +164,39 @@ class MemoryService:
             raise MemoryError("sequence_exhausted", "Memory revision sequence space is exhausted", 503)
         db.execute("UPDATE memory_sequence SET next_sequence=? WHERE singleton=1", (sequence + 1,))
         return sequence
+
+    def _enqueue_graph_projection(self, db: sqlite3.Connection, operation_id: str, memory_id: str,
+                                  revision: str, revision_sequence: int, scope: dict[str, str],
+                                  memory_type: str, content: str, provenance: dict[str, Any]) -> None:
+        row = db.execute("SELECT next_sequence FROM memory_graph_sequence WHERE singleton=1").fetchone()
+        owner_sequence = int(row["next_sequence"])
+        if owner_sequence > MAX_SEQUENCE:
+            raise MemoryError("sequence_exhausted", "Memory Graph projection sequence space is exhausted", 503)
+        db.execute("UPDATE memory_graph_sequence SET next_sequence=? WHERE singleton=1", (owner_sequence + 1,))
+        source_id = "memory:" + memory_id
+        payload = {"operation_id": operation_id, "source_id": source_id, "source_revision": revision,
+                   "revision_sequence": revision_sequence, "owner_projection_sequence": owner_sequence,
+                   "scope": scope, "nodes": [{"node_id": source_id, "node_type": "memory",
+                   "label": content[:1024], "aliases": [], "properties": {"memory_type": memory_type},
+                   "provenance": provenance}], "edges": []}
+        db.execute("""INSERT INTO memory_graph_journal(operation_id,owner_projection_sequence,operation_kind,
+                      source_id,revision_sequence,payload_json,status) VALUES(?,?,?,?,?,?, 'pending')""",
+                   (operation_id, owner_sequence, "project", source_id, revision_sequence, _canonical(payload).decode()))
+
+    def _enqueue_graph_deletion(self, db: sqlite3.Connection, operation_id: str, memory_id: str,
+                                revision: str, revision_sequence: int, scope: dict[str, str]) -> None:
+        row = db.execute("SELECT next_sequence FROM memory_graph_sequence WHERE singleton=1").fetchone()
+        owner_sequence = int(row["next_sequence"])
+        if owner_sequence > MAX_SEQUENCE:
+            raise MemoryError("sequence_exhausted", "Memory Graph projection sequence space is exhausted", 503)
+        db.execute("UPDATE memory_graph_sequence SET next_sequence=? WHERE singleton=1", (owner_sequence + 1,))
+        source_id = "memory:" + memory_id
+        payload = {"operation_id": operation_id, "source_id": source_id, "source_revision": revision,
+                   "revision_sequence": revision_sequence, "owner_projection_sequence": owner_sequence,
+                   "scope": scope, "delete_scope": "source"}
+        db.execute("""INSERT INTO memory_graph_journal(operation_id,owner_projection_sequence,operation_kind,
+                      source_id,revision_sequence,payload_json,status) VALUES(?,?,?,?,?,?, 'pending')""",
+                   (operation_id, owner_sequence, "delete", source_id, revision_sequence, _canonical(payload).decode()))
 
     def create(self, request: dict[str, Any], idempotency_key: str, request_id: str) -> tuple[int, dict[str, Any]]:
         required = {"scope", "type", "content", "provenance", "retention_policy", "index_profile"}
@@ -176,6 +218,7 @@ class MemoryService:
         semantic_request = {k: v for k, v in request.items() if k != "request_id"}
         payload_hash = _payload_hash(semantic_request)
         with self._lock, self._connect() as db:
+            db.execute("BEGIN IMMEDIATE")
             prior = db.execute("SELECT payload_hash,response_json FROM memory_idempotency WHERE idempotency_key=?", (idempotency_key,)).fetchone()
             if prior:
                 if prior["payload_hash"] != payload_hash:
@@ -190,7 +233,7 @@ class MemoryService:
             response = {
                 "operation_id": operation_id, "memory_id": memory_id,
                 "revision": revision, "revision_sequence": sequence,
-                "status": "accepted", "indexing_status": "pending_index",
+                "status": "accepted", "indexing_status": "pending_index", "graph_status": "pending_graph",
                 "source_id": "memory:" + memory_id, "index_profile": profile,
                 "request_id": request_id,
             }
@@ -200,9 +243,11 @@ class MemoryService:
             db.execute("""INSERT INTO revisions(memory_id,revision_sequence,revision_id,content,provenance_json,retention_json)
                           VALUES(?,?,?,?,?,?)""",
                        (memory_id, sequence, revision, content, _canonical(request["provenance"]).decode(), _canonical(retention).decode()))
-            db.execute("""INSERT INTO memory_operations(operation_id,memory_id,operation_kind,status,indexing_status,revision_sequence,response_json)
-                          VALUES(?,?,?,?,?,?,?)""",
-                       (operation_id, memory_id, "create", "accepted", "pending_index", sequence, _canonical(response).decode()))
+            self._enqueue_graph_projection(db, operation_id, memory_id, revision, sequence, scope,
+                                           memory_type, content, request["provenance"])
+            db.execute("INSERT INTO memory_operations(operation_id,memory_id,operation_kind,status,indexing_status,revision_sequence,response_json) VALUES(?,?,?,?,?,?,?)",
+                        (operation_id, memory_id, "create", "accepted", "pending_index", sequence, _canonical(response).decode()))
+
             db.execute("INSERT INTO memory_idempotency(idempotency_key,payload_hash,operation_id,response_json) VALUES(?,?,?,?)",
                        (idempotency_key, payload_hash, operation_id, _canonical(response).decode()))
             return 202, response
@@ -304,6 +349,7 @@ class MemoryService:
         semantic_request = {"memory_id": memory_id, **{k: v for k, v in request.items() if k != "request_id"}}
         payload_hash = _payload_hash(semantic_request)
         with self._lock, self._connect() as db:
+            db.execute("BEGIN IMMEDIATE")
             row = db.execute("SELECT * FROM memories WHERE memory_id=?", (memory_id,)).fetchone()
             if row is None or row["tombstone_sequence"] is not None or json.loads(row["scope_json"]) != scope:
                 raise MemoryError("not_found", "memory was not found in this scope", 404)
@@ -324,7 +370,7 @@ class MemoryService:
             response = {
                 "operation_id": operation_id, "memory_id": memory_id,
                 "revision": revision, "revision_sequence": revision_sequence,
-                "status": "accepted", "indexing_status": "pending_index",
+                "status": "accepted", "indexing_status": "pending_index", "graph_status": "pending_graph",
                 "source_id": "memory:" + memory_id, "index_profile": profile,
                 "request_id": request_id,
             }
@@ -333,8 +379,11 @@ class MemoryService:
                         db.execute("SELECT retention_json FROM revisions WHERE memory_id=? AND revision_sequence=?", (memory_id, expected)).fetchone()["retention_json"]))
             db.execute("UPDATE memories SET current_sequence=?,current_revision=?,updated_at=CURRENT_TIMESTAMP WHERE memory_id=?",
                        (revision_sequence, revision, memory_id))
+            self._enqueue_graph_projection(db, operation_id, memory_id, revision, revision_sequence, scope,
+                                           row["memory_type"], content, request["provenance"])
             db.execute("INSERT INTO memory_operations(operation_id,memory_id,operation_kind,status,indexing_status,revision_sequence,response_json) VALUES(?,?,?,?,?,?,?)",
-                       (operation_id, memory_id, "update", "accepted", "pending_index", revision_sequence, _canonical(response).decode()))
+                        (operation_id, memory_id, "update", "accepted", "pending_index", revision_sequence, _canonical(response).decode()))
+
             db.execute("INSERT INTO memory_idempotency(idempotency_key,payload_hash,operation_id,response_json) VALUES(?,?,?,?)",
                        (idempotency_key, payload_hash, operation_id, _canonical(response).decode()))
             return 202, response
@@ -349,6 +398,7 @@ class MemoryService:
             raise MemoryError("invalid_request", "Idempotency-Key is required and must be 1 to 256 characters", 400)
         payload_hash = _payload_hash({"memory_id": memory_id, "scope": scope, "delete_scope": delete_scope})
         with self._lock, self._connect() as db:
+            db.execute("BEGIN IMMEDIATE")
             prior = db.execute("SELECT payload_hash,response_json FROM memory_idempotency WHERE idempotency_key=?", (idempotency_key,)).fetchone()
             if prior:
                 if prior["payload_hash"] != payload_hash:
@@ -368,12 +418,15 @@ class MemoryService:
                 "operation_id": operation_id, "memory_id": memory_id,
                 "revision": revision, "revision_sequence": sequence, "status": "accepted",
                 "indexing_status": "pending_index", "graph_status": "pending_graph",
+                "source_id": "memory:" + memory_id,
                 "request_id": request_id,
             }
             db.execute("UPDATE memories SET current_sequence=?,current_revision=?,tombstone_sequence=?,updated_at=CURRENT_TIMESTAMP WHERE memory_id=?",
                        (sequence, revision, sequence, memory_id))
+            self._enqueue_graph_deletion(db, operation_id, memory_id, revision, sequence, scope)
             db.execute("INSERT INTO memory_operations(operation_id,memory_id,operation_kind,status,indexing_status,revision_sequence,response_json) VALUES(?,?,?,?,?,?,?)",
-                       (operation_id, memory_id, "delete", "accepted", "pending_index", sequence, _canonical(response).decode()))
+                        (operation_id, memory_id, "delete", "accepted", "pending_index", sequence, _canonical(response).decode()))
+
             db.execute("INSERT INTO memory_idempotency(idempotency_key,payload_hash,operation_id,response_json) VALUES(?,?,?,?)",
                        (idempotency_key, payload_hash, operation_id, _canonical(response).decode()))
             return 202, response
@@ -388,11 +441,48 @@ class MemoryService:
             if row is None:
                 raise MemoryError("not_found", "operation was not found", 404)
             response = json.loads(row["response_json"])
+            graph = db.execute("SELECT status FROM memory_graph_journal WHERE operation_id=?", (operation_id,)).fetchone()
+            graph_status = "indexed" if graph and graph["status"] == "applied" else response.get("graph_status", "pending_graph")
+            if indexing_status == "indexed" and graph_status == "indexed" and status in {"complete", "pending", "accepted"}:
+                status = "complete"
+            elif status == "complete" and graph_status != "indexed":
+                status = "pending"
             response["status"] = status
             response["indexing_status"] = indexing_status
+            response["graph_status"] = graph_status
             db.execute("UPDATE memory_operations SET status=?,indexing_status=?,response_json=?,updated_at=CURRENT_TIMESTAMP WHERE operation_id=?",
                        (status, indexing_status, _canonical(response).decode(), operation_id))
             db.execute("UPDATE memory_idempotency SET response_json=? WHERE operation_id=?", (_canonical(response).decode(), operation_id))
+            return response
+
+    def pending_graph_projections(self) -> list[dict[str, Any]]:
+        with self._connect() as db:
+            rows = db.execute("""SELECT operation_id,owner_projection_sequence,operation_kind,payload_json
+                                 FROM memory_graph_journal WHERE status IN ('pending','failed')
+                                 ORDER BY owner_projection_sequence""").fetchall()
+            return [{"operation_id": r["operation_id"], "owner_projection_sequence": r["owner_projection_sequence"],
+                     "operation_kind": r["operation_kind"], "payload": json.loads(r["payload_json"])} for r in rows]
+
+    def update_graph_operation(self, operation_id: str, graph_status: str, error: str | None = None) -> dict[str, Any]:
+        if graph_status not in {"indexed", "graph_failed"}:
+            raise MemoryError("invalid_request", "graph status is invalid", 400)
+        with self._lock, self._connect() as db:
+            journal = db.execute("SELECT status FROM memory_graph_journal WHERE operation_id=?", (operation_id,)).fetchone()
+            row = db.execute("SELECT response_json,indexing_status FROM memory_operations WHERE operation_id=?",
+                             (operation_id,)).fetchone()
+            if journal is None or row is None:
+                raise MemoryError("not_found", "Graph projection operation was not found", 404)
+            applied = graph_status == "indexed"
+            db.execute("UPDATE memory_graph_journal SET status=?,last_error=?,updated_at=CURRENT_TIMESTAMP WHERE operation_id=?",
+                       ("applied" if applied else "failed", None if applied else (error or "Graph request failed")[:512], operation_id))
+            response = json.loads(row["response_json"])
+            response["graph_status"] = graph_status
+            status = "complete" if applied and row["indexing_status"] == "indexed" else ("failed" if not applied else "pending")
+            response["status"] = status
+            db.execute("UPDATE memory_operations SET status=?,response_json=?,updated_at=CURRENT_TIMESTAMP WHERE operation_id=?",
+                       (status, _canonical(response).decode(), operation_id))
+            db.execute("UPDATE memory_idempotency SET response_json=? WHERE operation_id=?",
+                       (_canonical(response).decode(), operation_id))
             return response
 
     def verify_revisions(self, items: Any) -> list[dict[str, Any]]:

@@ -289,6 +289,7 @@ class IndexRuntimeTests(unittest.TestCase):
                 "CE_INDEX_BASE_URL": f"http://127.0.0.1:{server.server_address[1]}",
                 "CE_TOKENIZATION_BASE_URL": f"http://127.0.0.1:{server.server_address[1]}",
                 "CE_EMBEDDING_BASE_URL": f"http://127.0.0.1:{server.server_address[1]}",
+                "CE_RERANKING_BASE_URL": f"http://127.0.0.1:{server.server_address[1]}",
             }):
                 base = f"http://127.0.0.1:{server.server_address[1]}"
                 health = json.loads(urlopen(base + "/api/v1/index/health", timeout=2).read())
@@ -378,19 +379,37 @@ class IndexRuntimeTests(unittest.TestCase):
                 vector_request = Request(base + "/api/v1/vector-retrieval/search",
                     data=json.dumps(vector_body).encode("utf-8"),
                     headers={"Content-Type": "application/json", "X-CE-Deadline": deadline}, method="POST")
+                class DeterministicRerankingEngine:
+                    # Keep this REST wiring test independent of model artifacts.
+                    # Real reranking inference is validated in the offline CPU CI job.
+                    def rerank(self, rerank_request):
+                        return {
+                            "request_id": rerank_request["request_id"],
+                            "profile": rerank_request["profile"],
+                            "candidates": [
+                                {**candidate, "score": 1.0, "rerank": index + 1,
+                                 "score_semantics": "cross-encoder-profile-score-v1"}
+                                for index, candidate in enumerate(rerank_request["candidates"])
+                            ][:rerank_request["limit"]],
+                        }
+
                 observed_deadlines = {}
                 original_embed = Handler._embed
                 def capture_embedding_deadline(handler, request_value):
                     observed_deadlines["embedding"] = handler.headers.get("X-CE-Deadline")
                     return original_embed(handler, request_value)
                 with patch.object(Handler, "_embed", capture_embedding_deadline), \
-                     patch("runtime.server.get_embedding_engine", return_value=DeterministicEmbeddingEngine()):
+                     patch("runtime.server.get_embedding_engine", return_value=DeterministicEmbeddingEngine()), \
+                     patch("runtime.server.get_reranking_engine", return_value=DeterministicRerankingEngine()):
                     with urlopen(vector_request, timeout=4) as response:
                         vector_result = json.loads(response.read())
                 self.assertEqual(observed_deadlines["embedding"], deadline)
                 self.assertEqual(vector_result["metric"], "cosine")
                 self.assertEqual(vector_result["candidates"][0]["source_id"], "knowledge:doc-a")
                 self.assertEqual(vector_result["candidates"][0]["retrieval_rank"], 1)
+                self.assertEqual(vector_result["candidates"][0]["rerank_score"], 1.0)
+                self.assertEqual(vector_result["candidates"][0]["rerank_rank"], 1)
+                self.assertEqual(vector_result["reranking_profile"], {"name": "default-reranker", "version": "0.1"})
                 self.assertEqual(vector_result["candidates"][0]["provenance"]["embedding_model"], "local-nomic")
         finally:
             server.shutdown()

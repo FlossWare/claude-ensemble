@@ -244,10 +244,12 @@ class VectorRetrievalService:
         embed_call: Callable[[dict[str, Any]], dict[str, Any]],
         index_neighbors_call: Callable[[dict[str, Any]], dict[str, Any]],
         profile_resolve_call: Callable[[dict[str, Any]], dict[str, Any]],
+        rerank_call: Callable[[dict[str, Any]], dict[str, Any]] | None = None,
     ):
         self._embed_call = embed_call
         self._index_neighbors_call = index_neighbors_call
         self._profile_resolve_call = profile_resolve_call
+        self._rerank_call = rerank_call
 
     def search(self, request: dict[str, Any]) -> dict[str, Any]:
         if not isinstance(request, dict):
@@ -321,12 +323,117 @@ class VectorRetrievalService:
         candidates = vector_rank(lookup.get("candidates", []), metric)
         for candidate in candidates:
             candidate["provenance"] = {"index_generation": generation, "embedding_model": model_id, "embedding_model_version": model_version}
-        return {
+        response = {
             "query_id": query_id, "request_id": request_id, "index_generation": generation,
             "index_profile": index_profile, "embedding_profile": embedding_profile,
             "metric": metric, "candidates": candidates[:limit],
             "truncated": bool(lookup.get("truncated", False)),
         }
+        rerank_query = query.get("text", request.get("rerank_query"))
+        shortlist = candidates[:min(limit, 20)]
+        if limit > 20 and len(candidates) > len(shortlist):
+            # The reranker only scores the top 20; make any resulting loss visible.
+            response["truncated"] = True
+        if shortlist:
+            if self._rerank_call is None:
+                raise RetrievalError("dependency_unavailable", "reranking endpoint is required for vector retrieval", 503)
+            rerank_query = _string(rerank_query, "rerank_query", 16384)
+            rerank_request = {
+                "request_id": request_id,
+                "query": rerank_query,
+                "profile": {"name": "default-reranker", "version": "0.1"},
+                "limit": len(shortlist),
+                "candidates": [{
+                    "source_id": candidate.get("source_id"),
+                    "source_revision": candidate.get("source_revision"),
+                    "revision_sequence": candidate.get("revision_sequence"),
+                    "chunk_id": candidate.get("chunk_id"),
+                    "chunker": candidate.get("chunker"),
+                    "text": candidate.get("text"),
+                    "prior_rank": candidate.get("retrieval_rank"),
+                    "prior_score": candidate.get("distance"),
+                    "matched_exact_identifiers": candidate.get("matched_exact_identifiers", []),
+                    "provenance": candidate.get("provenance", {}),
+                } for candidate in shortlist],
+            }
+            reranked = self._rerank_call(rerank_request)
+            expected_profile = {"name": "default-reranker", "version": "0.1"}
+            if (not isinstance(reranked, dict)
+                    or reranked.get("profile") != expected_profile
+                    or not isinstance(reranked.get("candidates"), list)):
+                raise RetrievalError("dependency_unavailable", "Reranking returned an invalid response contract", 503)
+            if reranked.get("request_id") != request_id:
+                raise RetrievalError("dependency_unavailable", "Reranking returned a mismatched request identity", 503)
+            reranked_candidates = reranked["candidates"]
+            if len(reranked_candidates) != len(shortlist):
+                raise RetrievalError("dependency_unavailable", "Reranking must return every submitted candidate exactly once", 503)
+
+            def rerank_identity(candidate: dict[str, Any]) -> tuple[Any, ...]:
+                chunker = candidate.get("chunker")
+                if not isinstance(chunker, dict):
+                    return ()
+                source_id = candidate.get("source_id")
+                source_revision = candidate.get("source_revision")
+                revision_sequence = candidate.get("revision_sequence")
+                chunk_id = candidate.get("chunk_id")
+                chunker_profile = chunker.get("profile")
+                chunker_version = chunker.get("version")
+                if (any(not isinstance(value, str) or not value for value in
+                        (source_id, source_revision, chunk_id, chunker_profile, chunker_version))
+                        or type(revision_sequence) is not int or revision_sequence < 0):
+                    return ()
+                return (
+                    source_id,
+                    source_revision,
+                    revision_sequence,
+                    chunk_id,
+                    chunker_profile,
+                    chunker_version,
+                )
+
+            original_by_id: dict[tuple[Any, ...], dict[str, Any]] = {}
+            for candidate in shortlist:
+                identity = rerank_identity(candidate)
+                if not identity or identity in original_by_id:
+                    raise RetrievalError("dependency_unavailable", "Vector retrieval returned duplicate or invalid candidate identities", 503)
+                original_by_id[identity] = candidate
+
+            restored = []
+            seen_identities: set[tuple[Any, ...]] = set()
+            seen_ranks: set[int] = set()
+            for item in reranked_candidates:
+                if not isinstance(item, dict):
+                    raise RetrievalError("dependency_unavailable", "Reranking returned an invalid candidate", 503)
+                identity = rerank_identity(item)
+                original = original_by_id.get(identity)
+                if original is None or identity in seen_identities:
+                    raise RetrievalError("dependency_unavailable", "Reranking returned an unknown or duplicate candidate identity", 503)
+                score = item.get("score")
+                rank = item.get("rerank")
+                if (type(score) not in (int, float) or not math.isfinite(float(score))
+                        or type(rank) is not int or not 1 <= rank <= len(shortlist)
+                        or rank in seen_ranks
+                        or item.get("score_semantics") != "cross-encoder-profile-score-v1"):
+                    raise RetrievalError("dependency_unavailable", "Reranking returned invalid score or rank metadata", 503)
+                provenance = item.get("provenance", original["provenance"])
+                if not isinstance(provenance, dict):
+                    raise RetrievalError("dependency_unavailable", "Reranking returned invalid provenance metadata", 503)
+                merged = dict(original)
+                merged["rerank_score"] = float(score)
+                merged["rerank_rank"] = rank
+                merged["score_semantics"] = item["score_semantics"]
+                # The reranker may add provenance, but cannot rewrite the vector
+                # retrieval's authoritative generation/model lineage.
+                merged["provenance"] = {**provenance, **original["provenance"]}
+                restored.append(merged)
+                seen_identities.add(identity)
+                seen_ranks.add(rank)
+            if seen_ranks != set(range(1, len(shortlist) + 1)):
+                raise RetrievalError("dependency_unavailable", "Reranking returned non-contiguous ranks", 503)
+            restored.sort(key=lambda candidate: candidate["rerank_rank"])
+            response["candidates"] = restored
+            response["reranking_profile"] = expected_profile
+        return response
 
 
 
@@ -386,6 +493,7 @@ def configured_retrieval_services(deadline: str | None = None) -> tuple[LexicalR
     index_url = os.environ.get("CE_INDEX_BASE_URL", "http://127.0.0.1:8080")
     tokenization_url = os.environ.get("CE_TOKENIZATION_BASE_URL", "http://127.0.0.1:8080")
     embedding_url = os.environ.get("CE_EMBEDDING_BASE_URL", "http://127.0.0.1:8080")
+    reranking_url = os.environ.get("CE_RERANKING_BASE_URL", "http://127.0.0.1:8080")
 
     def resolve(request: dict[str, Any]) -> dict[str, Any]:
         profile = request["index_profile"]
@@ -419,9 +527,13 @@ def configured_retrieval_services(deadline: str | None = None) -> tuple[LexicalR
         return _rest_json(index_url, "/api/v1/index/vector-neighbors", payload=payload,
                           request_id=payload.get("request_id", "retrieval"), deadline=deadline)
 
+    def rerank_call(payload: dict[str, Any]) -> dict[str, Any]:
+        return _rest_json(reranking_url, "/api/v1/reranking/rerank", payload=payload,
+                          request_id=payload.get("request_id", "retrieval"), deadline=deadline)
+
     return (
         LexicalRetrievalService(tokenize_call, lexical_lookup, resolve),
-        VectorRetrievalService(embed_call, vector_neighbors, resolve),
+        VectorRetrievalService(embed_call, vector_neighbors, resolve, rerank_call),
     )
 
 
