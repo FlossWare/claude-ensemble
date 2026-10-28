@@ -3,7 +3,10 @@ import threading
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 import pytest
+from urllib.request import Request, urlopen
+from unittest.mock import patch
 
+from runtime.server import BoundedThreadingHTTPServer, Handler
 from runtime.learning import LearningError, LearningService
 
 
@@ -110,3 +113,27 @@ def test_state_counts_are_bounded_by_scope(service):
     with pytest.raises(LearningError) as error:
         service.state("unknown-scope", "req-3")
     assert error.value.status == 404
+
+
+
+def test_learning_health_and_outcome_routes_are_reachable(service):
+    ce_server = BoundedThreadingHTTPServer(("127.0.0.1", 0), Handler)
+    ce_thread = threading.Thread(target=ce_server.serve_forever, daemon=True)
+    ce_thread.start()
+    try:
+        with patch("runtime.server.get_learning_service", return_value=service):
+            base = f"http://127.0.0.1:{ce_server.server_port}"
+            with urlopen(base + "/api/v1/learning/health", timeout=2) as response:
+                assert response.status == 200
+                assert json.loads(response.read())["service"] == "learning"
+            body = json.dumps(request()).encode()
+            call = Request(base + "/api/v1/learning/outcomes", data=body, method="POST",
+                           headers={"Content-Type": "application/json", "Idempotency-Key": "http-key-1"})
+            with urlopen(call, timeout=3) as response:
+                result = json.loads(response.read())
+                assert response.status == 202
+                assert result["status"] == "complete"
+    finally:
+        ce_server.shutdown()
+        ce_server.server_close()
+        ce_thread.join(timeout=2)
