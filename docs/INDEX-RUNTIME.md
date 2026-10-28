@@ -52,41 +52,12 @@ Every non-empty `POST /api/v1/vector-retrieval/search` result passes through the
 
 The reranker evaluates at most the top 20 vector candidates. If a request asks for more than 20 results and Index returned more than 20 candidates, this stage returns the reranked top 20 and sets `truncated=true`; it does not silently hide that cap. The returned candidate order follows reranker rank. Each candidate retains its vector distance and original `retrieval_rank` for audit/diagnostics; downstream consumers that need the final ranking must use `rerank_rank` (or the returned order), not treat the original vector rank as the final rank. Responses include `rerank_score`, `rerank_rank`, and `reranking_profile`. If the reranking dependency is not configured or fails, vector retrieval fails rather than silently returning an un-reranked list. Empty candidate lists do not invoke the reranker. This stage does not change canonical Memory/Knowledge data or Index persistence.
 
-## Proposed ChromaDB vector-store adapter (design only)
+## ChromaDB vector-store implementation
 
-This section records the design gate for issue [#40](https://github.com/FlossWare/claude-ensemble/issues/40). It is not a claim that ChromaDB is implemented or enabled.
+Index uses persistent local ChromaDB for vector storage and similarity search. SQLite remains authoritative for lexical/BM25 retrieval, source manifests and revisions, idempotency, generation lifecycle, scope, and tombstones. ChromaDB is an internal implementation detail; the REST endpoint and schema remain unchanged. The SQLite vector backend remains available explicitly with `CE_INDEX_VECTOR_BACKEND=sqlite`; the default backend is `chromadb`. `CE_INDEX_CHROMA_PATH` selects the persistent Chroma directory and otherwise defaults to a sibling directory next to the Index SQLite database.
 
-### Ownership and boundary
+Collections are isolated by profile digest, generation, and metric. Vector records use deterministic IDs derived from generation/source/revision sequence/chunk identity. Queries constrain scope in Chroma and validate every returned candidate against current SQLite representation and tombstone state before returning it. The Index service owns one persistent Chroma client per process and reuses it across collections.
 
-- Keep `POST /api/v1/index/vector-neighbors` and its request/response schema unchanged. The REST dispatcher and `IndexService` remain the owners of validation, generation/profile identity, scope policy, source revision ordering, tombstones, and operation status.
-- Introduce a narrow internal vector-store interface for upsert, bounded nearest-neighbor query, delete-by-source/generation, and reconciliation. ChromaDB is one adapter; the current SQLite-backed vector search remains an explicit backend for deterministic tests and a controlled fallback.
-- Keep SQLite authoritative for lexical/BM25 data, source manifests, idempotency bindings, generation lifecycle, tombstone high-water marks, owner checkpoints, and durable write intents. ChromaDB must not become a second authority for source lifecycle.
-- Do not add a separately deployed Chroma service or change the public Index API for this integration.
+Vector mutations are synchronous. Index updates SQLite canonical state and synchronizes the affected source's vectors before returning success. If ChromaDB cannot be initialized or a vector write/query/delete fails, Index returns an error rather than reporting success or silently falling back to SQLite. There is no durable outbox, replay worker, reconciliation framework, or distributed transaction simulation. Restart persistence is provided by ChromaDB's on-disk store; ordinary idempotent retries use the existing Index operation binding and deterministic vector IDs.
 
-### Collection and metadata isolation
-
-Use a deterministic collection identity derived from the validated Index profile identity and generation identity. Do not place multiple generations in one unpartitioned collection. Persist the stable candidate identity in Chroma metadata: source ID, source revision, revision sequence, chunk ID, chunker identity, scope fields, embedding model/version/dimensions, and the profile/generation identity required to reject incompatible candidates. Store document text only as needed for the existing response contract; SQLite remains authoritative for candidate metadata and lifecycle state.
-
-Every query must constrain generation/profile and scope in the Chroma query itself, then validate returned IDs and metadata against SQLite. Reject malformed or incompatible metadata. Before returning candidates, discard any candidate whose revision is not the current indexed source revision or whose source is at or below its tombstone high-water mark. The existing deterministic tie-break rule must be applied after candidate validation.
-
-### Metric and result semantics
-
-Map the Index contract's supported metrics explicitly to Chroma distance spaces and test the conversion from Chroma's returned distance to the existing Index response semantics. Do not assume that similarly named distances have identical direction or scale. Keep the current bounded result limit and stable tie-breaking. Preserve candidate identity, original vector distance/similarity fields, retrieval rank, scope, source revision, and provenance so the downstream mandatory reranker requires no special Chroma logic.
-
-### Durable writes and recovery
-
-SQLite and ChromaDB cannot participate in one shared transaction. Therefore, do not mark an operation complete merely because one side committed.
-
-1. In one SQLite transaction, validate idempotency/revision/tombstone constraints and persist the canonical Index operation state plus a durable vector-store intent.
-2. Apply the intent to ChromaDB using a deterministic ID derived from generation, source revision, and chunk identity, making retries idempotent.
-3. Acknowledge the intent in SQLite only after the Chroma operation succeeds and the resulting collection/record state is validated.
-4. On startup/readiness, replay pending intents in deterministic order. Health may be live while readiness remains false or degraded if required replay has not converged.
-5. For deletes and generation cleanup, persist the intent before touching ChromaDB. SQLite tombstones remain authoritative even if physical deletion is delayed.
-6. If ChromaDB is unavailable, leave the operation pending/retryable and return the contract-defined pending/error state. Never claim vector indexing is complete when the durable intent has not been acknowledged.
-7. Provide an explicit reconciliation path that compares expected SQLite-owned vector identities with collection contents, records discrepancies, and repairs only when the owning generation is safe to modify.
-
-The first implementation must document crash points and prove retry behavior for a crash after SQLite intent commit, after Chroma mutation, and before SQLite acknowledgement. Generation cutover remains fail-closed; this work does not relax owner-journal, fencing, or reconciliation requirements.
-
-### Rollout and acceptance gate
-
-Keep backend selection explicit through configuration; do not silently switch existing deployments from SQLite vectors to ChromaDB. Start with local persistent Chroma storage and a temporary directory in tests. Do not introduce network access, model downloads, or implicit fallback on startup. The adapter is eligible for default consideration only after tests prove contract parity, scope/generation isolation, revision/tombstone filtering, metric parity, bounded deterministic results, restart recovery, and unchanged mandatory reranking behavior.
+The adapter maps cosine, inner-product, and Euclidean metrics explicitly. Retrieval preserves the existing REST contract and mandatory second-stage reranking. Acceptance requires the complete test suite plus real persistent-Chroma coverage for writes, updates, deletes, scope isolation, persistence across process/client restart, stale-revision/tombstone filtering, and retrieval through the mandatory reranker. SonarCloud is not a merge gate for this work.
