@@ -277,6 +277,7 @@ class GraphService:
         with self._connect() as db:
             cached = self._cached_operation(db, operation_id, payload_hash)
             if cached is not None:
+                cached["request_id"] = request_id
                 return 202, cached
             prior_event = db.execute("SELECT operation_id,payload_hash FROM graph_owner_events WHERE owner=? AND sequence=?",
                                      (owner, owner_sequence)).fetchone()
@@ -364,6 +365,7 @@ class GraphService:
             if prior_event:
                 if prior_event["operation_id"] != operation_id or prior_event["payload_hash"] != payload_hash:
                     db.execute("UPDATE graph_owner_state SET reconciliation_required=1 WHERE owner=?", (owner,))
+                    db.commit()
                     raise GraphError("revision_conflict", "owner projection sequence was reused with a different operation or payload", 409)
             current = db.execute("SELECT * FROM graph_sources WHERE source_id=?", (source_id,)).fetchone()
             if current and revision_sequence <= current["revision_sequence"]:
