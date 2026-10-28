@@ -214,7 +214,7 @@ class IndexRuntimeTests(unittest.TestCase):
         generation_id = self.service.active_generation()["generation_id"]
         store = self.service._vector_store(generation_id, self.bundle)
         store.replace_source("knowledge:doc-b", [])
-        from runtime.vector_store import ChromaVectorStore
+        from runtime.vector_store import ChromaVectorStore, VectorStoreError
         original_upsert = ChromaVectorStore.upsert
 
         def fail_once(adapter, records):
@@ -223,7 +223,7 @@ class IndexRuntimeTests(unittest.TestCase):
             return original_upsert(adapter, records)
 
         with patch.object(ChromaVectorStore, "upsert", fail_once):
-            with self.assertRaisesRegex(IndexError, "vector storage"):
+            with self.assertRaisesRegex(IndexError, "injected partial startup migration failure"):
                 IndexService(Path(self.temp.name) / "index.sqlite3", self.bundle)
 
         restarted = IndexService(Path(self.temp.name) / "index.sqlite3", self.bundle)
