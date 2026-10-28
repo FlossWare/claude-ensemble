@@ -230,13 +230,20 @@ class MemoryService:
                 "index_profile": json.loads(row["index_profile_json"]),
             }
 
-    def operation(self, operation_id: str, memory_id: str | None = None) -> dict[str, Any]:
+    def operation(self, operation_id: str, memory_id: str | None = None,
+                  scope_value: Any = None) -> dict[str, Any]:
+        scope = _validate_scope(scope_value) if scope_value is not None else None
         with self._connect() as db:
             if memory_id is None:
-                row = db.execute("SELECT * FROM memory_operations WHERE operation_id=?", (operation_id,)).fetchone()
+                row = db.execute("""SELECT o.*,m.scope_json FROM memory_operations o
+                                    JOIN memories m ON m.memory_id=o.memory_id WHERE o.operation_id=?""",
+                                 (operation_id,)).fetchone()
             else:
-                row = db.execute("SELECT * FROM memory_operations WHERE operation_id=? AND memory_id=?", (operation_id, memory_id)).fetchone()
-            if row is None:
+                row = db.execute("""SELECT o.*,m.scope_json FROM memory_operations o
+                                    JOIN memories m ON m.memory_id=o.memory_id
+                                    WHERE o.operation_id=? AND o.memory_id=?""",
+                                 (operation_id, memory_id)).fetchone()
+            if row is None or (scope is not None and json.loads(row["scope_json"]) != scope):
                 raise MemoryError("not_found", "operation was not found", 404)
             response = json.loads(row["response_json"])
             result = {
