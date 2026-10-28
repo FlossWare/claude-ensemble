@@ -295,6 +295,30 @@ class MemoryOwnerTests(unittest.TestCase):
         self.service.update_graph_operation(created["operation_id"], "indexed")
         self.assertEqual(self.service.operation(created["operation_id"], scope_value=SCOPE)["status"], "complete")
 
+    def test_concurrent_creates_allocate_unique_contiguous_graph_sequences(self):
+        results = []
+        failures = []
+        result_lock = threading.Lock()
+
+        def create_one(index):
+            try:
+                result = self.service.create(create_request(f"memory-{index}"), f"concurrent-{index}", f"req-{index}")
+                with result_lock:
+                    results.append(result[1])
+            except Exception as exc:
+                with result_lock:
+                    failures.append(exc)
+
+        workers = [threading.Thread(target=create_one, args=(index,)) for index in range(12)]
+        for worker in workers:
+            worker.start()
+        for worker in workers:
+            worker.join(3)
+        self.assertFalse(failures, failures)
+        self.assertEqual(len(results), 12)
+        sequences = [item["owner_projection_sequence"] for item in self.service.pending_graph_projections()]
+        self.assertEqual(sequences, list(range(1, 13)))
+
     def test_graph_deletion_journal_uses_later_owner_sequence_and_tombstone(self):
         _, created = self.service.create(create_request(), "create-1", "req-1")
         _, deleted = self.service.delete(created["memory_id"], SCOPE, "source", "delete-1", "req-2")
