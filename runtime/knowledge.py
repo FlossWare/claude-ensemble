@@ -285,6 +285,7 @@ class KnowledgeService:
             db.execute("BEGIN IMMEDIATE")
             prior = self._idempotent_response(db, idempotency_key, digest, request_id)
             if prior is not None:
+                prior.pop("index_profile", None)
                 return 202, {**prior, "graph_status": "pending"}
             current = db.execute("SELECT * FROM knowledge_sources WHERE source_key=?", (source_key,)).fetchone()
             if current is None or current["status"] != "active" or json.loads(current["scope_json"]) != scope:
@@ -303,7 +304,9 @@ class KnowledgeService:
             db.execute("INSERT INTO knowledge_idempotency(idempotency_key,payload_hash,operation_id) VALUES(?,?,?)",
                        (idempotency_key, digest, operation_id))
             row = db.execute("SELECT * FROM knowledge_operations WHERE operation_id=?", (operation_id,)).fetchone()
-            return 202, {**self._mutation_response(row, request_id), "graph_status": "pending"}
+            response = self._mutation_response(row, request_id)
+            response.pop("index_profile", None)
+            return 202, {**response, "graph_status": "pending"}
 
     def deletion_details(self, operation_id: str) -> dict[str, Any]:
         with self._connect() as db:
