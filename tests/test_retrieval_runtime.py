@@ -140,5 +140,65 @@ class RetrievalAlgorithmTests(unittest.TestCase):
         self.assertNotIn("embedding", result["candidates"][0])
 
 
+    def test_vector_service_reranks_shortlist_and_preserves_candidate_metadata(self):
+        def resolve(req):
+            return {"profile_bundle": {
+                "name": "default", "version": "0.1", "digest": "a" * 64,
+                "embedding": {"profile": "technical-default", "version": "0.1", "metric": "cosine", "model": "local-nomic", "model_version": "r1", "dimensions": 3},
+            }}
+        def embed(req):
+            return {"index_profile": PROFILE, "profile": "technical-default", "profile_version": "0.1",
+                    "model": {"model_id": "local-nomic", "model_version": "r1", "dimensions": 3},
+                    "results": [{"input_id": "q1", "status": "complete", "vector": [1.0, 0.0, 0.0]}]}
+        def neighbors(req):
+            first = dict(CANDIDATE, distance=0.9, retrieval_rank=1)
+            second = dict(CANDIDATE, source_id="knowledge:doc-b", source_revision="rev-2", revision_sequence=2,
+                          chunk_id="chunk-b", distance=0.8, retrieval_rank=2)
+            return {"index_generation": "g1", "truncated": False, "candidates": [first, second]}
+        seen = {}
+        def rerank(req):
+            seen.update(req)
+            ranked = list(reversed(req["candidates"]))
+            return {"request_id": req["request_id"], "profile": req["profile"], "candidates": [
+                {**item, "score": 0.95 if item["source_id"] == "knowledge:doc-b" else 0.25,
+                 "score_semantics": "cross-encoder-profile-score-v1", "rerank": rank,
+                 "provenance": {**item.get("provenance", {}), "reranker_profile": "default-reranker@0.1"}}
+                for rank, item in enumerate(ranked, 1)
+            ]}
+        service = VectorRetrievalService(embed, neighbors, resolve, rerank)
+        result = service.search({
+            "request_id": "r1", "query_id": "q1", "scope": SCOPE, "index_profile": PROFILE,
+            "embedding_profile": {"name": "technical-default", "version": "0.1"},
+            "index_generation": "g1", "limit": 5, "query": {"text": "ranking algorithm"}, "rerank": True,
+        })
+        self.assertEqual(seen["query"], "ranking algorithm")
+        self.assertEqual(seen["profile"], {"name": "default-reranker", "version": "0.1"})
+        self.assertEqual([c["chunk_id"] for c in result["candidates"]], ["chunk-b", "chunk-a"])
+        self.assertEqual(result["candidates"][0]["distance"], 0.8)
+        self.assertEqual(result["candidates"][0]["rerank_score"], 0.95)
+        self.assertEqual(result["candidates"][0]["rerank_rank"], 1)
+        self.assertEqual(result["candidates"][0]["source_revision"], "rev-2")
+        self.assertEqual(result["reranking_profile"], {"name": "default-reranker", "version": "0.1"})
+
+    def test_vector_service_reranking_requires_configured_dependency(self):
+        def resolve(req):
+            return {"profile_bundle": {
+                "name": "default", "version": "0.1", "digest": "a" * 64,
+                "embedding": {"profile": "technical-default", "version": "0.1", "metric": "cosine", "model": "local-nomic", "model_version": "r1", "dimensions": 3},
+            }}
+        def embed(req):
+            return {"index_profile": PROFILE, "profile": "technical-default", "profile_version": "0.1",
+                    "model": {"model_id": "local-nomic", "model_version": "r1", "dimensions": 3},
+                    "results": [{"input_id": "q1", "status": "complete", "vector": [1.0, 0.0, 0.0]}]}
+        service = VectorRetrievalService(embed, lambda req: {}, resolve)
+        with self.assertRaises(RetrievalError) as raised:
+            service.search({
+                "request_id": "r1", "query_id": "q1", "scope": SCOPE, "index_profile": PROFILE,
+                "embedding_profile": {"name": "technical-default", "version": "0.1"},
+                "index_generation": "g1", "limit": 5, "query": {"text": "ranking algorithm"}, "rerank": True,
+            })
+        self.assertEqual(raised.exception.status, 503)
+
+
 if __name__ == "__main__":
     unittest.main()
