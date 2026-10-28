@@ -374,13 +374,10 @@ class IndexService:
         tombstones = db.execute("SELECT COUNT(*) AS count FROM tombstones").fetchone()["count"]
         checkpoints = {item["owner"]: item["applied_sequence"] for item in db.execute(
             "SELECT owner,applied_sequence FROM owner_checkpoints WHERE generation_id=?", (row["generation_id"],)).fetchall()}
-        fences = db.execute("SELECT owner,sealed_sequence,expires_at,state FROM owner_fences WHERE generation_id=?", (row["generation_id"],)).fetchall()
-        held = {item["owner"]: item for item in fences if item["state"] == "held" and datetime.fromisoformat(item["expires_at"]) > datetime.now(timezone.utc)}
-        eligible = row["status"] == "building" and set(checkpoints) >= {"memory", "knowledge"} and set(held) >= {"memory", "knowledge"} and all(checkpoints[o] >= held[o]["sealed_sequence"] for o in ("memory", "knowledge"))
         return {"generation_id": row["generation_id"], "status": row["status"],
                 "index_profile": {"name": row["profile_name"], "version": row["profile_version"], "digest": row["profile_digest"]},
                 "request_id": "index", "counts": {"sources": counts["sources"], "chunks": counts["chunks"], "vectors": counts["vectors"] or 0, "tombstones": tombstones, "failed_sources": 0},
-                "owner_reconciliation_checkpoints": checkpoints, "validation_results": [], "cutover_eligible": eligible}
+                "owner_reconciliation_checkpoints": checkpoints, "validation_results": [], "cutover_eligible": False}
 
     def operation(self, operation_id: str) -> dict[str, Any]:
         with self._connect() as db:
@@ -660,38 +657,9 @@ class IndexService:
                 db.execute("UPDATE owner_fences SET state='released' WHERE generation_id=? AND owner=? AND fence_id=?", (generation_id, owner, fence_id))
                 return 200, {"owner": owner, "target_generation": generation_id, "fence_id": fence_id, "released": True, "request_id": request_id}
         if method == "POST" and len(tail) == 3 and tail[0] == "generations" and tail[2] == "cutover":
-            expected = payload.get("expected_active_generation")
-            fences = payload.get("owner_fences")
-            if not headers.get("Idempotency-Key") or not isinstance(fences, list) or len(fences) != 2:
-                raise _error("invalid_request", "Idempotency-Key and exactly two owner fences are required")
-            with self._lock, self._connect() as db:
-                active = db.execute("SELECT generation_id FROM active_generation WHERE singleton=1").fetchone()
-                target = db.execute("SELECT * FROM generations WHERE generation_id=?", (tail[1],)).fetchone()
-                if not active or active["generation_id"] != expected:
-                    raise _error("conflict", "active generation changed before cutover", 409)
-                if not target or target["status"] != "building":
-                    raise _error("generation_not_found", "building target generation was not found", 404)
-                seen = set()
-                for ref in fences:
-                    owner = ref.get("owner")
-                    if owner not in {"memory", "knowledge"} or owner in seen:
-                        raise _error("invalid_request", "cutover requires one fence per owner")
-                    seen.add(owner)
-                    fence = db.execute("SELECT * FROM owner_fences WHERE generation_id=? AND owner=? AND fence_id=?", (tail[1], owner, ref.get("fence_id"))).fetchone()
-                    if not fence or fence["state"] != "held" or fence["fence_token"] != ref.get("fence_token") or datetime.fromisoformat(fence["expires_at"]) <= datetime.now(timezone.utc):
-                        raise _error("fence_expired", "cutover fence is missing, released, or expired", 409)
-                    if fence["sealed_sequence"] != ref.get("sealed_change_sequence"):
-                        raise _error("conflict", "cutover sealed sequence does not match registered fence", 409)
-                    cp = db.execute("SELECT applied_sequence FROM owner_checkpoints WHERE generation_id=? AND owner=?", (tail[1], owner)).fetchone()
-                    if not cp or cp["applied_sequence"] < fence["sealed_sequence"]:
-                        raise _error("generation_not_caught_up", "owner checkpoint is behind sealed sequence", 409)
-                if seen != {"memory", "knowledge"}:
-                    raise _error("invalid_request", "cutover requires memory and knowledge fences")
-                db.execute("UPDATE generations SET status='retired' WHERE generation_id=?", (active["generation_id"],))
-                db.execute("UPDATE generations SET status='active' WHERE generation_id=?", (tail[1],))
-                db.execute("UPDATE active_generation SET generation_id=? WHERE singleton=1", (tail[1],))
-                row = db.execute("SELECT * FROM generations WHERE generation_id=?", (tail[1],)).fetchone()
-                return 200, self._generation_payload(db, row)
+            # Fail closed until the owner journal, replay acknowledgements, and
+            # cutover recovery protocol can be validated end-to-end.
+            raise _error("not_ready", "generation cutover is disabled until owner-journal replay and reconciliation are implemented", 503)
 
         if path.startswith("/api/v1/index/"):
             if method in {"GET", "POST", "PUT", "DELETE"}:
