@@ -222,7 +222,7 @@ class MemoryService:
             rev = db.execute("SELECT * FROM revisions WHERE memory_id=? AND revision_sequence=?",
                              (memory_id, row["current_sequence"])).fetchone()
             return {
-                "memory_id": memory_id, "source_id": "memory:" + memory_id,
+                "memory_id": memory_id,
                 "scope": scope, "type": row["memory_type"],
                 "revision": row["current_revision"], "revision_sequence": row["current_sequence"],
                 "content": rev["content"], "provenance": json.loads(rev["provenance_json"]),
@@ -233,12 +233,23 @@ class MemoryService:
     def operation(self, operation_id: str, memory_id: str | None = None) -> dict[str, Any]:
         with self._connect() as db:
             if memory_id is None:
-                row = db.execute("SELECT response_json FROM memory_operations WHERE operation_id=?", (operation_id,)).fetchone()
+                row = db.execute("SELECT * FROM memory_operations WHERE operation_id=?", (operation_id,)).fetchone()
             else:
-                row = db.execute("SELECT response_json FROM memory_operations WHERE operation_id=? AND memory_id=?", (operation_id, memory_id)).fetchone()
+                row = db.execute("SELECT * FROM memory_operations WHERE operation_id=? AND memory_id=?", (operation_id, memory_id)).fetchone()
             if row is None:
                 raise MemoryError("not_found", "operation was not found", 404)
-            return json.loads(row["response_json"])
+            response = json.loads(row["response_json"])
+            result = {
+                "operation_id": row["operation_id"],
+                "status": row["status"],
+                "canonical_status": "tombstoned" if row["operation_kind"] == "delete" else "committed",
+                "indexing_status": row["indexing_status"],
+                "revision_sequence": row["revision_sequence"],
+                "request_id": response.get("request_id", operation_id),
+            }
+            if row["operation_kind"] == "delete":
+                result["graph_status"] = response.get("graph_status", "pending_graph")
+            return result
 
     def update(self, memory_id: str, request: dict[str, Any], idempotency_key: str, request_id: str) -> tuple[int, dict[str, Any]]:
         required = {"expected_base_revision_sequence", "content", "provenance", "index_profile"}
@@ -320,8 +331,8 @@ class MemoryService:
             operation_id = "memory:op:" + uuid.uuid4().hex
             response = {
                 "operation_id": operation_id, "memory_id": memory_id,
-                "revision_sequence": sequence, "status": "accepted",
-                "indexing_status": "pending_index", "graph_status": "pending",
+                "revision": revision, "revision_sequence": sequence, "status": "accepted",
+                "indexing_status": "pending_index", "graph_status": "pending_graph",
                 "request_id": request_id,
             }
             db.execute("UPDATE memories SET current_sequence=?,current_revision=?,tombstone_sequence=?,updated_at=CURRENT_TIMESTAMP WHERE memory_id=?",
