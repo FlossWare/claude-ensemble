@@ -76,6 +76,7 @@ def main() -> int:
     print("PASS: Nomic model loaded from local files in offline CPU mode.")
     print("PASS: query/document inference completed with 768-dimensional finite L2-normalized vectors.")
     print(f"PASS: resolved local model snapshot matches pinned revision {expected_revision}.")
+
     return 0
 
 

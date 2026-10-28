@@ -81,7 +81,7 @@ jobs:
         id: detect
         shell: bash
         run: |
-          if [ -f scripts/validate_local_embedding_model.py ] || [ -f scripts/evaluate_local_reranking.py ]; then
+          if [ -f scripts/validate_local_embedding_model.py ] || [ -f scripts/evaluate_local_reranking.py ] || [ -f scripts/validate_memory_index_e2e.py ]; then
             echo "enabled=true" >> "$GITHUB_OUTPUT"
           else
             echo "enabled=false" >> "$GITHUB_OUTPUT"
@@ -144,6 +144,12 @@ jobs:
           HF_HUB_OFFLINE: "1"
           TRANSFORMERS_OFFLINE: "1"
         run: python scripts/validate_local_embedding_model.py
+      - name: Validate Memory-to-Index real-model HTTP acceptance
+        if: hashFiles('scripts/validate_memory_index_e2e.py') != ''
+        env:
+          HF_HUB_OFFLINE: "1"
+          TRANSFORMERS_OFFLINE: "1"
+        run: python scripts/validate_memory_index_e2e.py
       - name: Provision pinned reranking model for CI validation
         if: hashFiles('scripts/evaluate_local_reranking.py') != ''
         run: |

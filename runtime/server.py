@@ -4,6 +4,7 @@ from __future__ import annotations
 import json
 import hmac
 import math
+import os
 import re
 import select
 import socket
@@ -11,7 +12,9 @@ import threading
 import time
 import uuid
 from datetime import datetime, timezone
-from urllib.parse import parse_qs, urlsplit
+from urllib.parse import parse_qs, quote, urlsplit
+from urllib.request import Request, urlopen
+from urllib.error import HTTPError, URLError
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from typing import Any
 
@@ -23,6 +26,7 @@ from .entity_extraction import EntityExtractionError, PROFILE_NAME as ENTITY_PRO
 from .reranking import RerankingError, get_engine as get_reranking_engine
 from .retrieval import RetrievalError, configured_retrieval_services, retrieval_readiness
 from .index import IndexError as IndexServiceError, get_index_service
+from .memory import MemoryError as MemoryServiceError, get_memory_service
 from .internal_calls import INTERNAL_CALL_TOKEN
 from .chunking import (
     MAX_CONTENT_BYTES, MAX_CHUNKS, DEFAULT_POLICY, ChunkingError, Policy, chunk_document, chunk_spans, validate_index_profile,
@@ -39,6 +43,7 @@ MAX_INTENT_REQUEST_BYTES = 1_048_576
 MAX_ENTITY_REQUEST_BYTES = 1_048_576
 DEFAULT_REQUEST_TIMEOUT_SECONDS = 30.0
 SUPPORTED_PROFILES = {"markdown-default": {"0.1"}}
+_MEMORY_RECOVERY_LOCK = threading.Lock()
 
 
 def _profile_digest(bundle: dict[str, Any]) -> str:
@@ -369,7 +374,53 @@ class Handler(BaseHTTPRequestHandler):
         self._method_not_allowed()
 
     def do_DELETE(self) -> None:
-        self._dispatch_index_method("DELETE", False)
+        if not urlsplit(self.path).path.startswith("/api/v1/memories/"):
+            self._dispatch_index_method("DELETE", False)
+            return
+        request_id, invalid_id = self._request_id()
+        if invalid_id:
+            self._send(400, _error("invalid_parameter", "X-CE-Request-ID contains invalid characters or length"), request_id)
+            return
+        if (deadline_error := self._deadline_error()) is not None:
+            self._fail(deadline_error, request_id)
+            return
+        try:
+            if self.headers.get_content_type() != "application/json":
+                self._send(415, _error("unsupported_media_type", "Content-Type must be application/json"), request_id)
+                return
+            length_text = self.headers.get("Content-Length")
+            if length_text is None or not length_text.isdecimal():
+                raise ChunkingError("invalid_request", "a valid Content-Length is required", status=400)
+            length = int(length_text)
+            if length > MAX_REQUEST_BYTES:
+                self.close_connection = True
+                raise ChunkingError("request_too_large", "request exceeds configured byte limit", status=413)
+            body = json.loads(self._read_body(length).decode("utf-8"), object_pairs_hook=_unique_json_object,
+                              parse_constant=_reject_json_constant)
+            _validate_json_unicode(body)
+            if not isinstance(body, dict):
+                raise ChunkingError("invalid_request", "request body must be a JSON object", status=400)
+            if set(body) - {"scope", "delete_scope", "request_id"} or not {"scope", "delete_scope"}.issubset(body):
+                raise MemoryServiceError("invalid_request", "delete request has missing or unknown fields", 400)
+            memory_id = urlsplit(self.path).path.rsplit("/", 1)[-1]
+            service = get_memory_service()
+            status, response = service.delete(
+                memory_id, body.get("scope"), body.get("delete_scope"),
+                self.headers.get("Idempotency-Key", ""), request_id)
+            response["request_id"] = request_id
+            if response.get("status") in {"accepted", "pending", "failed"} and response.get("indexing_status") != "indexed":
+                details = service.deletion_details(response["operation_id"])
+                threading.Thread(target=self._memory_delete_index,
+                                 args=(service, response, details), daemon=True).start()
+            self._send(status, response, request_id)
+        except MemoryServiceError as exc:
+            self._send(exc.status, _error(exc.code, str(exc), retryable=exc.status >= 500), request_id)
+        except (UnicodeDecodeError, json.JSONDecodeError, ValueError):
+            self._send(400, _error("invalid_request", "request body must be valid UTF-8 JSON"), request_id)
+        except ChunkingError as exc:
+            self._fail(exc, request_id)
+        except Exception:
+            self._send(500, _error("internal_error", "request could not be processed"), request_id)
 
     def do_OPTIONS(self) -> None:
         self._method_not_allowed()
@@ -436,6 +487,54 @@ class Handler(BaseHTTPRequestHandler):
             service = "lexical-retrieval" if "lexical-retrieval" in self.path else "vector-retrieval"
             response = retrieval_readiness(service)
             self._send(200 if response["ready"] else 503, response, request_id)
+        elif self.path == "/api/v1/memory/health":
+            self._send(200, {"service": "memory", "status": "alive"}, request_id)
+        elif self.path == "/api/v1/memory/ready":
+            self._start_memory_recovery()
+            self._send(200, {"service": "memory", "status": "ready", "ready": True,
+                             "checks": [{"name": "canonical_store", "status": "ok"},
+                                        {"name": "pending_ingestion_recovery", "status": "scheduled"}]}, request_id)
+        elif urlsplit(self.path).path.startswith("/api/v1/memories/operations/"):
+            try:
+                parsed = urlsplit(self.path)
+                query = parse_qs(parsed.query)
+                scope = {"type": query.get("scope_type", [""])[0],
+                         "id": query.get("scope_id", [""])[0],
+                         "visibility": query.get("visibility", [""])[0]}
+                operation_id = parsed.path.rsplit("/", 1)[-1]
+                response = get_memory_service().operation(operation_id, scope_value=scope)
+                response["request_id"] = request_id
+                self._send(200, response, request_id)
+            except MemoryServiceError as exc:
+                self._send(exc.status, _error(exc.code, str(exc), retryable=exc.status >= 500), request_id)
+        elif len(urlsplit(self.path).path.strip("/").split("/")) == 6 and urlsplit(self.path).path.startswith("/api/v1/memories/") and urlsplit(self.path).path.split("/")[-2] == "operations":
+            try:
+                parsed = urlsplit(self.path)
+                query = parse_qs(parsed.query)
+                scope = {"type": query.get("scope_type", [""])[0],
+                         "id": query.get("scope_id", [""])[0],
+                         "visibility": query.get("visibility", [""])[0]}
+                parts = parsed.path.strip("/").split("/")
+                response = get_memory_service().operation(parts[-1], memory_id=parts[-3], scope_value=scope)
+                response["request_id"] = request_id
+                self._send(200, response, request_id)
+            except MemoryServiceError as exc:
+                self._send(exc.status, _error(exc.code, str(exc), retryable=exc.status >= 500), request_id)
+        elif urlsplit(self.path).path.startswith("/api/v1/memories/"):
+            try:
+                parsed = urlsplit(self.path)
+                memory_id = parsed.path.rsplit("/", 1)[-1]
+                query = parse_qs(parsed.query)
+                scope = {
+                    "type": query.get("scope_type", [""])[0],
+                    "id": query.get("scope_id", [""])[0],
+                    "visibility": query.get("visibility", [""])[0],
+                }
+                response = get_memory_service().read(memory_id, scope)
+                response["request_id"] = request_id
+                self._send(200, response, request_id)
+            except MemoryServiceError as exc:
+                self._send(exc.status, _error(exc.code, str(exc), retryable=exc.status >= 500), request_id)
         elif urlsplit(self.path).path.startswith("/api/v1/index/"):
             try:
                 parsed = urlsplit(self.path)
@@ -459,7 +558,10 @@ class Handler(BaseHTTPRequestHandler):
             self._fail(deadline_error, request_id)
             return
         is_index_route = urlsplit(self.path).path.startswith("/api/v1/index/")
-        if not is_index_route and self.path not in (
+        memory_path = urlsplit(self.path).path
+        is_memory_route = memory_path == "/api/v1/memories" or memory_path == "/api/v1/memories/verify-revisions" or (
+            memory_path.startswith("/api/v1/memories/") and memory_path.endswith("/revisions"))
+        if not is_index_route and not is_memory_route and self.path not in (
             "/api/v1/chunking/chunks", "/api/v1/chunking/preflight",
             "/api/v1/tokenization/lexical", "/api/v1/tokenization/lexical/batch",
             "/api/v1/embeddings", "/api/v1/ranking/rank",
@@ -508,6 +610,41 @@ class Handler(BaseHTTPRequestHandler):
             except (UnicodeDecodeError, json.JSONDecodeError, ValueError) as exc:
                 raise ChunkingError("invalid_request", "request body must be valid UTF-8 JSON without duplicate object keys", status=400) from exc
             _validate_json_unicode(request)
+            if is_memory_route:
+                parsed = urlsplit(self.path)
+                path = parsed.path
+                request["request_id"] = request_id
+                service = get_memory_service()
+                if path == "/api/v1/memories":
+                    context = self._memory_preflight(request, request_id)
+                    status, response = service.create(request, self.headers.get("Idempotency-Key", ""), request_id)
+                    if response.get("status") in {"accepted", "pending", "failed"} and response.get("indexing_status") != "indexed":
+                        worker = threading.Thread(target=self._memory_ingest,
+                                                  args=(service, response, dict(request), context), daemon=True)
+                        worker.start()
+                elif path == "/api/v1/memories/verify-revisions":
+                    if set(request) - {"items", "request_id"} or "items" not in request:
+                        raise MemoryServiceError("invalid_request", "verification request has missing or unknown fields", 400)
+                    response = {"results": service.verify_revisions(request["items"]), "request_id": request_id}
+                    status = 200
+                else:
+                    memory_id = path.split("/")[-2]
+                    query = parse_qs(parsed.query)
+                    scope = {"type": query.get("scope_type", [""])[0],
+                             "id": query.get("scope_id", [""])[0],
+                             "visibility": query.get("visibility", [""])[0]}
+                    service.read(memory_id, scope)
+                    context = self._memory_preflight(request, request_id)
+                    status, response = service.update(
+                        memory_id, request, self.headers.get("Idempotency-Key", ""), request_id, scope)
+                    if response.get("status") in {"accepted", "pending", "failed"} and response.get("indexing_status") != "indexed":
+                        ingestion_request = {**request, "scope": scope}
+                        worker = threading.Thread(target=self._memory_ingest,
+                                                  args=(service, response, ingestion_request, context), daemon=True)
+                        worker.start()
+                response["request_id"] = request_id
+                self._send(status, response, request_id)
+                return
             if is_index_route:
                 parsed = urlsplit(self.path)
                 request["request_id"] = request_id
@@ -568,10 +705,253 @@ class Handler(BaseHTTPRequestHandler):
             self._send(exc.status, _error(exc.code, str(exc), retryable=exc.status >= 500), request_id)
         except RetrievalError as exc:
             self._send(exc.status, _error(exc.code, str(exc), retryable=exc.status >= 500), request_id)
+        except MemoryServiceError as exc:
+            self._send(exc.status, _error(exc.code, str(exc), retryable=exc.status >= 500), request_id)
         except IndexServiceError as exc:
             self._send(exc.status, _error(exc.code, str(exc), retryable=exc.status >= 500), request_id)
         except Exception:
             self._send(500, _error("internal_error", "request could not be processed"), request_id)
+
+    def _memory_rest_json(self, base_url: str, path: str, *, payload: dict[str, Any] | None = None,
+                          request_id: str, timeout: float, extra_headers: dict[str, str] | None = None) -> dict[str, Any]:
+        body = None if payload is None else json.dumps(payload, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
+        headers = {
+            "Accept": "application/json",
+            "X-CE-Request-ID": request_id,
+            "X-CE-Internal-Call": "true",
+            "X-CE-Internal-Token": INTERNAL_CALL_TOKEN,
+        }
+        if body is not None:
+            headers["Content-Type"] = "application/json"
+        if extra_headers:
+            headers.update(extra_headers)
+        request = Request(base_url.rstrip("/") + path, data=body, headers=headers,
+                          method="GET" if body is None else "POST")
+        try:
+            with urlopen(request, timeout=timeout) as response:
+                decoded = json.loads(response.read().decode("utf-8"))
+        except HTTPError as exc:
+            try:
+                error_body = json.loads(exc.read().decode("utf-8"))
+                error = error_body.get("error", {})
+                code = error.get("code", "dependency_unavailable")
+                message = error.get("message", "Memory dependency request failed")
+            except Exception:
+                code, message = "dependency_unavailable", "Memory dependency request failed"
+            raise MemoryServiceError(code, message, exc.code if exc.code in {400, 404, 409, 413, 422, 503, 504} else 503) from exc
+        except (URLError, TimeoutError, OSError, ValueError) as exc:
+            raise MemoryServiceError("dependency_unavailable", "Memory dependency did not return a valid response", 503) from exc
+        if not isinstance(decoded, dict):
+            raise MemoryServiceError("dependency_unavailable", "Memory dependency returned an invalid response", 503)
+        return decoded
+
+    def _memory_preflight(self, request: dict[str, Any], request_id: str) -> dict[str, Any]:
+        profile = request.get("index_profile")
+        if not isinstance(profile, dict) or not isinstance(profile.get("name"), str) or not isinstance(profile.get("version"), str):
+            raise MemoryServiceError("invalid_request", "index_profile identity is required", 400)
+        local_base = f"http://127.0.0.1:{self.server.server_address[1]}"
+        index_base = os.environ.get("CE_INDEX_BASE_URL", local_base)
+        chunking_base = os.environ.get("CE_CHUNKING_BASE_URL", local_base)
+        profile_path = ("/api/v1/index/profiles/" + quote(profile["name"], safe="")
+                        + "/versions/" + quote(profile["version"], safe=""))
+        resolved = self._memory_rest_json(index_base, profile_path, request_id=request_id, timeout=2.0)
+        bundle = resolved.get("bundle", resolved.get("profile_bundle"))
+        if not isinstance(bundle, dict):
+            raise MemoryServiceError("profile_not_found", "Index did not return the requested profile bundle", 503)
+        for field in ("name", "version", "digest"):
+            if bundle.get(field) != profile.get(field):
+                raise MemoryServiceError("profile_mismatch", "Index returned a different pinned profile identity", 409)
+        chunking = bundle.get("chunking")
+        if not isinstance(chunking, dict):
+            raise MemoryServiceError("profile_mismatch", "Index profile has no chunking policy", 409)
+        preflight = self._memory_rest_json(
+            chunking_base, "/api/v1/chunking/preflight",
+            payload={
+                "request_id": request_id,
+                "index_profile": {key: profile[key] for key in ("name", "version", "digest")},
+                "source_text": request.get("content"),
+                "chunking_profile": {key: chunking[key] for key in ("profile", "version", "max_units", "overlap_units")},
+                "profile_bundle": bundle,
+            },
+            request_id=request_id, timeout=0.5,
+        )
+        if preflight.get("fits_profile") is not True:
+            raise MemoryServiceError("source_too_large", "content exceeds the pinned Index profile limits", 422)
+        return {"bundle": bundle, "preflight": preflight, "index_base": index_base,
+                "chunking_base": chunking_base,
+                "tokenization_base": os.environ.get("CE_TOKENIZATION_BASE_URL", local_base),
+                "embedding_base": os.environ.get("CE_EMBEDDING_BASE_URL", local_base),
+                "local_base": local_base}
+
+    def _start_memory_recovery(self) -> None:
+        """Run one startup recovery pass for durable, unfinished Memory ingestion."""
+        with _MEMORY_RECOVERY_LOCK:
+            if getattr(self.server, "_memory_recovery_started", False):
+                return
+            self.server._memory_recovery_started = True
+        service = get_memory_service()
+        threading.Thread(target=self._recover_pending_memory, args=(service,), daemon=True).start()
+
+    def _memory_delete_index(self, service: Any, accepted: dict[str, Any], details: dict[str, Any]) -> None:
+        operation_id = accepted["operation_id"]
+        request_id = accepted.get("request_id", operation_id)
+        local_base = f"http://127.0.0.1:{self.server.server_address[1]}"
+        index_base = os.environ.get("CE_INDEX_BASE_URL", local_base)
+        try:
+            self._memory_rest_json(
+                index_base, "/api/v1/index/operations/delete",
+                payload={
+                    "operation_id": operation_id, "request_id": request_id,
+                    "source_id": details["source_id"],
+                    "revision_sequence": details["revision_sequence"],
+                    "scope": details["scope"], "index_profile": details["index_profile"],
+                    "delete_scope": "source",
+                },
+                request_id=request_id, timeout=10.0,
+                extra_headers={"Idempotency-Key": operation_id})
+            # Graph deletion is deliberately not implemented in this slice.
+            # Keep the overall operation pending until that independent owner
+            # projection is acknowledged; Index alone is not full delete acceptance.
+            service.update_operation(operation_id, "pending", "indexed")
+        except Exception:
+            try:
+                service.update_operation(operation_id, "failed", "index_failed")
+            except Exception:
+                pass
+
+    def _recover_pending_memory(self, service: Any) -> None:
+        for item in service.pending_ingestions():
+            accepted = item["accepted"]
+            request = item["request"]
+            request_id = accepted.get("request_id", accepted["operation_id"])
+            try:
+                context = self._memory_preflight(request, request_id)
+                self._memory_ingest(service, accepted, request, context)
+            except Exception:
+                try:
+                    service.update_operation(accepted["operation_id"], "failed", "index_failed")
+                except Exception:
+                    pass
+        for item in service.pending_deletions():
+            self._memory_delete_index(service, item["accepted"], item["details"])
+
+    def _memory_ingest(self, service: Any, accepted: dict[str, Any], original_request: dict[str, Any],
+                       context: dict[str, Any]) -> None:
+        """Run the derived ingestion path after canonical commit, using REST only."""
+        operation_id = accepted["operation_id"]
+        request_id = accepted.get("request_id", operation_id)
+        try:
+            service.update_operation(operation_id, "pending", "pending_index")
+            canonical = service.read_for_ingestion(accepted["memory_id"], original_request["scope"], accepted["revision_sequence"])
+            bundle = context["bundle"]
+            profile = accepted["index_profile"]
+            # Chunking owns document structure, not access-control scope.
+            # Its source contract rejects unknown fields; scope is supplied
+            # separately to Index after representations are produced.
+            source = {
+                "source_id": accepted["source_id"], "revision": accepted["revision"],
+                "revision_sequence": accepted["revision_sequence"],
+                "media_type": "text/markdown", "content": canonical["content"],
+            }
+            chunks_response = self._memory_rest_json(
+                context["chunking_base"], "/api/v1/chunking/chunks",
+                payload={"request_id": request_id, "index_profile": profile,
+                         "source": source, "profile_bundle": bundle},
+                request_id=request_id, timeout=10.0)
+            chunks = chunks_response.get("chunks")
+            if not isinstance(chunks, list) or not chunks:
+                raise MemoryServiceError("invalid_dependency_response", "Chunking returned no chunks", 503)
+            tokenization_profile = bundle["tokenization"]
+            token_results: dict[str, list[str]] = {}
+            for start in range(0, len(chunks), 64):
+                batch = chunks[start:start + 64]
+                token_response = self._memory_rest_json(
+                    context["tokenization_base"], "/api/v1/tokenization/lexical/batch",
+                    payload={
+                        "request_id": request_id, "index_profile": profile,
+                        "profile": tokenization_profile["profile"],
+                        "profile_version": tokenization_profile["version"],
+                        "inputs": [{"input_id": chunk["chunk_id"], "text": chunk["text"]} for chunk in batch],
+                    },
+                    request_id=request_id, timeout=10.0)
+                for item in token_response.get("results", []):
+                    if not isinstance(item, dict) or "error" in item or not isinstance(item.get("tokens"), list):
+                        raise MemoryServiceError("tokenization_failed", "Tokenization failed for one or more chunks", 422)
+                    terms = []
+                    seen = set()
+                    for token in item["tokens"]:
+                        term = token.get("term") if isinstance(token, dict) else None
+                        if isinstance(term, str) and term and term not in seen:
+                            seen.add(term)
+                            terms.append(term)
+                    token_results[item["input_id"]] = terms
+            embedding_profile = bundle["embedding"]
+            embedded: dict[str, dict[str, Any]] = {}
+            for start in range(0, len(chunks), 64):
+                batch = chunks[start:start + 64]
+                embedding_response = self._memory_rest_json(
+                    context["embedding_base"], "/api/v1/embeddings",
+                    payload={
+                        "request_id": request_id, "index_profile": profile,
+                        "profile": embedding_profile["profile"],
+                        "profile_version": embedding_profile["version"],
+                        "normalize": embedding_profile["normalization"],
+                        "inputs": [{"input_id": chunk["chunk_id"], "input_type": "document", "text": chunk["text"]}
+                                   for chunk in batch],
+                    },
+                    request_id=request_id, timeout=20.0)
+                model = embedding_response.get("model", {})
+                if (model.get("model_id") != embedding_profile["model"]
+                        or model.get("model_version") != embedding_profile["model_version"]
+                        or model.get("dimensions") != embedding_profile["dimensions"]):
+                    raise MemoryServiceError("incompatible_representation", "Embedding model identity does not match the pinned Index profile", 422)
+                for item in embedding_response.get("results", []):
+                    if not isinstance(item, dict) or item.get("status") != "complete" or not isinstance(item.get("vector"), list):
+                        raise MemoryServiceError("embedding_failed", "Embedding failed for one or more chunks", 503)
+                    embedded[item["input_id"]] = {"model": model["model_id"], "version": model["model_version"],
+                                                  "dimensions": model["dimensions"], "values": item["vector"]}
+            lexical = bundle["lexical"]
+            representations = []
+            for chunk in chunks:
+                chunk_id = chunk["chunk_id"]
+                if chunk_id not in token_results or chunk_id not in embedded:
+                    raise MemoryServiceError("invalid_dependency_response", "A chunk is missing tokenization or embedding output", 503)
+                representations.append({
+                    "chunk_id": chunk_id,
+                    "chunker": {"profile": chunks_response["chunker"]["profile"],
+                                "version": chunks_response["chunker"]["version"]},
+                    "text": chunk["text"],
+                    "lexical": {"profile": lexical["profile"], "version": lexical["version"],
+                                "terms": token_results[chunk_id]},
+                    "vector": {"input_type": "document", **embedded[chunk_id]},
+                    "metadata": chunk.get("metadata", {}),
+                })
+            self._memory_rest_json(
+                context["index_base"], "/api/v1/index/operations/upsert",
+                payload={"operation_id": operation_id, "request_id": request_id,
+                         "source": {"source_id": accepted["source_id"], "revision": accepted["revision"],
+                                    "revision_sequence": accepted["revision_sequence"], "scope": canonical["scope"]},
+                         "index_profile": profile, "representations": representations},
+                request_id=request_id, timeout=20.0,
+                extra_headers={"Idempotency-Key": operation_id})
+            service.update_operation(operation_id, "complete", "indexed")
+        except MemoryServiceError as exc:
+            # Keep the durable public operation status coarse, but retain a
+            # bounded diagnostic in service logs for operational troubleshooting.
+            print(f"Memory ingestion {operation_id} failed ({exc.code}): {str(exc)[:512]}")
+            try:
+                if exc.code == "stale_revision":
+                    service.update_operation(operation_id, "reconciliation_required", "reconciliation_required")
+                else:
+                    service.update_operation(operation_id, "failed", "index_failed")
+            except Exception:
+                pass
+        except Exception as exc:
+            print(f"Memory ingestion {operation_id} failed ({type(exc).__name__}): {str(exc)[:512]}")
+            try:
+                service.update_operation(operation_id, "failed", "index_failed")
+            except Exception:
+                pass
 
     def _rank(self, value: Any) -> dict[str, Any]:
         return rank_candidates(value)
