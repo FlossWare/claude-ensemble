@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 import re
 import sqlite3
 import threading
@@ -381,3 +382,24 @@ class MemoryService:
         """Small diagnostic used by tests; not exposed through REST."""
         with self._connect() as db:
             return int(db.execute("SELECT COUNT(*) AS n FROM memories").fetchone()["n"])
+
+
+_service_lock = threading.Lock()
+_service_instance: MemoryService | None = None
+
+
+def get_memory_service() -> MemoryService:
+    """Return the process-local Memory owner configured for this deployment."""
+    global _service_instance
+    with _service_lock:
+        if _service_instance is None:
+            path = os.environ.get("CE_MEMORY_DB_PATH") or str(Path.home() / ".FlossWare" / "memory" / "memory.sqlite3")
+            _service_instance = MemoryService(path)
+        return _service_instance
+
+
+def reset_memory_service_for_tests() -> None:
+    """Reset only the process-local singleton; persistent data is never deleted."""
+    global _service_instance
+    with _service_lock:
+        _service_instance = None
