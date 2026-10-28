@@ -46,6 +46,7 @@ MAX_GRAPH_REQUEST_BYTES = 1_048_576
 DEFAULT_REQUEST_TIMEOUT_SECONDS = 30.0
 SUPPORTED_PROFILES = {"markdown-default": {"0.1"}}
 _MEMORY_RECOVERY_LOCK = threading.Lock()
+_MEMORY_GRAPH_LOCK = threading.Lock()
 
 
 def _profile_digest(bundle: dict[str, Any]) -> str:
@@ -414,6 +415,7 @@ class Handler(BaseHTTPRequestHandler):
                 details = service.deletion_details(response["operation_id"])
                 threading.Thread(target=self._memory_delete_index,
                                  args=(service, response, details), daemon=True).start()
+                threading.Thread(target=self._memory_graph_project, args=(service,), daemon=True).start()
             self._send(status, response, request_id)
         except MemoryServiceError as exc:
             self._send(exc.status, _error(exc.code, str(exc), retryable=exc.status >= 500), request_id)
@@ -639,6 +641,7 @@ class Handler(BaseHTTPRequestHandler):
                         worker = threading.Thread(target=self._memory_ingest,
                                                   args=(service, response, dict(request), context), daemon=True)
                         worker.start()
+                        threading.Thread(target=self._memory_graph_project, args=(service,), daemon=True).start()
                 elif path == "/api/v1/memories/verify-revisions":
                     if set(request) - {"items", "request_id"} or "items" not in request:
                         raise MemoryServiceError("invalid_request", "verification request has missing or unknown fields", 400)
@@ -659,6 +662,7 @@ class Handler(BaseHTTPRequestHandler):
                         worker = threading.Thread(target=self._memory_ingest,
                                                   args=(service, response, ingestion_request, context), daemon=True)
                         worker.start()
+                        threading.Thread(target=self._memory_graph_project, args=(service,), daemon=True).start()
                 response["request_id"] = request_id
                 self._send(status, response, request_id)
                 return
@@ -853,6 +857,35 @@ class Handler(BaseHTTPRequestHandler):
                     pass
         for item in service.pending_deletions():
             self._memory_delete_index(service, item["accepted"], item["details"])
+        self._memory_graph_project(service)
+
+    def _memory_graph_project(self, service: Any) -> None:
+        """Replay durable Memory Graph intents in owner-sequence order through REST."""
+        if not _MEMORY_GRAPH_LOCK.acquire(blocking=False):
+            return
+        try:
+            for item in service.pending_graph_projections():
+                payload = dict(item["payload"])
+                operation_id = item["operation_id"]
+                request_id = payload.get("request_id", operation_id)
+                payload["request_id"] = request_id
+                local_base = f"http://127.0.0.1:{self.server.server_address[1]}"
+                graph_base = os.environ.get("CE_GRAPH_BASE_URL", local_base)
+                endpoint = ("/api/v1/graph/source-deletions" if item["operation_kind"] == "delete"
+                            else "/api/v1/graph/source-projections")
+                try:
+                    self._memory_rest_json(graph_base, endpoint, payload=payload, request_id=request_id,
+                                           timeout=10.0, extra_headers={"Idempotency-Key": operation_id})
+                    service.update_graph_operation(operation_id, "indexed")
+                except Exception as exc:
+                    try:
+                        service.update_graph_operation(operation_id, "graph_failed",
+                                                       f"{type(exc).__name__}: {str(exc)[:400]}")
+                    except Exception:
+                        pass
+                    break
+        finally:
+            _MEMORY_GRAPH_LOCK.release()
 
     def _memory_ingest(self, service: Any, accepted: dict[str, Any], original_request: dict[str, Any],
                        context: dict[str, Any]) -> None:
