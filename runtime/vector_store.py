@@ -16,7 +16,7 @@ from typing import Any, Protocol
 
 
 SUPPORTED_METRICS = {"cosine", "dot_product", "euclidean"}
-MAX_QUERY_RESULTS = 100
+MAX_QUERY_RESULTS = 1000
 
 
 class VectorStoreError(RuntimeError):
