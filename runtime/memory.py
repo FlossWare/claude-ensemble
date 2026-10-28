@@ -239,6 +239,144 @@ class MemoryService:
                 raise MemoryError("not_found", "operation was not found", 404)
             return json.loads(row["response_json"])
 
+    def update(self, memory_id: str, request: dict[str, Any], idempotency_key: str, request_id: str) -> tuple[int, dict[str, Any]]:
+        required = {"expected_base_revision_sequence", "content", "provenance", "index_profile"}
+        if set(request) - (required | {"request_id"}) or not required.issubset(request):
+            raise MemoryError("invalid_request", "revision request has missing or unknown fields", 400)
+        if not isinstance(idempotency_key, str) or not 1 <= len(idempotency_key) <= 256:
+            raise MemoryError("invalid_request", "Idempotency-Key is required and must be 1 to 256 characters", 400)
+        if not MEMORY_ID.fullmatch(memory_id or ""):
+            raise MemoryError("invalid_parameter", "memory_id is invalid", 400)
+        content = _validate_text(request["content"], "content")
+        if not isinstance(request["provenance"], dict):
+            raise MemoryError("invalid_request", "provenance must be an object", 400)
+        profile = _validate_profile(request["index_profile"])
+        expected = request["expected_base_revision_sequence"]
+        if type(expected) is not int or not 1 <= expected <= MAX_SEQUENCE:
+            raise MemoryError("invalid_request", "expected_base_revision_sequence is invalid", 400)
+        semantic_request = {"memory_id": memory_id, **{k: v for k, v in request.items() if k != "request_id"}}
+        payload_hash = _payload_hash(semantic_request)
+        with self._lock, self._connect() as db:
+            prior = db.execute("SELECT payload_hash,response_json FROM memory_idempotency WHERE idempotency_key=?", (idempotency_key,)).fetchone()
+            if prior:
+                if prior["payload_hash"] != payload_hash:
+                    raise MemoryError("idempotency_conflict", "Idempotency-Key was already used with a different payload", 409)
+                response = json.loads(prior["response_json"])
+                response["request_id"] = request_id
+                return 202, response
+            row = db.execute("SELECT * FROM memories WHERE memory_id=?", (memory_id,)).fetchone()
+            if row is None or row["tombstone_sequence"] is not None:
+                raise MemoryError("not_found", "memory was not found", 404)
+            if row["current_sequence"] != expected:
+                raise MemoryError("revision_conflict", "expected base revision does not match the current revision", 409)
+            if json.loads(row["index_profile_json"]) != profile:
+                raise MemoryError("incompatible_representation", "changing index profile requires an explicit rebuild workflow", 422)
+            revision_sequence = self._allocate_sequence(db)
+            revision = uuid.uuid4().hex
+            operation_id = "memory:op:" + uuid.uuid4().hex
+            response = {
+                "operation_id": operation_id, "memory_id": memory_id,
+                "revision": revision, "revision_sequence": revision_sequence,
+                "status": "accepted", "indexing_status": "pending_index",
+                "source_id": "memory:" + memory_id, "index_profile": profile,
+                "request_id": request_id,
+            }
+            db.execute("INSERT INTO revisions(memory_id,revision_sequence,revision_id,content,provenance_json,retention_json) VALUES(?,?,?,?,?,?)",
+                       (memory_id, revision_sequence, revision, content, _canonical(request["provenance"]).decode(),
+                        db.execute("SELECT retention_json FROM revisions WHERE memory_id=? AND revision_sequence=?", (memory_id, expected)).fetchone()["retention_json"]))
+            db.execute("UPDATE memories SET current_sequence=?,current_revision=?,updated_at=CURRENT_TIMESTAMP WHERE memory_id=?",
+                       (revision_sequence, revision, memory_id))
+            db.execute("INSERT INTO memory_operations(operation_id,memory_id,operation_kind,status,indexing_status,revision_sequence,response_json) VALUES(?,?,?,?,?,?,?)",
+                       (operation_id, memory_id, "update", "accepted", "pending_index", revision_sequence, _canonical(response).decode()))
+            db.execute("INSERT INTO memory_idempotency(idempotency_key,payload_hash,operation_id,response_json) VALUES(?,?,?,?)",
+                       (idempotency_key, payload_hash, operation_id, _canonical(response).decode()))
+            return 202, response
+
+    def delete(self, memory_id: str, scope_value: Any, delete_scope: str, idempotency_key: str, request_id: str) -> tuple[int, dict[str, Any]]:
+        if not MEMORY_ID.fullmatch(memory_id or ""):
+            raise MemoryError("invalid_parameter", "memory_id is invalid", 400)
+        scope = _validate_scope(scope_value)
+        if delete_scope != "source":
+            raise MemoryError("invalid_request", "delete_scope must be source", 400)
+        if not isinstance(idempotency_key, str) or not 1 <= len(idempotency_key) <= 256:
+            raise MemoryError("invalid_request", "Idempotency-Key is required and must be 1 to 256 characters", 400)
+        payload_hash = _payload_hash({"memory_id": memory_id, "scope": scope, "delete_scope": delete_scope})
+        with self._lock, self._connect() as db:
+            prior = db.execute("SELECT payload_hash,response_json FROM memory_idempotency WHERE idempotency_key=?", (idempotency_key,)).fetchone()
+            if prior:
+                if prior["payload_hash"] != payload_hash:
+                    raise MemoryError("idempotency_conflict", "Idempotency-Key was already used with a different payload", 409)
+                response = json.loads(prior["response_json"])
+                response["request_id"] = request_id
+                return 202, response
+            row = db.execute("SELECT * FROM memories WHERE memory_id=?", (memory_id,)).fetchone()
+            if row is None or json.loads(row["scope_json"]) != scope:
+                raise MemoryError("not_found", "memory was not found in this scope", 404)
+            if row["tombstone_sequence"] is not None:
+                raise MemoryError("not_found", "memory was already deleted", 404)
+            sequence = self._allocate_sequence(db)
+            revision = uuid.uuid4().hex
+            operation_id = "memory:op:" + uuid.uuid4().hex
+            response = {
+                "operation_id": operation_id, "memory_id": memory_id,
+                "revision_sequence": sequence, "status": "accepted",
+                "indexing_status": "pending_index", "graph_status": "pending",
+                "request_id": request_id,
+            }
+            db.execute("UPDATE memories SET current_sequence=?,current_revision=?,tombstone_sequence=?,updated_at=CURRENT_TIMESTAMP WHERE memory_id=?",
+                       (sequence, revision, sequence, memory_id))
+            db.execute("INSERT INTO memory_operations(operation_id,memory_id,operation_kind,status,indexing_status,revision_sequence,response_json) VALUES(?,?,?,?,?,?,?)",
+                       (operation_id, memory_id, "delete", "accepted", "pending_index", sequence, _canonical(response).decode()))
+            db.execute("INSERT INTO memory_idempotency(idempotency_key,payload_hash,operation_id,response_json) VALUES(?,?,?,?)",
+                       (idempotency_key, payload_hash, operation_id, _canonical(response).decode()))
+            return 202, response
+
+    def update_operation(self, operation_id: str, status: str, indexing_status: str) -> dict[str, Any]:
+        if status not in {"accepted", "pending", "complete", "failed", "reconciliation_required"}:
+            raise MemoryError("invalid_request", "operation status is invalid", 400)
+        if indexing_status not in {"pending_index", "indexed", "index_failed", "reconciliation_required"}:
+            raise MemoryError("invalid_request", "indexing status is invalid", 400)
+        with self._lock, self._connect() as db:
+            row = db.execute("SELECT response_json FROM memory_operations WHERE operation_id=?", (operation_id,)).fetchone()
+            if row is None:
+                raise MemoryError("not_found", "operation was not found", 404)
+            response = json.loads(row["response_json"])
+            response["status"] = status
+            response["indexing_status"] = indexing_status
+            db.execute("UPDATE memory_operations SET status=?,indexing_status=?,response_json=?,updated_at=CURRENT_TIMESTAMP WHERE operation_id=?",
+                       (status, indexing_status, _canonical(response).decode(), operation_id))
+            db.execute("UPDATE memory_idempotency SET response_json=? WHERE operation_id=?", (_canonical(response).decode(), operation_id))
+            return response
+
+    def verify_revisions(self, items: Any) -> list[dict[str, Any]]:
+        if not isinstance(items, list) or not 1 <= len(items) <= 100:
+            raise MemoryError("invalid_request", "items must contain 1 to 100 entries", 400)
+        results = []
+        with self._connect() as db:
+            for item in items:
+                if not isinstance(item, dict) or set(item) != {"source_id", "revision_sequence"}:
+                    raise MemoryError("invalid_request", "each item must contain source_id and revision_sequence", 400)
+                source_id = item["source_id"]
+                sequence = item["revision_sequence"]
+                if not isinstance(source_id, str) or not source_id.startswith("memory:") or not MEMORY_ID.fullmatch(source_id[7:]):
+                    raise MemoryError("invalid_request", "source_id must use the memory: namespace", 400)
+                if type(sequence) is not int or not 1 <= sequence <= MAX_SEQUENCE:
+                    raise MemoryError("invalid_request", "revision_sequence is invalid", 400)
+                row = db.execute("SELECT current_sequence,tombstone_sequence FROM memories WHERE memory_id=?", (source_id[7:],)).fetchone()
+                if row is None:
+                    result = {"source_id": source_id, "requested_revision_sequence": sequence, "status": "not_found"}
+                elif row["tombstone_sequence"] is not None:
+                    result = {"source_id": source_id, "requested_revision_sequence": sequence, "status": "tombstoned",
+                              "canonical_revision_sequence": row["tombstone_sequence"]}
+                elif row["current_sequence"] == sequence:
+                    result = {"source_id": source_id, "requested_revision_sequence": sequence, "status": "current",
+                              "canonical_revision_sequence": row["current_sequence"]}
+                else:
+                    result = {"source_id": source_id, "requested_revision_sequence": sequence, "status": "stale",
+                              "canonical_revision_sequence": row["current_sequence"]}
+                results.append(result)
+        return results
+
     def list_records_for_tests(self) -> int:
         """Small diagnostic used by tests; not exposed through REST."""
         with self._connect() as db:
