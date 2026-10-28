@@ -139,6 +139,17 @@ class MemoryOwnerTests(unittest.TestCase):
                 urlopen(read_url, timeout=3)
             self.assertEqual(caught.exception.code, 404)
 
+    def test_pending_tombstone_contains_stable_index_replay_identity(self):
+        _, created = self.service.create(create_request(), "create-1", "req-1")
+        _, deleted = self.service.delete(created["memory_id"], SCOPE, "source", "delete-1", "req-2")
+        pending = self.service.pending_deletions()
+        self.assertEqual(len(pending), 1)
+        details = pending[0]["details"]
+        self.assertEqual(details["source_id"], created["source_id"])
+        self.assertEqual(details["revision_sequence"], deleted["revision_sequence"])
+        self.assertEqual(details["scope"], SCOPE)
+        self.assertEqual(details["index_profile"], PROFILE)
+
     def test_scope_mismatch_does_not_disclose_record(self):
         _, created = self.service.create(create_request(), "create-1", "req-1")
         with self.assertRaises(MemoryError) as caught:
