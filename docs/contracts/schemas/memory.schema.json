@@ -758,7 +758,8 @@
         "status",
         "request_id",
         "indexing_status",
-        "graph_status"
+        "graph_status",
+        "source_id"
       ],
       "properties": {
         "operation_id": {
@@ -804,6 +805,12 @@
             "index_failed",
             "reconciliation_required"
           ]
+        },
+        "source_id": {
+          "type": "string",
+          "minLength": 8,
+          "maxLength": 135,
+          "pattern": "^memory:[A-Za-z0-9._~-]{1,128}$"
         },
         "graph_status": {
           "enum": [
