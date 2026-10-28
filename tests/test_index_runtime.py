@@ -312,13 +312,14 @@ class IndexRuntimeTests(unittest.TestCase):
             {"index_profile": self.identity}, Headers({"Idempotency-Key": "build-cutover"}), "build"
         )
         self.assertEqual(status, 202)
-        status, result = self.service.handle(
-            "POST", f"/api/v1/index/generations/{generation['generation_id']}/cutover", {},
-            {"expected_active_generation": self.service.active_generation()["generation_id"],
-             "owner_fences": []}, Headers({"Idempotency-Key": "cutover-key"}), "cutover"
-        )
-        self.assertEqual(status, 503)
-        self.assertEqual(result["error"]["code"], "not_ready")
+        with self.assertRaises(IndexError) as raised:
+            self.service.handle(
+                "POST", f"/api/v1/index/generations/{generation['generation_id']}/cutover", {},
+                {"expected_active_generation": self.service.active_generation()["generation_id"],
+                 "owner_fences": []}, Headers({"Idempotency-Key": "cutover-key"}), "cutover"
+            )
+        self.assertEqual(raised.exception.status, 503)
+        self.assertEqual(raised.exception.code, "not_ready")
 
     def test_target_generation_source_failure_is_durable_and_blocks_eligibility(self):
         class Headers(dict):
