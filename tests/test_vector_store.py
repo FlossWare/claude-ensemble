@@ -175,5 +175,49 @@ class VectorStoreTests(unittest.TestCase):
             self.store.query([1.0, 0.0, 0.0], scope=SCOPE, limit=5, metric="cosine")
 
 
+class PersistentChromaIntegrationTests(unittest.TestCase):
+    """Exercise the real Chroma API and disk persistence, not only the fake client."""
+
+    def test_persistent_upsert_scope_query_and_reopen(self):
+        import tempfile
+        import chromadb
+
+        with tempfile.TemporaryDirectory(prefix="ce-chroma-test-") as directory:
+            client = chromadb.PersistentClient(path=directory)
+            store = ChromaVectorStore(
+                directory, profile_digest=PROFILE, generation_id="generation-real",
+                metric="cosine", client=client,
+            )
+            store.upsert([
+                record(generation_id="generation-real", chunk_id="real-a",
+                       embedding=[1.0, 0.0, 0.0]),
+                record(generation_id="generation-real", source_id="knowledge:other",
+                       chunk_id="real-b", scope={"type": "project", "id": "project-b",
+                                                "visibility": "private"},
+                       embedding=[0.0, 1.0, 0.0]),
+            ])
+            # Re-open the persistent database to prove the adapter isn't relying on
+            # process-local fake state.
+            reopened = ChromaVectorStore(
+                directory, profile_digest=PROFILE, generation_id="generation-real",
+                metric="cosine", client=chromadb.PersistentClient(path=directory),
+            )
+            results = reopened.query(
+                [1.0, 0.0, 0.0], scope=SCOPE, limit=10, metric="cosine",
+            )
+            self.assertEqual(len(results), 1)
+            self.assertEqual(results[0]["source_id"], "knowledge:doc-a")
+            self.assertEqual(results[0]["chunk_id"], "real-a")
+            self.assertAlmostEqual(results[0]["similarity"], 1.0, places=5)
+            self.assertEqual(reopened.list_ids(), {
+                record_id(record(generation_id="generation-real", chunk_id="real-a",
+                                 embedding=[1.0, 0.0, 0.0])),
+                record_id(record(generation_id="generation-real", source_id="knowledge:other",
+                                 chunk_id="real-b", scope={"type": "project", "id": "project-b",
+                                                          "visibility": "private"},
+                                 embedding=[0.0, 1.0, 0.0])),
+            })
+
+
 if __name__ == "__main__":
     unittest.main()
