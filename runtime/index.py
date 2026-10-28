@@ -241,10 +241,10 @@ class IndexService:
                          (endpoint, key)).fetchone()
         if not row:
             return None
-        if row["payload_hash"] != _payload_hash(payload):
-            raise _error("idempotency_conflict", "lifecycle idempotency key was reused with different content", 409)
         if self._idempotency_expired(row["created_at"]):
             raise _error("idempotency_key_expired", "terminal idempotency binding expired after 30 days; use a fresh key", 409)
+        if row["payload_hash"] != _payload_hash(payload):
+            raise _error("idempotency_conflict", "lifecycle idempotency key was reused with different content", 409)
         return json.loads(row["response_json"])
 
     @staticmethod
@@ -446,10 +446,10 @@ class IndexService:
         with self._lock, self._connect() as db:
             prior = db.execute("SELECT * FROM operations WHERE operation_id=? OR idempotency_key=?", (request["operation_id"], idempotency_key)).fetchone()
             if prior:
-                if prior["payload_hash"] != payload_hash or prior["idempotency_key"] != idempotency_key or prior["operation_id"] != request["operation_id"]:
-                    raise _error("idempotency_conflict", "operation identity was reused with different content", 409)
                 if prior["status"] not in {"pending", "accepted", "reconciliation_required"} and self._idempotency_expired(prior["terminal_at"] or prior["created_at"]):
                     raise _error("idempotency_key_expired", "terminal idempotency binding expired after 30 days; use a fresh key", 409)
+                if prior["payload_hash"] != payload_hash or prior["idempotency_key"] != idempotency_key or prior["operation_id"] != request["operation_id"]:
+                    raise _error("idempotency_conflict", "operation identity was reused with different content", 409)
                 return 200, json.loads(prior["response_json"])
             bundle, _ = self._profile(db, request.get("index_profile"))
             if bundle.get("status") == "retired":
@@ -465,8 +465,11 @@ class IndexService:
             if old and scope_json != old["scope_json"]:
                 raise _error("conflict", "a source identity cannot change scope partition", 409)
             if is_active_generation:
-                if old and seq <= old["latest_sequence"]:
-                    raise _error("revision_sequence_regression", "a source revision sequence must strictly increase for a new operation", 409)
+                if old and seq < old["latest_sequence"]:
+                    raise _error("revision_sequence_regression", "a source revision sequence cannot regress", 409)
+                if old and seq == old["latest_sequence"] and not self._representations_match(
+                        db, gen["generation_id"], source_id, source["revision"], scope_json, validated):
+                    raise _error("revision_conflict", "same source revision sequence has a different canonical payload", 409)
             else:
                 prior_target = db.execute("SELECT MAX(revision_sequence) AS sequence FROM representations WHERE generation_id=? AND source_id=?",
                                           (gen["generation_id"], source_id)).fetchone()
@@ -476,6 +479,8 @@ class IndexService:
                 if prior_sequence == seq and not self._representations_match(
                         db, gen["generation_id"], source_id, source["revision"], scope_json, validated):
                     raise _error("revision_conflict", "same target-generation revision sequence has a different canonical payload", 409)
+                db.execute("UPDATE generations SET status='building' WHERE generation_id=? AND status='eligible'",
+                           (gen["generation_id"],))
             db.execute("DELETE FROM representations WHERE generation_id=? AND source_id=? AND revision_sequence<?",
                        (gen["generation_id"], source_id, seq))
             for rep in validated:
@@ -503,7 +508,7 @@ class IndexService:
                         "request_id": request.get("request_id", "index")}
             db.execute("INSERT INTO operations(operation_id,idempotency_key,payload_hash,status,response_json) VALUES(?,?,?,?,?)",
                        (request["operation_id"], idempotency_key, payload_hash, "complete", _canonical(response).decode()))
-            if is_active_generation:
+            if is_active_generation and (not old or seq > old["latest_sequence"]):
                 # A new active mutation invalidates prior readiness and is dual-applied
                 # to compatible target generations before this transaction commits.
                 db.execute("UPDATE generations SET status='building' WHERE status='eligible' AND profile_digest=?",
@@ -514,6 +519,9 @@ class IndexService:
                     target_id = target_row["generation_id"]
                     prior_target = db.execute("SELECT MAX(revision_sequence) AS sequence FROM representations WHERE generation_id=? AND source_id=?",
                                               (target_id, source_id)).fetchone()["sequence"]
+                    if prior_target == seq and not self._representations_match(
+                            db, target_id, source_id, source["revision"], scope_json, validated):
+                        raise _error("revision_conflict", "active mutation conflicts with an existing target-generation revision", 409)
                     if prior_target is None or seq > prior_target:
                         db.execute("DELETE FROM representations WHERE generation_id=? AND source_id=? AND revision_sequence<?",
                                    (target_id, source_id, seq))
@@ -549,10 +557,10 @@ class IndexService:
         with self._lock, self._connect() as db:
             prior = db.execute("SELECT * FROM operations WHERE operation_id=? OR idempotency_key=?", (request.get("operation_id"), idempotency_key)).fetchone()
             if prior:
-                if prior["payload_hash"] != payload_hash or prior["idempotency_key"] != idempotency_key:
-                    raise _error("idempotency_conflict", "operation identity was reused with different content", 409)
                 if prior["status"] not in {"pending", "accepted", "reconciliation_required"} and self._idempotency_expired(prior["terminal_at"] or prior["created_at"]):
                     raise _error("idempotency_key_expired", "terminal idempotency binding expired after 30 days; use a fresh key", 409)
+                if prior["payload_hash"] != payload_hash or prior["idempotency_key"] != idempotency_key:
+                    raise _error("idempotency_conflict", "operation identity was reused with different content", 409)
                 return 200, json.loads(prior["response_json"])
             bundle, _ = self._profile(db, request.get("index_profile"))
             if bundle.get("status") == "retired":
@@ -861,10 +869,10 @@ class IndexService:
             with self._lock, self._connect() as db:
                 prior = db.execute("SELECT * FROM generation_idempotency WHERE idempotency_key=?", (idempotency_key,)).fetchone()
                 if prior:
-                    if prior["payload_hash"] != semantic_hash:
-                        raise _error("idempotency_conflict", "generation idempotency key was reused with different content", 409)
                     if self._idempotency_expired(prior["created_at"]):
                         raise _error("idempotency_key_expired", "terminal idempotency binding expired after 30 days; use a fresh key", 409)
+                    if prior["payload_hash"] != semantic_hash:
+                        raise _error("idempotency_conflict", "generation idempotency key was reused with different content", 409)
                     row = db.execute("SELECT * FROM generations WHERE generation_id=?", (prior["generation_id"],)).fetchone()
                     return 200, self._generation_payload(db, row)
                 bundle, _ = self._profile(db, payload.get("index_profile"))

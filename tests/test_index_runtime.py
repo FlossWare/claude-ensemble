@@ -282,6 +282,10 @@ class IndexRuntimeTests(unittest.TestCase):
         with self.assertRaises(IndexError) as raised:
             self.service.upsert(request, "idem-expire")
         self.assertEqual(raised.exception.code, "idempotency_key_expired")
+        changed = self.upsert_request(reps=[representation("chunk-a", "changed payload", ["changed"], [0.0, 1.0, 0.0])])
+        with self.assertRaises(IndexError) as reused:
+            self.service.upsert(changed, "idem-expire")
+        self.assertEqual(reused.exception.code, "idempotency_key_expired")
 
     def test_active_writes_are_dual_applied_to_building_generation(self):
         class Headers(dict):
@@ -375,6 +379,20 @@ class IndexRuntimeTests(unittest.TestCase):
             )
         self.assertEqual(raised.exception.status, 503)
         self.assertEqual(raised.exception.code, "not_ready")
+
+    def test_active_same_revision_is_idempotent_only_for_matching_payload(self):
+        first = self.upsert_request(operation_id="active-same-first")
+        self.service.upsert(first, "active-same-key-1")
+        matching = self.upsert_request(operation_id="active-same-second")
+        status, _ = self.service.upsert(matching, "active-same-key-2")
+        self.assertEqual(status, 202)
+        conflicting = self.upsert_request(
+            operation_id="active-same-conflict",
+            reps=[representation("chunk-a", "different payload", ["different"], [0.0, 1.0, 0.0])]
+        )
+        with self.assertRaises(IndexError) as raised:
+            self.service.upsert(conflicting, "active-same-key-3")
+        self.assertEqual(raised.exception.code, "revision_conflict")
 
     def test_target_generation_replay_accepts_same_revision_only_for_same_payload(self):
         class Headers(dict):
