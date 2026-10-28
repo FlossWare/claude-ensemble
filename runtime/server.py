@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+from concurrent.futures import ThreadPoolExecutor
 import hmac
 import math
 import os
@@ -47,6 +48,7 @@ DEFAULT_REQUEST_TIMEOUT_SECONDS = 30.0
 SUPPORTED_PROFILES = {"markdown-default": {"0.1"}}
 _MEMORY_RECOVERY_LOCK = threading.Lock()
 _MEMORY_GRAPH_LOCK = threading.Lock()
+_MEMORY_INGEST_EXECUTOR = ThreadPoolExecutor(max_workers=2, thread_name_prefix="ce-memory-ingest")
 
 
 def _profile_digest(bundle: dict[str, Any]) -> str:
@@ -638,9 +640,7 @@ class Handler(BaseHTTPRequestHandler):
                     context = self._memory_preflight(request, request_id)
                     status, response = service.create(request, self.headers.get("Idempotency-Key", ""), request_id)
                     if response.get("status") in {"accepted", "pending", "failed"} and response.get("indexing_status") != "indexed":
-                        worker = threading.Thread(target=self._memory_ingest,
-                                                  args=(service, response, dict(request), context), daemon=True)
-                        worker.start()
+                        _MEMORY_INGEST_EXECUTOR.submit(self._memory_ingest, service, response, dict(request), context)
                 elif path == "/api/v1/memories/verify-revisions":
                     if set(request) - {"items", "request_id"} or "items" not in request:
                         raise MemoryServiceError("invalid_request", "verification request has missing or unknown fields", 400)
@@ -658,9 +658,7 @@ class Handler(BaseHTTPRequestHandler):
                         memory_id, request, self.headers.get("Idempotency-Key", ""), request_id, scope)
                     if response.get("status") in {"accepted", "pending", "failed"} and response.get("indexing_status") != "indexed":
                         ingestion_request = {**request, "scope": scope}
-                        worker = threading.Thread(target=self._memory_ingest,
-                                                  args=(service, response, ingestion_request, context), daemon=True)
-                        worker.start()
+                        _MEMORY_INGEST_EXECUTOR.submit(self._memory_ingest, service, response, ingestion_request, context)
                 if response.get("source_id", "").startswith("memory:") and response.get("graph_status") != "indexed":
                     threading.Thread(target=self._memory_graph_project, args=(service,), daemon=True).start()
                 response["request_id"] = request_id
@@ -850,7 +848,7 @@ class Handler(BaseHTTPRequestHandler):
             request_id = accepted.get("request_id", accepted["operation_id"])
             try:
                 context = self._memory_preflight(request, request_id)
-                self._memory_ingest(service, accepted, request, context)
+                _MEMORY_INGEST_EXECUTOR.submit(self._memory_ingest, service, accepted, request, context)
             except Exception:
                 try:
                     service.update_operation(accepted["operation_id"], "failed", "index_failed")
