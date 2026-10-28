@@ -53,11 +53,11 @@ def _validate_text(value: Any, field: str) -> str:
 def _validate_scope(value: Any) -> dict[str, str]:
     if not isinstance(value, dict) or set(value) != {"type", "id", "visibility"}:
         raise MemoryError("invalid_request", "scope must contain type, id, and visibility", 400)
-    if value["type"] not in {"user", "project", "shared", "global"}:
+    if not isinstance(value["type"], str) or value["type"] not in {"user", "project", "shared", "global"}:
         raise MemoryError("invalid_request", "scope.type is invalid", 400)
     if not isinstance(value["id"], str) or not 1 <= len(value["id"]) <= 256:
         raise MemoryError("invalid_request", "scope.id is invalid", 400)
-    if value["visibility"] not in {"private", "shared", "global"}:
+    if not isinstance(value["visibility"], str) or value["visibility"] not in {"private", "shared", "global"}:
         raise MemoryError("invalid_request", "scope.visibility is invalid", 400)
     return dict(value)
 
@@ -164,13 +164,13 @@ class MemoryService:
             raise MemoryError("invalid_request", "Idempotency-Key is required and must be 1 to 256 characters", 400)
         scope = _validate_scope(request["scope"])
         memory_type = request["type"]
-        if memory_type not in {"episodic", "semantic", "decision", "fact", "preference", "task"}:
+        if not isinstance(memory_type, str) or memory_type not in {"episodic", "semantic", "decision", "fact", "preference", "task"}:
             raise MemoryError("invalid_request", "type is invalid", 400)
         content = _validate_text(request["content"], "content")
         if not isinstance(request["provenance"], dict):
             raise MemoryError("invalid_request", "provenance must be an object", 400)
         retention = request["retention_policy"]
-        if not isinstance(retention, dict) or set(retention) - {"kind", "expires_at"} or retention.get("kind") not in {"standard", "ephemeral", "retained"}:
+        if not isinstance(retention, dict) or set(retention) - {"kind", "expires_at"} or not isinstance(retention.get("kind"), str) or retention.get("kind") not in {"standard", "ephemeral", "retained"}:
             raise MemoryError("invalid_request", "retention_policy is invalid", 400)
         profile = _validate_profile(request["index_profile"])
         semantic_request = {k: v for k, v in request.items() if k != "request_id"}
@@ -402,8 +402,8 @@ class MemoryService:
                 JOIN memories m ON m.memory_id=o.memory_id
                 JOIN revisions r ON r.memory_id=o.memory_id AND r.revision_sequence=o.revision_sequence
                 WHERE o.operation_kind IN ('create','update')
-                  AND o.status IN ('accepted','pending')
-                  AND o.indexing_status='pending_index'
+                  AND o.status IN ('accepted','pending','failed')
+                  AND o.indexing_status IN ('pending_index','index_failed')
                 ORDER BY o.updated_at,m.memory_id,o.revision_sequence
             """).fetchall()
             for row in rows:
