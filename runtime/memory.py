@@ -463,6 +463,19 @@ class MemoryService:
             return [{"operation_id": r["operation_id"], "owner_projection_sequence": r["owner_projection_sequence"],
                      "operation_kind": r["operation_kind"], "payload": json.loads(r["payload_json"])} for r in rows]
 
+    def graph_projection_checkpoint_sequence(self) -> int | None:
+        """Return the sealed owner sequence only when every journal entry is acknowledged."""
+        with self._connect() as db:
+            pending = db.execute(
+                "SELECT 1 FROM memory_graph_journal WHERE status IN ('pending','failed') LIMIT 1"
+            ).fetchone()
+            if pending is not None:
+                return None
+            row = db.execute(
+                "SELECT next_sequence FROM memory_graph_sequence WHERE singleton=1"
+            ).fetchone()
+            return int(row["next_sequence"]) - 1
+
     def update_graph_operation(self, operation_id: str, graph_status: str, error: str | None = None) -> dict[str, Any]:
         if graph_status not in {"indexed", "graph_failed"}:
             raise MemoryError("invalid_request", "graph status is invalid", 400)
