@@ -245,7 +245,7 @@ class IndexService:
             seq = source["revision_sequence"]
             if tomb and seq <= tomb["tombstone_sequence"]:
                 raise _error("revision_sequence_regression", "upsert is at or below the durable tombstone sequence", 409)
-            old = db.execute("SELECT latest_sequence FROM sources WHERE source_id=?", (source_id,)).fetchone()
+            old = db.execute("SELECT latest_sequence,scope_json FROM sources WHERE source_id=?", (source_id,)).fetchone()
             if old and scope_json != old["scope_json"]:
                 raise _error("conflict", "a source identity cannot change scope partition", 409)
             if old and seq <= old["latest_sequence"]:
@@ -298,7 +298,7 @@ class IndexService:
             source_row = db.execute("SELECT latest_sequence FROM sources WHERE source_id=?", (source_id,)).fetchone()
             if source_row and seq <= source_row["latest_sequence"]:
                 raise _error("revision_sequence_regression", "tombstone sequence must exceed every allocated source revision", 409)
-            if existing and seq < existing["tombstone_sequence"]:
+            if existing and seq <= existing["tombstone_sequence"]:
                 raise _error("revision_sequence_regression", "tombstone sequence cannot regress", 409)
             db.execute("INSERT INTO tombstones(source_id,tombstone_sequence,source_revision,scope_json) VALUES(?,?,?,?) ON CONFLICT(source_id) DO UPDATE SET tombstone_sequence=MAX(tombstone_sequence,excluded.tombstone_sequence), source_revision=excluded.source_revision, scope_json=excluded.scope_json",
                        (source_id, seq, request.get("source_revision", ""), self._scope(request.get("scope"))))
