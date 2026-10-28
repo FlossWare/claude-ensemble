@@ -440,14 +440,28 @@ class IndexService:
         reps = request.get("representations")
         if not isinstance(reps, list) or not 1 <= len(reps) <= 256:
             raise _error("invalid_request", "representations must contain 1 to 256 items")
-        with self._connect() as db:
+        payload_hash = _payload_hash(request)
+        # Resolve an existing binding before validation can create durable
+        # rebuild-failure side effects. Recheck below while holding the write
+        # lock to serialize concurrent first submissions.
+        with self._lock, self._connect() as db:
+            prior = db.execute("SELECT * FROM operations WHERE operation_id=? OR idempotency_key=?",
+                               (request["operation_id"], idempotency_key)).fetchone()
+            if prior:
+                if (prior["idempotency_key"] == idempotency_key
+                        and prior["status"] not in {"pending", "accepted", "reconciliation_required"}
+                        and self._idempotency_expired(prior["terminal_at"] or prior["created_at"])):
+                    raise _error("idempotency_key_expired", "terminal idempotency binding expired after 30 days; use a fresh key", 409)
+                if prior["payload_hash"] != payload_hash or prior["idempotency_key"] != idempotency_key or prior["operation_id"] != request["operation_id"]:
+                    raise _error("idempotency_conflict", "operation identity was reused with different content", 409)
+                return 200, json.loads(prior["response_json"])
             bundle_for_limits, _ = self._profile(db, request.get("index_profile"))
-        if len(reps) > bundle_for_limits["limits"]["max_chunks"]:
-            raise _error("source_too_large", "representation count exceeds the pinned profile chunk limit", 422)
-        if len(_canonical(request)) > bundle_for_limits["limits"]["max_request_bytes"]:
-            raise _error("request_too_large", "upsert exceeds the pinned profile request byte limit", 413)
         target = request.get("target_generation")
         try:
+            if len(reps) > bundle_for_limits["limits"]["max_chunks"]:
+                raise _error("source_too_large", "representation count exceeds the pinned profile chunk limit", 422)
+            if len(_canonical(request)) > bundle_for_limits["limits"]["max_request_bytes"]:
+                raise _error("request_too_large", "upsert exceeds the pinned profile request byte limit", 413)
             validated = [self._check_representation(rep, bundle_for_limits) for rep in reps]
             if len({rep["chunk_id"] for rep in validated}) != len(validated):
                 raise _error("invalid_request", "chunk_id values must be unique within a source revision")
@@ -456,7 +470,6 @@ class IndexService:
                 self._record_source_failure(target, source_id, source["revision_sequence"], exc.code,
                                             request.get("index_profile", {}), str(exc))
             raise
-        payload_hash = _payload_hash(request)
         with self._lock, self._connect() as db:
             prior = db.execute("SELECT * FROM operations WHERE operation_id=? OR idempotency_key=?", (request["operation_id"], idempotency_key)).fetchone()
             if prior:
@@ -709,11 +722,13 @@ class IndexService:
         with self._connect() as db:
             source = db.execute("SELECT * FROM sources WHERE source_id=?", (source_id,)).fetchone()
             tomb = db.execute("SELECT tombstone_sequence FROM tombstones WHERE source_id=?", (source_id,)).fetchone()
-            if not source and not tomb:
+            high_water = db.execute("SELECT highest_sequence FROM source_high_water WHERE source_id=?", (source_id,)).fetchone()
+            if not source and not tomb and not high_water:
                 raise _error("source_not_found", "Index source was not found", 404)
             tomb_sequence = tomb["tombstone_sequence"] if tomb else None
+            highest_sequence = high_water["highest_sequence"] if high_water else (source["latest_sequence"] if source else tomb_sequence)
             restored = source is not None and tomb_sequence is not None and source["indexed_sequence"] > tomb_sequence
-            return {"source_id": source_id, "latest_revision_sequence": source["latest_sequence"] if source else None,
+            return {"source_id": source_id, "latest_revision_sequence": highest_sequence,
                     "indexed_revision_sequence": source["indexed_sequence"] if source else None,
                     "tombstone_sequence": tomb_sequence,
                     "deletion_state": "active" if restored or tomb is None else "tombstoned", "request_id": "index"}
@@ -931,13 +946,15 @@ class IndexService:
                         raise _error("invalid_cursor", "manifest cursor does not identify a live snapshot for this owner", 400)
                     rows = json.loads(snapshot["items_json"])
                 else:
-                    raw_rows = db.execute("""SELECT source_id,latest_sequence,indexed_sequence,tombstone_sequence FROM (
-                                      SELECT s.source_id AS source_id,s.latest_sequence AS latest_sequence,s.indexed_sequence AS indexed_sequence,t.tombstone_sequence AS tombstone_sequence
-                                      FROM sources s LEFT JOIN tombstones t ON t.source_id=s.source_id
-                                      UNION ALL
-                                      SELECT t.source_id AS source_id,NULL AS latest_sequence,NULL AS indexed_sequence,t.tombstone_sequence AS tombstone_sequence
-                                      FROM tombstones t LEFT JOIN sources s ON s.source_id=t.source_id WHERE s.source_id IS NULL
-                                      ) WHERE source_id LIKE ? ORDER BY source_id""", (owner + ":%",)).fetchall()
+                    raw_rows = db.execute("""SELECT ids.source_id AS source_id,
+                                      COALESCE(s.latest_sequence,h.highest_sequence,t.tombstone_sequence) AS latest_sequence,
+                                      s.indexed_sequence AS indexed_sequence,t.tombstone_sequence AS tombstone_sequence
+                                      FROM (SELECT source_id FROM sources UNION SELECT source_id FROM tombstones
+                                            UNION SELECT source_id FROM source_high_water) ids
+                                      LEFT JOIN sources s ON s.source_id=ids.source_id
+                                      LEFT JOIN tombstones t ON t.source_id=ids.source_id
+                                      LEFT JOIN source_high_water h ON h.source_id=ids.source_id
+                                      WHERE ids.source_id LIKE ? ORDER BY ids.source_id""", (owner + ":%",)).fetchall()
                     rows = [{"source_id": row["source_id"], "latest_revision_sequence": row["latest_sequence"],
                              "indexed_revision_sequence": row["indexed_sequence"], "tombstone_sequence": row["tombstone_sequence"]}
                             for row in raw_rows]
