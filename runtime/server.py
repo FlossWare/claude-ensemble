@@ -844,8 +844,8 @@ class BoundedThreadingHTTPServer(ThreadingHTTPServer):
             readable, _, _ = select.select([request], [], [], 0.05)
             if not readable:
                 return False
-            head = request.recv(8192, socket.MSG_PEEK).split(b"\\r\\n\\r\\n", 1)[0].lower()
-            return b"\\r\\nx-ce-internal-call: true" in head
+            head = request.recv(8192, socket.MSG_PEEK).split(b"\r\n\r\n", 1)[0].lower()
+            return b"\r\nx-ce-internal-call: true" in head
         except (OSError, ValueError):
             return False
 
@@ -855,11 +855,11 @@ class BoundedThreadingHTTPServer(ThreadingHTTPServer):
         body["request_id"] = request_id
         payload = json.dumps(body, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
         response = (
-            b"HTTP/1.1 503 Service Unavailable\\r\\n"
-            b"Content-Type: application/json; charset=utf-8\\r\\n"
+            b"HTTP/1.1 503 Service Unavailable\r\n"
+            b"Content-Type: application/json; charset=utf-8\r\n"
             + f"Content-Length: {len(payload)}\\r\\n".encode("ascii")
             + f"X-CE-Request-ID: {request_id}\\r\\n".encode("ascii")
-            + b"Connection: close\\r\\n\\r\\n"
+            + b"Connection: close\r\n\r\n"
             + payload
         )
         try:
