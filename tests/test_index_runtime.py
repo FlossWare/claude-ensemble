@@ -431,6 +431,46 @@ class IndexRuntimeTests(unittest.TestCase):
         self.assertEqual(remaining, 0)
         self.assertEqual(journal_count, 2)
 
+    def test_stale_dual_apply_is_journaled_as_skipped_stale(self):
+        class Headers(dict):
+            def get(self, key, default=None):
+                return super().get(key, default)
+
+        _, generation = self.service.handle(
+            "POST", "/api/v1/index/generations", {},
+            {"index_profile": self.identity}, Headers({"Idempotency-Key": "build-stale"}), "build"
+        )
+        target = generation["generation_id"]
+        newer = self.upsert_request(source_id="knowledge:stale-doc", sequence=10, operation_id="target-newer")
+        newer["target_generation"] = target
+        self.service.upsert(newer, "target-newer-key")
+        # Model a target generation restored from a snapshot whose source
+        # high-water metadata has not yet been reconciled.
+        with self.service._connect() as db:
+            db.execute("DELETE FROM source_high_water WHERE source_id=?", ("knowledge:stale-doc",))
+        active = self.upsert_request(source_id="knowledge:stale-doc", sequence=1, operation_id="active-older")
+        self.service.upsert(active, "active-older-key")
+        with self.service._connect() as db:
+            rows = db.execute(
+                "SELECT status,revision_sequence FROM dual_apply_journal WHERE generation_id=? AND source_id=?",
+                (target, "knowledge:stale-doc")
+            ).fetchall()
+            target_sequence = db.execute(
+                "SELECT MAX(revision_sequence) AS sequence FROM representations WHERE generation_id=? AND source_id=?",
+                (target, "knowledge:stale-doc")
+            ).fetchone()["sequence"]
+        self.assertEqual(target_sequence, 10)
+        self.assertEqual([(row["status"], row["revision_sequence"]) for row in rows],
+                         [("applied", 10), ("skipped_stale", 1)])
+
+    def test_completed_operations_record_terminal_timestamp(self):
+        self.service.upsert(self.upsert_request(), "terminal-time")
+        with self.service._connect() as db:
+            row = db.execute("SELECT terminal_at,status FROM operations WHERE idempotency_key=?",
+                             ("terminal-time",)).fetchone()
+        self.assertEqual(row["status"], "complete")
+        self.assertIsNotNone(row["terminal_at"])
+
     def test_owner_checkpoints_are_monotonic_and_fences_are_explicit(self):
         class Headers(dict):
             def get(self, key, default=None):
