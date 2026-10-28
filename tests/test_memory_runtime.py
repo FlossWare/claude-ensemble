@@ -333,6 +333,13 @@ class MemoryOwnerTests(unittest.TestCase):
         self.assertEqual([item["operation_id"] for item in restarted.pending_graph_projections()],
                          [created["operation_id"], deleted["operation_id"]])
 
+    def test_graph_acknowledgement_can_precede_index_acknowledgement(self):
+        _, created = self.service.create(create_request(), "create-1", "req-1")
+        self.service.update_graph_operation(created["operation_id"], "indexed")
+        self.assertEqual(self.service.operation(created["operation_id"], scope_value=SCOPE)["status"], "pending")
+        self.service.update_operation(created["operation_id"], "pending", "indexed")
+        self.assertEqual(self.service.operation(created["operation_id"], scope_value=SCOPE)["status"], "complete")
+
     def test_scope_mismatch_does_not_disclose_record(self):
         _, created = self.service.create(create_request(), "create-1", "req-1")
         with self.assertRaises(MemoryError) as caught:
