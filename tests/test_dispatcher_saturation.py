@@ -62,6 +62,24 @@ class DispatcherSaturationTests(unittest.TestCase):
                 server_side.close()
                 client_side.close()
 
+    def test_internal_classifier_waits_for_headers_after_accept(self):
+        server_side, client_side = socket.socketpair()
+        try:
+            client_side.sendall(b"GET / HTTP/1.1\\r\\nHost: localhost\\r\\n")
+            sender = threading.Thread(
+                target=lambda: (threading.Event().wait(0.02), client_side.sendall(
+                    b"X-CE-Internal-Call: true\\r\\n"
+                    + f"X-CE-Internal-Token: {INTERNAL_CALL_TOKEN}\\r\\n\\r\\n".encode("ascii")
+                )),
+                daemon=True,
+            )
+            sender.start()
+            self.assertTrue(BoundedThreadingHTTPServer._is_internal_request(server_side, wait_seconds=0.2))
+            sender.join(timeout=1)
+        finally:
+            server_side.close()
+            client_side.close()
+
     def test_reserved_internal_workers_survive_all_external_slots_being_busy(self):
         SaturationHandler.barrier = threading.Barrier(2)
         server = TinyBoundedServer(("127.0.0.1", 0), SaturationHandler)
