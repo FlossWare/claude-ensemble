@@ -1,8 +1,9 @@
-"""Local persistent ChromaDB vector-store adapter primitives.
+"""Persistent ChromaDB vector storage for Index.
 
-This module is deliberately not wired into IndexService yet. SQLite remains the
-active vector backend until the durable cross-store intent/replay protocol is
-integrated. Keep the adapter's metadata and metric semantics contract-tested.
+SQLite remains authoritative for revisions, scopes, and tombstones. Index
+writes vector IDs synchronously and validates every query candidate against
+SQLite before returning it. Older vectors may remain physically stored after
+an update or tombstone, but cannot be returned unless SQLite still authorizes them.
 """
 from __future__ import annotations
 
