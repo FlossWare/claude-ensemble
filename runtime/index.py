@@ -129,6 +129,12 @@ class IndexService:
                     details TEXT NOT NULL, created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
                     PRIMARY KEY(generation_id,source_id,revision_sequence,reason_code)
                 );
+                CREATE TABLE IF NOT EXISTS lifecycle_idempotency(
+                    endpoint TEXT NOT NULL, idempotency_key TEXT NOT NULL,
+                    payload_hash TEXT NOT NULL, response_json TEXT NOT NULL,
+                    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                    PRIMARY KEY(endpoint,idempotency_key)
+                );
                 CREATE TABLE IF NOT EXISTS dual_apply_journal(
                     journal_id INTEGER PRIMARY KEY AUTOINCREMENT, generation_id TEXT NOT NULL,
                     owner TEXT NOT NULL, source_id TEXT NOT NULL, revision_sequence INTEGER NOT NULL,
@@ -226,6 +232,61 @@ class IndexService:
         except (TypeError, ValueError):
             return False
         return datetime.now(timezone.utc) - created >= timedelta(days=30)
+
+    def _lifecycle_cached(self, db: sqlite3.Connection, endpoint: str, key: str,
+                          payload: dict[str, Any]) -> dict[str, Any] | None:
+        if not key:
+            raise _error("invalid_request", "Idempotency-Key header is required")
+        row = db.execute("SELECT * FROM lifecycle_idempotency WHERE endpoint=? AND idempotency_key=?",
+                         (endpoint, key)).fetchone()
+        if not row:
+            return None
+        if row["payload_hash"] != _payload_hash(payload):
+            raise _error("idempotency_conflict", "lifecycle idempotency key was reused with different content", 409)
+        if self._idempotency_expired(row["created_at"]):
+            raise _error("idempotency_key_expired", "terminal idempotency binding expired after 30 days; use a fresh key", 409)
+        return json.loads(row["response_json"])
+
+    @staticmethod
+    def _lifecycle_store(db: sqlite3.Connection, endpoint: str, key: str,
+                         payload: dict[str, Any], response: dict[str, Any]) -> None:
+        db.execute("INSERT INTO lifecycle_idempotency(endpoint,idempotency_key,payload_hash,response_json) VALUES(?,?,?,?)",
+                   (endpoint, key, _payload_hash(payload), _canonical(response).decode()))
+
+    @staticmethod
+    def _representations_match(db: sqlite3.Connection, generation_id: str, source_id: str,
+                               source_revision: str, scope_json: str,
+                               validated: list[dict[str, Any]]) -> bool:
+        rows = db.execute("""SELECT * FROM representations
+            WHERE generation_id=? AND source_id=? ORDER BY chunk_id""",
+            (generation_id, source_id)).fetchall()
+        if len(rows) != len(validated):
+            return False
+        actual = {row["chunk_id"]: row for row in rows}
+        if len(actual) != len(rows):
+            return False
+        for rep in validated:
+            row = actual.get(rep["chunk_id"])
+            if row is None:
+                return False
+            lexical = rep["lexical"] or {}
+            vector = rep["vector"] or {}
+            expected = (
+                source_revision, scope_json, rep["chunker"]["profile"], rep["chunker"]["version"],
+                rep["text"], lexical.get("profile"), lexical.get("version"),
+                _canonical(rep["terms"]).decode(),
+                _canonical(vector.get("values")).decode() if vector else None,
+                vector.get("model"), vector.get("version"), vector.get("dimensions"),
+                _canonical(rep["metadata"]).decode(),
+            )
+            stored = tuple(row[key] for key in (
+                "source_revision", "scope_json", "chunker_profile", "chunker_version", "text",
+                "lexical_profile", "lexical_version", "terms_json", "vector_json",
+                "embedding_model", "embedding_version", "embedding_dimensions", "metadata_json"
+            ))
+            if stored != expected:
+                return False
+        return True
 
     def _record_source_failure(self, generation_id: str, source_id: str, sequence: int,
                                reason_code: str, profile: dict[str, Any], details: str) -> None:
@@ -374,6 +435,8 @@ class IndexService:
         target = request.get("target_generation")
         try:
             validated = [self._check_representation(rep, bundle_for_limits) for rep in reps]
+            if len({rep["chunk_id"] for rep in validated}) != len(validated):
+                raise _error("invalid_request", "chunk_id values must be unique within a source revision")
         except IndexError as exc:
             if target is not None and exc.code in {"source_too_large", "unsupported_profile", "incompatible_representation"}:
                 self._record_source_failure(target, source_id, source["revision_sequence"], exc.code,
@@ -405,9 +468,14 @@ class IndexService:
                 if old and seq <= old["latest_sequence"]:
                     raise _error("revision_sequence_regression", "a source revision sequence must strictly increase for a new operation", 409)
             else:
-                prior_target = db.execute("SELECT MAX(revision_sequence) AS sequence FROM representations WHERE generation_id=? AND source_id=?", (gen["generation_id"], source_id)).fetchone()
-                if prior_target["sequence"] is not None and seq <= prior_target["sequence"]:
-                    raise _error("revision_sequence_regression", "target-generation revisions must increase within that generation", 409)
+                prior_target = db.execute("SELECT MAX(revision_sequence) AS sequence FROM representations WHERE generation_id=? AND source_id=?",
+                                          (gen["generation_id"], source_id)).fetchone()
+                prior_sequence = prior_target["sequence"]
+                if prior_sequence is not None and seq < prior_sequence:
+                    raise _error("revision_sequence_regression", "target-generation revisions cannot regress within that generation", 409)
+                if prior_sequence == seq and not self._representations_match(
+                        db, gen["generation_id"], source_id, source["revision"], scope_json, validated):
+                    raise _error("revision_conflict", "same target-generation revision sequence has a different canonical payload", 409)
             db.execute("DELETE FROM representations WHERE generation_id=? AND source_id=? AND revision_sequence<?",
                        (gen["generation_id"], source_id, seq))
             for rep in validated:
@@ -424,6 +492,9 @@ class IndexService:
                      _canonical(vector.get("values")).decode() if vector else None,
                      vector.get("model"), vector.get("version"), vector.get("dimensions"),
                      _canonical(rep["metadata"]).decode()))
+            if not is_active_generation:
+                db.execute("DELETE FROM generation_source_failures WHERE generation_id=? AND source_id=? AND revision_sequence<=?",
+                           (gen["generation_id"], source_id, seq))
             if is_active_generation:
                 db.execute("INSERT INTO sources(source_id,latest_sequence,indexed_sequence,scope_json) VALUES(?,?,?,?) ON CONFLICT(source_id) DO UPDATE SET latest_sequence=MAX(latest_sequence,excluded.latest_sequence), indexed_sequence=MAX(indexed_sequence,excluded.indexed_sequence), scope_json=excluded.scope_json",
                            (source_id, seq, seq, scope_json))
@@ -433,8 +504,10 @@ class IndexService:
             db.execute("INSERT INTO operations(operation_id,idempotency_key,payload_hash,status,response_json) VALUES(?,?,?,?,?)",
                        (request["operation_id"], idempotency_key, payload_hash, "complete", _canonical(response).decode()))
             if is_active_generation:
-                # Active writes are dual-applied to compatible building generations.
-                # Owner checkpoints separately prove replay of each owner's durable journal.
+                # A new active mutation invalidates prior readiness and is dual-applied
+                # to compatible target generations before this transaction commits.
+                db.execute("UPDATE generations SET status='building' WHERE status='eligible' AND profile_digest=?",
+                           (gen["profile_digest"],))
                 building = db.execute("SELECT generation_id FROM generations WHERE status='building' AND profile_digest=? AND generation_id<>?",
                                       (gen["profile_digest"], gen["generation_id"])).fetchall()
                 for target_row in building:
@@ -458,8 +531,12 @@ class IndexService:
                                  _canonical(vector.get("values")).decode() if vector else None,
                                  vector.get("model"), vector.get("version"), vector.get("dimensions"),
                                  _canonical(rep["metadata"]).decode()))
+                    db.execute("DELETE FROM generation_source_failures WHERE generation_id=? AND source_id=? AND revision_sequence<=?",
+                               (target_id, source_id, seq))
                     self._journal_change(db, target_id, source_id, seq, request["operation_id"], "upsert", payload_hash)
-            return 200, response
+            else:
+                self._journal_change(db, gen["generation_id"], source_id, seq, request["operation_id"], "upsert", payload_hash)
+            return 202, response
 
     def delete(self, request: dict[str, Any], idempotency_key: str) -> tuple[int, dict[str, Any]]:
         if not idempotency_key:
@@ -481,15 +558,24 @@ class IndexService:
             if bundle.get("status") == "retired":
                 raise _error("profile_retired", "retired profiles cannot accept new writes", 409)
             active = self._generation(db, None, request["index_profile"])
-            existing = db.execute("SELECT tombstone_sequence FROM tombstones WHERE source_id=?", (source_id,)).fetchone()
-            source_row = db.execute("SELECT latest_sequence FROM sources WHERE source_id=?", (source_id,)).fetchone()
+            scope_json = self._scope(request.get("scope"))
+            existing = db.execute("SELECT tombstone_sequence,scope_json FROM tombstones WHERE source_id=?", (source_id,)).fetchone()
+            source_row = db.execute("SELECT latest_sequence,scope_json FROM sources WHERE source_id=?", (source_id,)).fetchone()
+            represented_scope = db.execute("SELECT scope_json FROM representations WHERE source_id=? LIMIT 1", (source_id,)).fetchone()
+            known_scope = source_row["scope_json"] if source_row else (represented_scope["scope_json"] if represented_scope else None)
+            if known_scope is not None and known_scope != scope_json:
+                raise _error("scope_conflict", "source-wide delete scope does not match the canonical source partition", 409)
+            if existing and existing["scope_json"] != scope_json:
+                raise _error("scope_conflict", "source-wide delete scope does not match the existing tombstone partition", 409)
             if source_row and seq <= source_row["latest_sequence"]:
                 raise _error("revision_sequence_regression", "tombstone sequence must exceed every allocated source revision", 409)
             if existing and seq <= existing["tombstone_sequence"]:
                 raise _error("revision_sequence_regression", "tombstone sequence cannot regress", 409)
             db.execute("INSERT INTO tombstones(source_id,tombstone_sequence,source_revision,scope_json) VALUES(?,?,?,?) ON CONFLICT(source_id) DO UPDATE SET tombstone_sequence=MAX(tombstone_sequence,excluded.tombstone_sequence), source_revision=excluded.source_revision, scope_json=excluded.scope_json",
-                       (source_id, seq, request.get("source_revision", ""), self._scope(request.get("scope"))))
+                       (source_id, seq, request.get("source_revision", ""), scope_json))
             db.execute("DELETE FROM representations WHERE source_id=? AND revision_sequence<=?", (source_id, seq))
+            db.execute("DELETE FROM generation_source_failures WHERE source_id=? AND revision_sequence<=?", (source_id, seq))
+            db.execute("UPDATE generations SET status='building' WHERE status='eligible'")
             response = {"operation_id": request.get("operation_id", ""), "source_id": source_id,
                         "source_revision": request.get("source_revision", ""), "revision_sequence": seq,
                         "status": "complete", "index_generation": active["generation_id"],
@@ -500,7 +586,7 @@ class IndexService:
             for target_row in building:
                 self._journal_change(db, target_row["generation_id"], source_id, seq,
                                      request["operation_id"], "delete", payload_hash)
-            return 200, response
+            return 202, response
 
     def profile_version(self, name: str, version: str) -> dict[str, Any]:
         with self._connect() as db:
@@ -520,6 +606,8 @@ class IndexService:
     def _generation_payload(self, db: sqlite3.Connection, row: sqlite3.Row) -> dict[str, Any]:
         counts = db.execute("SELECT COUNT(DISTINCT source_id) sources, COUNT(*) chunks, SUM(CASE WHEN vector_json IS NOT NULL THEN 1 ELSE 0 END) vectors FROM representations WHERE generation_id=?", (row["generation_id"],)).fetchone()
         tombstones = db.execute("SELECT COUNT(*) AS count FROM tombstones").fetchone()["count"]
+        failure_count = db.execute("SELECT COUNT(DISTINCT source_id) AS count FROM generation_source_failures WHERE generation_id=?",
+                                    (row["generation_id"],)).fetchone()["count"]
         failures = db.execute("""SELECT source_id,revision_sequence,reason_code,profile_json,retryable,details
             FROM generation_source_failures WHERE generation_id=?
             ORDER BY source_id,revision_sequence,reason_code LIMIT 10000""", (row["generation_id"],)).fetchall()
@@ -533,11 +621,11 @@ class IndexService:
             "SELECT owner,applied_sequence FROM owner_checkpoints WHERE generation_id=?", (row["generation_id"],)).fetchall()})
         return {"generation_id": row["generation_id"], "status": row["status"],
                 "index_profile": {"name": row["profile_name"], "version": row["profile_version"], "digest": row["profile_digest"]},
-                "request_id": "index", "counts": {"sources": counts["sources"], "chunks": counts["chunks"], "vectors": counts["vectors"] or 0, "tombstones": tombstones, "failed_sources": len(source_failures)},
+                "request_id": "index", "counts": {"sources": counts["sources"], "chunks": counts["chunks"], "vectors": counts["vectors"] or 0, "tombstones": tombstones, "failed_sources": failure_count},
                 "owner_reconciliation_checkpoints": checkpoints, "applied_owner_cursors": dict(checkpoints),
                 "dual_apply_journal_position": str(journal["position"] or 0),
                 "source_failures": source_failures, "validation_results": [],
-                "cutover_eligible": row["status"] == "eligible" and not source_failures}
+                "cutover_eligible": row["status"] == "eligible" and failure_count == 0}
 
     def operation(self, operation_id: str) -> dict[str, Any]:
         with self._connect() as db:
@@ -790,24 +878,38 @@ class IndexService:
                 row = db.execute("SELECT * FROM generations WHERE generation_id=?", (generation_id,)).fetchone()
                 return 202, self._generation_payload(db, row)
         if method == "POST" and len(tail) == 3 and tail[0] == "generations" and tail[2] == "abandon":
+            key = headers.get("Idempotency-Key", "")
+            endpoint = f"POST /api/v1/index/generations/{tail[1]}/abandon"
             with self._lock, self._connect() as db:
+                cached = self._lifecycle_cached(db, endpoint, key, payload)
+                if cached is not None:
+                    return 200, cached
                 row = db.execute("SELECT * FROM generations WHERE generation_id=?", (tail[1],)).fetchone()
                 if not row:
                     raise _error("generation_not_found", "Index generation was not found", 404)
                 active = db.execute("SELECT generation_id FROM active_generation WHERE singleton=1").fetchone()
                 if active and active["generation_id"] == tail[1]:
                     raise _error("active_generation_cannot_be_abandoned", "active generation cannot be abandoned", 409)
-                if row["status"] != "building":
+                if row["status"] == "building":
+                    db.execute("UPDATE generations SET status='abandoned' WHERE generation_id=?", (tail[1],))
+                    row = db.execute("SELECT * FROM generations WHERE generation_id=?", (tail[1],)).fetchone()
+                elif row["status"] != "abandoned":
                     raise _error("conflict", "only a building generation can be abandoned", 409)
-                db.execute("UPDATE generations SET status='abandoned' WHERE generation_id=?", (tail[1],))
-                updated = db.execute("SELECT * FROM generations WHERE generation_id=?", (tail[1],)).fetchone()
-                return 200, self._generation_payload(db, updated)
+                response = self._generation_payload(db, row)
+                response["request_id"] = request_id
+                self._lifecycle_store(db, endpoint, key, payload, response)
+                return 200, response
         if method == "POST" and len(tail) == 3 and tail[0] == "generations" and tail[2] == "owner-checkpoints":
             owner = payload.get("owner")
             sequence = payload.get("applied_change_sequence")
+            key = headers.get("Idempotency-Key", "")
+            endpoint = f"POST /api/v1/index/generations/{tail[1]}/owner-checkpoints"
             if owner not in {"memory", "knowledge"} or type(sequence) is not int or sequence < 0:
                 raise _error("invalid_request", "owner and nonnegative applied_change_sequence are required")
             with self._lock, self._connect() as db:
+                cached = self._lifecycle_cached(db, endpoint, key, payload)
+                if cached is not None:
+                    return 200, cached
                 gen = db.execute("SELECT generation_id,status FROM generations WHERE generation_id=?", (tail[1],)).fetchone()
                 if not gen or gen["status"] != "building":
                     raise _error("generation_not_found", "building generation was not found", 404)
@@ -816,7 +918,9 @@ class IndexService:
                     raise _error("revision_sequence_regression", "owner checkpoint cannot regress", 409)
                 db.execute("INSERT INTO owner_checkpoints(generation_id,owner,applied_sequence) VALUES(?,?,?) ON CONFLICT(generation_id,owner) DO UPDATE SET applied_sequence=excluded.applied_sequence",
                            (tail[1], owner, sequence))
-                return 200, {"owner": owner, "applied_change_sequence": sequence, "request_id": request_id}
+                response = {"owner": owner, "applied_change_sequence": sequence, "request_id": request_id}
+                self._lifecycle_store(db, endpoint, key, payload, response)
+                return 200, response
         if method == "PUT" and len(tail) == 5 and tail[0] == "generations" and tail[2] == "owner-fences":
             generation_id, owner, fence_id = tail[1], tail[3], tail[4]
             if payload.get("owner") != owner or payload.get("target_generation") != generation_id or payload.get("fence_id") != fence_id or payload.get("state") != "held":
@@ -856,6 +960,8 @@ class IndexService:
                 db.execute("UPDATE owner_fences SET state='released' WHERE generation_id=? AND owner=? AND fence_id=?", (generation_id, owner, fence_id))
                 return 200, {"owner": owner, "target_generation": generation_id, "fence_id": fence_id, "released": True, "request_id": request_id}
         if method == "POST" and len(tail) == 3 and tail[0] == "generations" and tail[2] == "cutover":
+            if not headers.get("Idempotency-Key", ""):
+                raise _error("invalid_request", "Idempotency-Key header is required")
             # Fail closed until the owner journal, replay acknowledgements, and
             # cutover recovery protocol can be validated end-to-end.
             raise _error("not_ready", "generation cutover is disabled until owner-journal replay and reconciliation are implemented", 503)
