@@ -629,7 +629,18 @@ class Handler(BaseHTTPRequestHandler):
                     status = 200
                 else:
                     memory_id = path.split("/")[-2]
-                    status, response = service.update(memory_id, request, self.headers.get("Idempotency-Key", ""), request_id)
+                    query = parse_qs(parsed.query)
+                    scope = {"type": query.get("scope_type", [""])[0],
+                             "id": query.get("scope_id", [""])[0],
+                             "visibility": query.get("visibility", [""])[0]}
+                    context = self._memory_preflight(request, request_id)
+                    status, response = service.update(
+                        memory_id, request, self.headers.get("Idempotency-Key", ""), request_id, scope)
+                    if response.get("status") in {"accepted", "pending", "failed"} and response.get("indexing_status") != "indexed":
+                        ingestion_request = {**request, "scope": scope}
+                        worker = threading.Thread(target=self._memory_ingest,
+                                                  args=(service, response, ingestion_request, context), daemon=True)
+                        worker.start()
                 response["request_id"] = request_id
                 self._send(status, response, request_id)
                 return
