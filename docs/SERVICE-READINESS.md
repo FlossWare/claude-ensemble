@@ -57,4 +57,4 @@ Purpose: distinguish implemented algorithms, reachable REST services, durable do
 
 ## Immediate implementation target
 
-The next code milestone is **Graph service + owner projection integration**, not Gateway RAG. The current Memory implementation creates canonical records and publishes Index representations, but does not yet submit source-supported Graph projections/deletions or reconcile Graph recovery. Implementing Gateway first would only hide this missing dependency behind orchestration code.
+The first Graph runtime slice is now in this branch, but it is not yet fully accepted: owner projection journals and restart replay are still missing. The next code milestone is **wire Memory's durable Graph projection/deletion journal, then implement Knowledge's matching owner lifecycle and recovery**. The current Memory implementation creates canonical records and publishes Index representations, but does not yet submit source-supported Graph projections/deletions or reconcile Graph recovery. Implementing Gateway first would only hide this missing dependency behind orchestration code.
