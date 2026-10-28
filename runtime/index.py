@@ -643,7 +643,7 @@ class IndexService:
                         "source_revision": request.get("source_revision", ""), "revision_sequence": seq,
                         "status": "complete", "index_generation": active["generation_id"],
                         "request_id": request.get("request_id", "index")}
-            db.execute("INSERT INTO operations(operation_id,idempotency_key,payload_hash,status,response_json) VALUES(?,?,?,?,?)",
+            db.execute("INSERT INTO operations(operation_id,idempotency_key,payload_hash,status,response_json,terminal_at) VALUES(?,?,?,?,?,CURRENT_TIMESTAMP)",
                        (request["operation_id"], idempotency_key, payload_hash, "complete", _canonical(response).decode()))
             building = db.execute("SELECT generation_id FROM generations WHERE status='building'").fetchall()
             for target_row in building:
