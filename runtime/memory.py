@@ -242,11 +242,11 @@ class MemoryService:
             db.execute("""INSERT INTO revisions(memory_id,revision_sequence,revision_id,content,provenance_json,retention_json)
                           VALUES(?,?,?,?,?,?)""",
                        (memory_id, sequence, revision, content, _canonical(request["provenance"]).decode(), _canonical(retention).decode()))
-            db.execute("""INSERT INTO memory_operations(operation_id,memory_id,operation_kind,status,indexing_status,revision_sequence,response_json)
-                          VALUES(?,?,?,?,?,?,?)""",
-             self._enqueue_graph_projection(db, operation_id, memory_id, revision, sequence, scope,
+            self._enqueue_graph_projection(db, operation_id, memory_id, revision, sequence, scope,
                                            memory_type, content, request["provenance"])
-                       (operation_id, memory_id, "create", "accepted", "pending_index", sequence, _canonical(response).decode()))
+             db.execute("INSERT INTO memory_operations(operation_id,memory_id,operation_kind,status,indexing_status,revision_sequence,response_json) VALUES(?,?,?,?,?,?,?)",
+                        (operation_id, memory_id, "create", "accepted", "pending_index", sequence, _canonical(response).decode()))
+
             db.execute("INSERT INTO memory_idempotency(idempotency_key,payload_hash,operation_id,response_json) VALUES(?,?,?,?)",
                        (idempotency_key, payload_hash, operation_id, _canonical(response).decode()))
             return 202, response
@@ -377,10 +377,11 @@ class MemoryService:
                         db.execute("SELECT retention_json FROM revisions WHERE memory_id=? AND revision_sequence=?", (memory_id, expected)).fetchone()["retention_json"]))
             db.execute("UPDATE memories SET current_sequence=?,current_revision=?,updated_at=CURRENT_TIMESTAMP WHERE memory_id=?",
                        (revision_sequence, revision, memory_id))
-            db.execute("INSERT INTO memory_operations(operation_id,memory_id,operation_kind,status,indexing_status,revision_sequence,response_json) VALUES(?,?,?,?,?,?,?)",
-             self._enqueue_graph_projection(db, operation_id, memory_id, revision, revision_sequence, scope,
+            self._enqueue_graph_projection(db, operation_id, memory_id, revision, revision_sequence, scope,
                                            row["memory_type"], content, request["provenance"])
-                       (operation_id, memory_id, "update", "accepted", "pending_index", revision_sequence, _canonical(response).decode()))
+             db.execute("INSERT INTO memory_operations(operation_id,memory_id,operation_kind,status,indexing_status,revision_sequence,response_json) VALUES(?,?,?,?,?,?,?)",
+                        (operation_id, memory_id, "update", "accepted", "pending_index", revision_sequence, _canonical(response).decode()))
+
             db.execute("INSERT INTO memory_idempotency(idempotency_key,payload_hash,operation_id,response_json) VALUES(?,?,?,?)",
                        (idempotency_key, payload_hash, operation_id, _canonical(response).decode()))
             return 202, response
@@ -419,9 +420,10 @@ class MemoryService:
             }
             db.execute("UPDATE memories SET current_sequence=?,current_revision=?,tombstone_sequence=?,updated_at=CURRENT_TIMESTAMP WHERE memory_id=?",
                        (sequence, revision, sequence, memory_id))
-            db.execute("INSERT INTO memory_operations(operation_id,memory_id,operation_kind,status,indexing_status,revision_sequence,response_json) VALUES(?,?,?,?,?,?,?)",
-             self._enqueue_graph_deletion(db, operation_id, memory_id, revision, sequence, scope)
-                       (operation_id, memory_id, "delete", "accepted", "pending_index", sequence, _canonical(response).decode()))
+            self._enqueue_graph_deletion(db, operation_id, memory_id, revision, sequence, scope)
+             db.execute("INSERT INTO memory_operations(operation_id,memory_id,operation_kind,status,indexing_status,revision_sequence,response_json) VALUES(?,?,?,?,?,?,?)",
+                        (operation_id, memory_id, "delete", "accepted", "pending_index", sequence, _canonical(response).decode()))
+
             db.execute("INSERT INTO memory_idempotency(idempotency_key,payload_hash,operation_id,response_json) VALUES(?,?,?,?)",
                        (idempotency_key, payload_hash, operation_id, _canonical(response).decode()))
             return 202, response
