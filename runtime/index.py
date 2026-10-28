@@ -20,7 +20,7 @@ from urllib.parse import unquote, parse_qs
 from pathlib import Path
 from typing import Any
 
-from runtime.vector_store import ChromaVectorStore, VectorStoreError
+from runtime.vector_store import ChromaVectorStore, VectorStoreError, record_id
 
 
 def _canonical(value: Any) -> bytes:
@@ -109,9 +109,19 @@ class IndexService:
             return
         store = self._vector_store(generation_id, bundle)
         try:
-            if store.list_ids():
+            expected_rows = db.execute(
+                "SELECT source_id,revision_sequence,chunk_id FROM representations WHERE generation_id=? AND vector_json IS NOT NULL",
+                (generation_id,),
+            ).fetchall()
+            expected_ids = {
+                record_id({"generation_id": generation_id, "source_id": row["source_id"],
+                           "revision_sequence": row["revision_sequence"], "chunk_id": row["chunk_id"]})
+                for row in expected_rows
+            }
+            if store.list_ids() == expected_ids:
                 self._bootstrapped_generations.add(generation_id)
                 return
+            store.clear()
         except VectorStoreError as exc:
             raise _error("vector_store_unavailable", str(exc), 503) from exc
         source_rows = db.execute(
