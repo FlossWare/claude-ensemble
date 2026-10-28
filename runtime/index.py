@@ -363,7 +363,7 @@ class IndexService:
         seq = request.get("revision_sequence")
         if not isinstance(source_id, str) or not re.fullmatch(r"(memory|knowledge):[A-Za-z0-9._~-]{1,128}", source_id) or type(seq) is not int or seq < 1 or request.get("delete_scope") != "source" or not isinstance(request.get("operation_id"), str) or not request["operation_id"]:
             raise _error("invalid_request", "source-wide tombstone with a valid source, operation ID, and positive sequence is required")
-        payload_hash = hashlib.sha256(_canonical(request)).hexdigest()
+        payload_hash = _payload_hash(request)
         with self._lock, self._connect() as db:
             prior = db.execute("SELECT * FROM operations WHERE operation_id=? OR idempotency_key=?", (request.get("operation_id"), idempotency_key)).fetchone()
             if prior:
