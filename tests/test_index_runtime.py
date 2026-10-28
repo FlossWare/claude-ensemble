@@ -405,6 +405,15 @@ class IndexRuntimeTests(unittest.TestCase):
             "fence_token": "fence-token-with-enough-entropy", "sealed_change_sequence": 3,
             "expires_at": expiry, "state": "held",
         }
+        naive_fence = dict(fence_payload)
+        naive_fence["fence_id"] = "memory-fence-naive"
+        naive_fence["expires_at"] = "2026-10-28T00:00:00"
+        with self.assertRaises(IndexError) as naive_expiry:
+            self.service.handle(
+                "PUT", f"/api/v1/index/generations/{target}/owner-fences/memory/memory-fence-naive", {},
+                naive_fence, Headers(), "fence-naive"
+            )
+        self.assertEqual(naive_expiry.exception.code, "invalid_request")
         status, fence = self.service.handle(
             "PUT", f"/api/v1/index/generations/{target}/owner-fences/memory/memory-fence-1", {},
             fence_payload, Headers(), "fence"
@@ -524,6 +533,36 @@ class IndexRuntimeTests(unittest.TestCase):
                                              {}, abandon_headers, "abandon-2")[1]
         self.assertEqual(first_abandon["status"], "abandoned")
         self.assertEqual(second_abandon["status"], "abandoned")
+
+    def test_target_generation_source_failure_clears_after_successful_replay(self):
+        class Headers(dict):
+            def get(self, key, default=None):
+                return super().get(key, default)
+        _, generation = self.service.handle(
+            "POST", "/api/v1/index/generations", {},
+            {"index_profile": self.identity}, Headers({"Idempotency-Key": "build-failure-recovery"}), "build"
+        )
+        target = generation["generation_id"]
+        oversized = self.upsert_request(
+            operation_id="oversized-target",
+            reps=[representation("chunk-a", "x" * 513, ["x"], [0.0, 1.0, 0.0])]
+        )
+        oversized["target_generation"] = target
+        with self.assertRaises(IndexError) as failed:
+            self.service.upsert(oversized, "oversized-target-key")
+        self.assertEqual(failed.exception.code, "source_too_large")
+        _, details = self.service.handle(
+            "GET", f"/api/v1/index/generations/{target}", {}, None, Headers(), "failure-status"
+        )
+        self.assertEqual(details["counts"]["failed_sources"], 1)
+        valid = self.upsert_request(operation_id="recovered-target")
+        valid["target_generation"] = target
+        self.service.upsert(valid, "recovered-target-key")
+        _, details = self.service.handle(
+            "GET", f"/api/v1/index/generations/{target}", {}, None, Headers(), "recovered-status"
+        )
+        self.assertEqual(details["counts"]["failed_sources"], 0)
+        self.assertEqual(details["source_failures"], [])
 
     def test_target_generation_source_failure_is_durable_and_blocks_eligibility(self):
         class Headers(dict):

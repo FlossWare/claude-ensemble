@@ -948,8 +948,10 @@ class IndexService:
             expires = payload.get("expires_at")
             try:
                 expiry = datetime.fromisoformat(expires.replace("Z", "+00:00"))
-            except (AttributeError, ValueError):
-                raise _error("invalid_request", "expires_at must be an RFC3339 timestamp")
+                if expiry.tzinfo is None or expiry.utcoffset() is None:
+                    raise ValueError("expires_at must include a timezone")
+            except (AttributeError, TypeError, ValueError):
+                raise _error("invalid_request", "expires_at must be an RFC3339 timestamp with an explicit timezone")
             now = datetime.now(timezone.utc)
             if expiry <= now or (expiry - now).total_seconds() > 300:
                 raise _error("fence_expired", "fence expiry must be in the future and within 300 seconds", 409)
