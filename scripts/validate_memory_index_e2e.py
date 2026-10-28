@@ -140,7 +140,7 @@ def main() -> int:
             deadline = time.monotonic() + 120.0
             operation = {}
             while time.monotonic() < deadline:
-                operation = _request(base, "/api/v1/memories/operations/" + quote(operation_id, safe="") + scope_query)
+                operation = _request(base, "/api/v1/memories/operations/" + operation_id + scope_query)
                 if operation.get("status") in {"complete", "failed", "reconciliation_required"}:
                     break
                 time.sleep(0.25)
