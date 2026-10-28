@@ -93,52 +93,44 @@ def bounded(neighbors, start: int) -> tuple[int, int, int]:
 
 
 def builders(nodes: int, edges: list[tuple[int, int]]):
-    import networkx as nx
-    import rustworkx as rx
-    import igraph as ig
+    def networkx_builder():
+        import networkx as nx
+        graph = nx.DiGraph()
+        graph.add_nodes_from(range(nodes))
+        graph.add_edges_from(edges)
+        return graph, lambda n: graph.successors(n), lambda n: dict(nx.single_source_shortest_path_length(graph, n, cutoff=MAX_DEPTH))
 
-    g_nx = nx.DiGraph()
-    g_nx.add_nodes_from(range(nodes))
-    g_nx.add_edges_from(edges)
+    def rustworkx_builder():
+        import rustworkx as rx
+        graph = rx.PyDiGraph(multigraph=False)
+        graph.add_nodes_from(range(nodes))
+        graph.add_edges_from_no_data(edges)
+        return graph, lambda n: graph.successor_indices(n), lambda n: dict(rx.digraph_dijkstra_shortest_path_lengths(graph, n, lambda _: 1))
 
-    g_rx = rx.PyDiGraph(multigraph=False)
-    g_rx.add_nodes_from(range(nodes))
-    g_rx.add_edges_from_no_data(edges)
-
-    g_ig = ig.Graph(n=nodes, edges=edges, directed=True)
+    def igraph_builder():
+        import igraph as ig
+        graph = ig.Graph(n=nodes, edges=edges, directed=True)
+        return graph, lambda n: graph.neighbors(n, mode="OUT"), lambda n: dict(enumerate(graph.distances(source=n, mode="OUT", algorithm="unweighted")[0]))
 
     return {
-        "networkx": (
-            g_nx,
-            lambda n: g_nx.successors(n),
-            lambda n: dict(nx.single_source_shortest_path_length(g_nx, n, cutoff=MAX_DEPTH)),
-        ),
-        "rustworkx": (
-            g_rx,
-            lambda n: g_rx.successor_indices(n),
-            lambda n: dict(rx.digraph_dijkstra_shortest_path_lengths(g_rx, n, lambda _: 1)),
-        ),
-        "igraph": (
-            g_ig,
-            lambda n: g_ig.neighbors(n, mode="OUT"),
-            lambda n: dict(enumerate(g_ig.distances(source=n, mode="OUT", algorithm="unweighted")[0])),
-        ),
+        "networkx": networkx_builder,
+        "rustworkx": rustworkx_builder,
+        "igraph": igraph_builder,
     }
 
-
-def measure(name, graph, neighbors, native_paths, starts, shape, nodes, edge_count, round_id):
+def measure(name, builder, starts, shape, nodes, edge_count, round_id):
     proc = psutil.Process()
     rss_before = proc.memory_info().rss
     tracemalloc.start()
+    build_started = time.perf_counter()
+    graph, neighbors, native_paths = builder()
+    build_ms = (time.perf_counter() - build_started) * 1000
     query_times, native_times, signatures, native_signatures = [], [], [], []
     for start in starts[:1]:
         # One warm-up query per candidate, excluded from timing.
         bounded(neighbors, start)
         native_paths(start)
 
-    t0 = time.perf_counter()
-    # Build has already occurred in builders(); graph construction is measured separately in main.
-    build_ms = 0.0
     rss_built = proc.memory_info().rss
 
     for start in starts:
@@ -164,7 +156,7 @@ def measure(name, graph, neighbors, native_paths, starts, shape, nodes, edge_cou
         "nodes": nodes,
         "edges": edge_count,
         "queries": len(starts),
-        "build_ms": build_ms,
+        "build_ms": round(build_ms, 3),
         "query_total_ms": round(sum(query_times) * 1000, 3),
         "query_median_ms": round(statistics.median(query_times) * 1000, 3),
         "query_p95_ms": round(sorted(query_times)[int((len(query_times) - 1) * 0.95)] * 1000, 3),
@@ -206,8 +198,8 @@ def main() -> int:
                 candidates = list(builders(nodes, edges).items())
                 rotate = (round_id - 1) % len(candidates)
                 candidates = candidates[rotate:] + candidates[:rotate]
-                for name, (graph, neighbors, native_paths) in candidates:
-                    result = measure(name, graph, neighbors, native_paths, starts, shape, nodes, len(edges), round_id)
+                for name, builder in candidates:
+                    result = measure(name, builder, starts, shape, nodes, len(edges), round_id)
                     signature = json.dumps(result.pop("signature"), separators=(",", ":"))
                     native_signature = json.dumps(result.pop("native_signature"), separators=(",", ":"))
                     if expected_bounded is None:
