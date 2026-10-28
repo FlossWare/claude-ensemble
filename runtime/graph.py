@@ -361,6 +361,7 @@ class GraphService:
         with self._connect() as db:
             cached = self._cached_operation(db, operation_id, payload_hash)
             if cached is not None:
+                cached["request_id"] = request_id
                 return 202, cached
             prior_event = db.execute("SELECT operation_id,payload_hash FROM graph_owner_events WHERE owner=? AND sequence=?",
                                      (owner, owner_sequence)).fetchone()
