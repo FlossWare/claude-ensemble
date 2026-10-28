@@ -258,7 +258,7 @@ class MemoryService:
                 result["graph_status"] = response.get("graph_status", "pending_graph")
             return result
 
-    def update(self, memory_id: str, request: dict[str, Any], idempotency_key: str, request_id: str) -> tuple[int, dict[str, Any]]:
+    def update(self, memory_id: str, request: dict[str, Any], idempotency_key: str, request_id: str, scope_value: Any) -> tuple[int, dict[str, Any]]:
         required = {"expected_base_revision_sequence", "content", "provenance", "index_profile"}
         if set(request) - (required | {"request_id"}) or not required.issubset(request):
             raise MemoryError("invalid_request", "revision request has missing or unknown fields", 400)
@@ -270,12 +270,16 @@ class MemoryService:
         if not isinstance(request["provenance"], dict):
             raise MemoryError("invalid_request", "provenance must be an object", 400)
         profile = _validate_profile(request["index_profile"])
+        scope = _validate_scope(scope_value)
         expected = request["expected_base_revision_sequence"]
         if type(expected) is not int or not 1 <= expected <= MAX_SEQUENCE:
             raise MemoryError("invalid_request", "expected_base_revision_sequence is invalid", 400)
         semantic_request = {"memory_id": memory_id, **{k: v for k, v in request.items() if k != "request_id"}}
         payload_hash = _payload_hash(semantic_request)
         with self._lock, self._connect() as db:
+            row = db.execute("SELECT * FROM memories WHERE memory_id=?", (memory_id,)).fetchone()
+            if row is None or row["tombstone_sequence"] is not None or json.loads(row["scope_json"]) != scope:
+                raise MemoryError("not_found", "memory was not found in this scope", 404)
             prior = db.execute("SELECT payload_hash,response_json FROM memory_idempotency WHERE idempotency_key=?", (idempotency_key,)).fetchone()
             if prior:
                 if prior["payload_hash"] != payload_hash:
@@ -283,9 +287,6 @@ class MemoryService:
                 response = json.loads(prior["response_json"])
                 response["request_id"] = request_id
                 return 202, response
-            row = db.execute("SELECT * FROM memories WHERE memory_id=?", (memory_id,)).fetchone()
-            if row is None or row["tombstone_sequence"] is not None:
-                raise MemoryError("not_found", "memory was not found", 404)
             if row["current_sequence"] != expected:
                 raise MemoryError("revision_conflict", "expected base revision does not match the current revision", 409)
             if json.loads(row["index_profile_json"]) != profile:
