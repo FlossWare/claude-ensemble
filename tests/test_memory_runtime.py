@@ -75,11 +75,11 @@ class MemoryOwnerTests(unittest.TestCase):
             "provenance": {"origin": "test-update"},
             "index_profile": PROFILE,
         }
-        _, updated = self.service.update(created["memory_id"], update, "update-1", "req-2")
+        _, updated = self.service.update(created["memory_id"], update, "update-1", "req-2", SCOPE)
         self.assertGreater(updated["revision_sequence"], created["revision_sequence"])
         self.assertEqual(self.service.read(created["memory_id"], SCOPE)["content"], "updated content")
         with self.assertRaises(MemoryError) as caught:
-            self.service.update(created["memory_id"], update, "update-stale", "req-3")
+            self.service.update(created["memory_id"], update, "update-stale", "req-3", SCOPE)
         self.assertEqual(caught.exception.code, "revision_conflict")
 
     def test_tombstone_blocks_reads_and_survives_restart(self):
