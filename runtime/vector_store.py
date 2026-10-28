@@ -281,6 +281,16 @@ class ChromaVectorStore:
         except Exception as exc:
             raise VectorStoreError("Chroma source deletion failed") from exc
 
+    def clear(self) -> None:
+        """Remove all vector records before a simple SQLite-driven bootstrap rebuild."""
+        ids = self.list_ids()
+        if not ids:
+            return
+        try:
+            self._collection.delete(ids=list(ids))
+        except Exception as exc:
+            raise VectorStoreError("Chroma collection clear failed") from exc
+
     def list_ids(self) -> set[str]:
         try:
             result = self._collection.get(include=[])
