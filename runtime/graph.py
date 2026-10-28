@@ -164,6 +164,7 @@ class GraphService:
         if prior:
             if prior["operation_id"] != operation_id or prior["payload_hash"] != payload_hash:
                 db.execute("UPDATE graph_owner_state SET reconciliation_required=1 WHERE owner=?", (owner,))
+                db.commit()
                 raise GraphError("revision_conflict", "owner projection sequence was reused with a different operation or payload", 409)
             return
         db.execute("INSERT INTO graph_owner_events VALUES(?,?,?,?,?)",
@@ -268,6 +269,8 @@ class GraphService:
             })
         payload = {k: request[k] for k in required if k != "request_id"}
         payload_hash = _digest(payload)
+        source_payload_hash = _digest({"source_revision": source_revision, "revision_sequence": revision_sequence,
+                                       "scope": scope, "nodes": canonical_nodes, "edges": canonical_edges})
         response = {"operation_id": operation_id, "source_id": source_id,
                     "revision_sequence": revision_sequence, "request_id": request_id,
                     "owner": owner, "owner_projection_sequence": owner_sequence}
@@ -283,11 +286,10 @@ class GraphService:
                     raise GraphError("revision_conflict", "owner projection sequence was reused with a different operation or payload", 409)
             current = db.execute("SELECT * FROM graph_sources WHERE source_id=?", (source_id,)).fetchone()
             if current and revision_sequence <= current["revision_sequence"]:
-                if (revision_sequence == current["revision_sequence"] and current["status"] == "active"
-                        and current["source_revision"] == source_revision and current["payload_hash"] == payload_hash):
-                    disposition = "superseded"
-                else:
-                    disposition = "superseded"
+                if revision_sequence == current["revision_sequence"] and current["status"] == "active":
+                    if current["source_revision"] != source_revision or current["payload_hash"] != source_payload_hash:
+                        raise GraphError("revision_conflict", "equal source revision was reused with a different projection", 409)
+                disposition = "superseded"
                 self._store_event(db, owner, owner_sequence, operation_id, payload_hash, disposition)
                 self._persist_operation(db, response, payload_hash, owner, owner_sequence, source_id,
                                         revision_sequence, disposition)
@@ -322,7 +324,7 @@ class GraphService:
                 "owner=excluded.owner,revision_sequence=excluded.revision_sequence,source_revision=excluded.source_revision,"
                 "scope_json=excluded.scope_json,status='active',payload_hash=excluded.payload_hash,"
                 "owner_projection_sequence=excluded.owner_projection_sequence",
-                (source_id, owner, revision_sequence, source_revision, scope_json, "active", payload_hash, owner_sequence),
+                (source_id, owner, revision_sequence, source_revision, scope_json, "active", source_payload_hash, owner_sequence),
             )
             self._store_event(db, owner, owner_sequence, operation_id, payload_hash, "applied")
             self._persist_operation(db, response, payload_hash, owner, owner_sequence, source_id,
@@ -401,8 +403,8 @@ class GraphService:
                         "terminal_projection_sequence": state["terminal_sequence"],
                         "ready": ready, "request_id": request_id}
             if not ready:
+                db.commit()
                 raise GraphError("graph_replay_incomplete", "Graph has not applied every owner projection through the sealed sequence", 409)
-            response["service_ready"] = overall_ready
             return 200, response
 
     def operation(self, operation_id: str, request_id: str) -> dict[str, Any]:
@@ -521,7 +523,12 @@ class GraphService:
                     resolved.extend(ordered)
                 resolved = sorted(set(resolved))[:16]
                 evidence = [e for e in evidence if e["node_id"] in resolved][:64]
-            edges_rows = db.execute("SELECT * FROM graph_edges WHERE scope_json=?", (scope_json,)).fetchall()
+            starts_truncated = len(resolved) > max_visited
+            if starts_truncated:
+                resolved = resolved[:max_visited]
+            edge_count = db.execute("SELECT COUNT(*) AS n FROM graph_edges WHERE scope_json=?", (scope_json,)).fetchone()["n"]
+            edges_rows = db.execute("SELECT * FROM graph_edges WHERE scope_json=? ORDER BY edge_id,source_id LIMIT 10000", (scope_json,)).fetchall()
+            edges_truncated = edge_count > len(edges_rows)
             grouped: dict[str, dict[str, Any]] = {}
             for row in edges_rows:
                 if relationship_types and row["relationship_type"] not in relationship_types:
@@ -554,7 +561,7 @@ class GraphService:
                                     if not edge["directed"] or edge["target_node_id"] == node]
                              for node, pairs in adjacency.items()}
             paths: list[dict[str, Any]] = []
-            truncated = False
+            truncated = starts_truncated or edges_truncated
             visited_global: set[str] = set(resolved)
             queue: list[tuple[list[str], list[dict[str, Any]]]] = [([node], []) for node in resolved]
             seen_node_paths: set[tuple[str, ...]] = set()
@@ -576,6 +583,9 @@ class GraphService:
                             truncated = True
                             break
                         visited_global.add(next_node)
+                    if len(queue) >= 10000:
+                        truncated = True
+                        break
                     queue.append((node_ids + [next_node], path_edges + [edge]))
                 if truncated:
                     break
