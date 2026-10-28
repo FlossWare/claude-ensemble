@@ -132,7 +132,7 @@ class MemoryOwnerTests(unittest.TestCase):
                 self.assertEqual(response.status, 202)
                 deleted = json.loads(response.read())
             self.assertEqual(list(Draft202012Validator(SCHEMA["$defs"]["deleteResponse"]).iter_errors(deleted)), [])
-            with urlopen(base + "/api/v1/memories/operations/" + created["operation_id"], timeout=3) as response:
+            with urlopen(base + "/api/v1/memories/operations/" + created["operation_id"] + "?scope_type=project&scope_id=project-a&visibility=private", timeout=3) as response:
                 operation = json.loads(response.read())
             self.assertEqual(list(Draft202012Validator(SCHEMA["$defs"]["operationStatusResponse"]).iter_errors(operation)), [])
             with self.assertRaises(HTTPError) as caught:
