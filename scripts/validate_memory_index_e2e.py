@@ -38,8 +38,12 @@ def _request(base: str, path: str, *, payload: dict | None = None, method: str |
         request_headers.update(headers)
     request = Request(base + path, data=body, headers=request_headers,
                       method=method or ("GET" if body is None else "POST"))
-    with urlopen(request, timeout=timeout) as response:
-        decoded = json.loads(response.read().decode("utf-8"))
+    try:
+        with urlopen(request, timeout=timeout) as response:
+            decoded = json.loads(response.read().decode("utf-8"))
+    except HTTPError as exc:
+        detail = exc.read().decode("utf-8", errors="replace")
+        raise RuntimeError(f"{path} returned HTTP {exc.code}: {detail}") from exc
     if not isinstance(decoded, dict):
         raise RuntimeError(f"{path} returned a non-object response")
     return decoded
