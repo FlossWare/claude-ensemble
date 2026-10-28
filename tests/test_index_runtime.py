@@ -407,6 +407,9 @@ class IndexRuntimeTests(unittest.TestCase):
                 self.assertEqual(vector_result["metric"], "cosine")
                 self.assertEqual(vector_result["candidates"][0]["source_id"], "knowledge:doc-a")
                 self.assertEqual(vector_result["candidates"][0]["retrieval_rank"], 1)
+                self.assertEqual(vector_result["candidates"][0]["rerank_score"], 1.0)
+                self.assertEqual(vector_result["candidates"][0]["rerank_rank"], 1)
+                self.assertEqual(vector_result["reranking_profile"], {"name": "default-reranker", "version": "0.1"})
                 self.assertEqual(vector_result["candidates"][0]["provenance"]["embedding_model"], "local-nomic")
         finally:
             server.shutdown()
