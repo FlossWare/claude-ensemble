@@ -409,7 +409,8 @@ class SourcePipeline:
             return {"source_key": document.source_key, "status": "unchanged",
                     "memory_id": previous.get("memory_id")}
         payload = document.to_memory_payload(scope=scope, index_profile=index_profile)
-        memory_id = (str(previous["memory_id"]) if previous and previous.get("memory_id")\n                     and previous.get("state") != "removed" else None)
+        memory_id = (str(previous["memory_id"]) if previous and previous.get("memory_id")
+                     and previous.get("state") != "removed" else None)
         try:
             if memory_id:
                 status, current = self.client.request("GET", f"/api/v1/memories/{memory_id}")
