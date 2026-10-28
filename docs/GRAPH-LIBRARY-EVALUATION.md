@@ -1,38 +1,49 @@
 # Graph library evaluation
 
-Status: decision for the initial CE Graph runtime slice.
+Status: **provisional; simulated-load comparison pending**.
 
-## Decision
+## Decision so far
 
-Use **NetworkX 3.5** for the in-memory graph representation and standard graph traversal/path algorithms. Keep the existing SQLite-backed source-support and owner-reconciliation model. Do not build a general-purpose graph engine inside CE.
+NetworkX 3.5 is currently integrated in the Graph runtime as an initial candidate, not a proven winner. Do not treat that integration as final until the candidates have been compared against the same CE-like workload and Graph contract tests.
 
-## Contract fit
+SQLite remains the canonical durable store. The candidate library supplies in-memory graph representation and traversal primitives; it does not own CE's REST contract or domain semantics.
 
-The Graph REST contract requires directed and undirected relationship traversal, scope isolation, deterministic bounded path results, source-specific relationship supports, and durable owner-led replay. NetworkX supplies graph data structures and established traversal/path algorithms, but it does not own any of those CE domain guarantees.
+## Candidates and comparison
 
-The runtime constructs the NetworkX graph only after filtering SQLite rows by the exact canonical scope and applying the contract's relationship-direction rules. CE continues to enforce:
+Compare NetworkX, rustworkx, and igraph using the optional deterministic harness [scripts/benchmark_graph_libraries.py](../scripts/benchmark_graph_libraries.py). Run the same generated graph, query starts, depth bound, visited-node bound, and path bound against all three candidates. The harness rejects a run if the candidate result signatures differ.
+
+The harness reports graph build time, aggregate/median/p95 query time, and Python-tracked peak allocations. tracemalloc does not capture all native allocations, so memory figures are directional rather than complete process RSS. Run candidates on the same machine and Python version, record the environment, and repeat runs before interpreting small differences.
+
+Install the optional candidate packages in an isolated environment:
+
+~~~sh
+python -m pip install 'networkx==3.5' 'rustworkx>=0.17,<1' 'igraph>=0.11,<1'
+python scripts/benchmark_graph_libraries.py
+~~~
+
+Use --quick for a short smoke run. The default run includes a larger scenario capped at CE's 10,000 materialized-edge contract limit. These are synthetic stress cases, not claims about production traffic. If results are close, add workload shapes based on measured CE traces before choosing a winner.
+
+## Contract constraints that remain CE-owned
+
+Regardless of library choice, CE must continue to enforce:
 
 - source-supported nodes and relationships, tombstones, revision watermarks, and idempotency;
 - scope filtering before graph construction;
-- stable support/provenance payloads and deterministic edge choice;
+- stable support/provenance payloads and deterministic ordering;
 - maximum depth, visited-node count, path count, and materialized-edge bounds;
 - SQLite persistence, owner journal replay, checkpoints, and readiness;
 - the public REST contract and error behavior.
 
-The in-memory graph is a query structure, not canonical storage. It is rebuilt from bounded, scoped persisted rows for each traversal. This avoids a second mutable state representation that could diverge from SQLite after a restart or failed projection.
+The in-memory graph is a query structure, not canonical storage. It is rebuilt from bounded, scoped persisted rows so it cannot become a second mutable source of truth after a restart or failed projection.
 
-## Candidates
+## Selection criteria
 
-| Library | Assessment |
-|---|---|
-| NetworkX | Selected. Pure Python, mature, broad graph traversal support, BSD-3-Clause license, and a low-friction fit for the current bounded CE workloads. |
-| rustworkx | Not selected for the initial slice. Worth benchmarking only if representative CE workloads show NetworkX is too slow; adds a compiled dependency and different graph/index semantics. |
-| igraph | Not selected. Strong analysis capabilities, but broader than the current service needs and introduces additional API/licensing review without demonstrated benefit. |
+Choose based on evidence across:
 
-## Trade-offs and safeguards
+1. Correctness and parity with the Graph contract, including directed/undirected semantics and deterministic bounded results.
+2. Build cost and query latency under sparse, high-fanout, and cyclic graph shapes.
+3. Memory consumption, including native allocations where the measurement environment permits it.
+4. Python/runtime compatibility, dependency footprint, maintenance, and license.
+5. Integration complexity and how much CE-specific code is still required.
 
-NetworkX is not a graph database and does not provide persistence or distributed transactions. That is acceptable: SQLite remains the durable store and CE's owner-journal protocol remains authoritative. NetworkX's path enumeration can grow rapidly, so the runtime bounds the scoped graph, traversal depth, and total emitted paths. These limits are part of the CE contract and must not be delegated to library defaults.
-
-## Validation required
-
-The Graph runtime tests must pass through the service boundary for directionality, scope isolation, deterministic paths, depth/node/path limits, source support preservation, tombstones, and restart/reconciliation behavior. CI is the validation source; the library selection alone does not make the Graph service accepted.
+A raw speed win does not justify a library that changes result semantics or makes CE's contract harder to enforce. If performance is similar, prefer the simplest dependable integration. Keep NetworkX provisional until the benchmark and Graph runtime tests provide evidence.
