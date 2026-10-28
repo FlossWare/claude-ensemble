@@ -400,6 +400,8 @@ class Handler(BaseHTTPRequestHandler):
             _validate_json_unicode(body)
             if not isinstance(body, dict):
                 raise ChunkingError("invalid_request", "request body must be a JSON object", status=400)
+            if set(body) - {"scope", "delete_scope", "request_id"} or not {"scope", "delete_scope"}.issubset(body):
+                raise MemoryServiceError("invalid_request", "delete request has missing or unknown fields", 400)
             memory_id = urlsplit(self.path).path.rsplit("/", 1)[-1]
             status, response = get_memory_service().delete(
                 memory_id, body.get("scope"), body.get("delete_scope"),
