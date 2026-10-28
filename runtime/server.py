@@ -11,6 +11,10 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from typing import Any
 
 from .tokenization import PROFILE_NAME, PROFILE_VERSION, NORMALIZATION_VERSION, TokenizationError, tokenize
+from .embedding import EmbeddingError, PROFILE_NAME as EMBEDDING_PROFILE_NAME, PROFILE_VERSION as EMBEDDING_PROFILE_VERSION, get_engine as get_embedding_engine, validate_index_profile as validate_embedding_index_profile, validate_text as validate_embedding_text
+from .ranking import RankingError, rank as rank_candidates
+from .intent_classification import IntentClassificationError, classify as classify_intent
+from .entity_extraction import EntityExtractionError, PROFILE_NAME as ENTITY_PROFILE_NAME, PROFILE_VERSION as ENTITY_PROFILE_VERSION, get_extractor as get_entity_extractor
 from .chunking import (
     MAX_CONTENT_BYTES, MAX_CHUNKS, DEFAULT_POLICY, ChunkingError, Policy, chunk_document, chunk_spans, validate_index_profile,
 )
@@ -21,6 +25,9 @@ SOURCE_ID = re.compile(r"^(memory|knowledge):[A-Za-z0-9._~-]{1,128}$")
 MAX_REQUEST_BYTES = 300_000
 MAX_PROFILE_REQUEST_BYTES = 2_097_152
 MAX_TOKENIZATION_BATCH_REQUEST_BYTES = 524_288
+MAX_RANKING_REQUEST_BYTES = 1_048_576
+MAX_INTENT_REQUEST_BYTES = 1_048_576
+MAX_ENTITY_REQUEST_BYTES = 1_048_576
 DEFAULT_REQUEST_TIMEOUT_SECONDS = 30.0
 SUPPORTED_PROFILES = {"markdown-default": {"0.1"}}
 
@@ -339,6 +346,24 @@ class Handler(BaseHTTPRequestHandler):
                 "checks": [{"name": "technical-default@0.1", "status": "ok"},
                            {"name": "normalization@0.1", "status": "ok"}],
             }, request_id)
+        elif self.path == "/api/v1/embedding/health":
+            self._send(200, {"service": "embedding", "status": "alive"}, request_id)
+        elif self.path == "/api/v1/embedding/ready":
+            self._send(200, get_embedding_engine().readiness(), request_id)
+        elif self.path == "/api/v1/ranking/health":
+            self._send(200, {"service": "ranking", "status": "alive"}, request_id)
+        elif self.path == "/api/v1/ranking/ready":
+            self._send(200, {"service": "ranking", "status": "ready", "ready": True,
+                             "checks": [{"name": "rrf-v1@1", "status": "ok"}]}, request_id)
+        elif self.path == "/api/v1/intent-classification/health":
+            self._send(200, {"service": "intent-classification", "status": "alive"}, request_id)
+        elif self.path == "/api/v1/intent-classification/ready":
+            self._send(200, {"service": "intent-classification", "status": "ready", "ready": True,
+                             "checks": [{"name": "default-intents@0.1", "status": "ok"}]}, request_id)
+        elif self.path == "/api/v1/entity-extraction/health":
+            self._send(200, {"service": "entity-extraction", "status": "alive"}, request_id)
+        elif self.path == "/api/v1/entity-extraction/ready":
+            self._send(200, get_entity_extractor().readiness(), request_id)
         else:
             self._send(404, _error("endpoint_not_found", "endpoint not found"), request_id)
 
@@ -354,6 +379,8 @@ class Handler(BaseHTTPRequestHandler):
         if self.path not in (
             "/api/v1/chunking/chunks", "/api/v1/chunking/preflight",
             "/api/v1/tokenization/lexical", "/api/v1/tokenization/lexical/batch",
+            "/api/v1/embeddings", "/api/v1/ranking/rank",
+            "/api/v1/intent-classification/classify", "/api/v1/entity-extraction/extract",
         ):
             self._send(404, _error("endpoint_not_found", "endpoint not found"), request_id)
             return
@@ -371,6 +398,14 @@ class Handler(BaseHTTPRequestHandler):
                 limit = MAX_PROFILE_REQUEST_BYTES
             elif self.path == "/api/v1/tokenization/lexical/batch":
                 limit = MAX_TOKENIZATION_BATCH_REQUEST_BYTES
+            elif self.path == "/api/v1/embeddings":
+                limit = MAX_TOKENIZATION_BATCH_REQUEST_BYTES
+            elif self.path == "/api/v1/ranking/rank":
+                limit = MAX_RANKING_REQUEST_BYTES
+            elif self.path == "/api/v1/intent-classification/classify":
+                limit = MAX_INTENT_REQUEST_BYTES
+            elif self.path == "/api/v1/entity-extraction/extract":
+                limit = MAX_ENTITY_REQUEST_BYTES
             else:
                 limit = MAX_REQUEST_BYTES
             if length > limit:
@@ -392,6 +427,14 @@ class Handler(BaseHTTPRequestHandler):
                 response = self._tokenize(request)
             elif self.path == "/api/v1/tokenization/lexical/batch":
                 response = self._tokenize_batch(request)
+            elif self.path == "/api/v1/embeddings":
+                response = self._embed(request)
+            elif self.path == "/api/v1/ranking/rank":
+                response = self._rank(request)
+            elif self.path == "/api/v1/intent-classification/classify":
+                response = self._classify_intent(request)
+            elif self.path == "/api/v1/entity-extraction/extract":
+                response = self._extract_entities(request)
             else:
                 response = self._chunks(request)
             if (deadline_error := self._deadline_error()) is not None:
@@ -408,8 +451,80 @@ class Handler(BaseHTTPRequestHandler):
             self._fail(exc, request_id)
         except TokenizationError as exc:
             self._send(exc.status, _error(exc.code, str(exc)), request_id)
+        except EmbeddingError as exc:
+            self._send(exc.status, _error(exc.code, str(exc)), request_id)
+        except RankingError as exc:
+            self._send(exc.status, _error(exc.code, str(exc)), request_id)
+        except IntentClassificationError as exc:
+            self._send(exc.status, _error(exc.code, str(exc)), request_id)
+        except EntityExtractionError as exc:
+            self._send(exc.status, _error(exc.code, str(exc)), request_id)
         except Exception:
             self._send(500, _error("internal_error", "request could not be processed"), request_id)
+
+    def _rank(self, value: Any) -> dict[str, Any]:
+        return rank_candidates(value)
+
+    def _classify_intent(self, value: Any) -> dict[str, Any]:
+        return classify_intent(value)
+
+    def _extract_entities(self, value: Any) -> dict[str, Any]:
+        request = _require_object(
+            value, "request", {"request_id", "text", "profile"},
+            {"request_id", "text", "profile"},
+        )
+        if not isinstance(request["request_id"], str) or not 1 <= len(request["request_id"]) <= 128:
+            raise EntityExtractionError("invalid_parameter", "request_id must be a string of 1 to 128 characters", status=400)
+        profile = _require_object(request["profile"], "profile", {"name", "version"}, {"name", "version"})
+        if profile != {"name": ENTITY_PROFILE_NAME, "version": ENTITY_PROFILE_VERSION}:
+            raise EntityExtractionError("unsupported_profile", "entity extraction profile or version is not supported")
+        return {
+            "profile": {"name": ENTITY_PROFILE_NAME, "version": ENTITY_PROFILE_VERSION},
+            "entities": get_entity_extractor().extract(request["text"]),
+        }
+
+    def _embed(self, value: Any) -> dict[str, Any]:
+        request = _require_object(
+            value, "request",
+            {"request_id", "index_profile", "profile", "profile_version", "inputs", "normalize"},
+            {"index_profile", "profile", "profile_version", "inputs"},
+        )
+        if "request_id" in request and (
+            not isinstance(request["request_id"], str) or not 1 <= len(request["request_id"]) <= 128
+        ):
+            raise EmbeddingError("invalid_parameter", "request.request_id must be a string of 1 to 128 characters", status=400)
+        identity = validate_embedding_index_profile(request["index_profile"])
+        if request["profile"] != EMBEDDING_PROFILE_NAME or request["profile_version"] != EMBEDDING_PROFILE_VERSION:
+            raise EmbeddingError("unsupported_profile", "embedding profile or version is not supported")
+        inputs = request["inputs"]
+        if not isinstance(inputs, list) or not 1 <= len(inputs) <= 64:
+            raise EmbeddingError("invalid_parameter", "inputs must contain between 1 and 64 items", status=400)
+        normalized_inputs: list[dict[str, str]] = []
+        seen_ids: set[str] = set()
+        for item in inputs:
+            item = _require_object(item, "inputs[]", {"input_id", "input_type", "text"}, {"input_id", "input_type", "text"})
+            input_id = item["input_id"]
+            if not isinstance(input_id, str) or not 1 <= len(input_id) <= 128:
+                raise EmbeddingError("invalid_parameter", "input_id must be a string of 1 to 128 characters", status=400)
+            if input_id in seen_ids:
+                raise EmbeddingError("invalid_parameter", "input_id values must be unique", status=400)
+            seen_ids.add(input_id)
+            input_type = item["input_type"]
+            if not isinstance(input_type, str) or input_type not in {"query", "document"}:
+                raise EmbeddingError("invalid_parameter", "input_type must be query or document", status=400)
+            text = validate_embedding_text(item["text"], f"inputs[{input_id}].text")
+            normalized_inputs.append({"input_id": input_id, "input_type": input_type, "text": text})
+        normalization = request.get("normalize", "profile-default")
+        if not isinstance(normalization, str) or normalization not in {"profile-default", "none", "l2"}:
+            raise EmbeddingError("invalid_parameter", "normalize must be profile-default, none, or l2", status=400)
+        model, results = get_embedding_engine().embed(normalized_inputs, normalization)
+        return {
+            "index_profile": identity,
+            "profile": EMBEDDING_PROFILE_NAME,
+            "profile_version": EMBEDDING_PROFILE_VERSION,
+            "model": model,
+            "results": results,
+        }
 
     def _tokenization_context(self, request: Any, *, batch: bool) -> tuple[dict[str, Any], dict[str, bool]]:
         allowed = {"request_id", "index_profile", "profile", "profile_version", "options"}

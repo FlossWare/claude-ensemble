@@ -1,48 +1,83 @@
-# Embedding Service Contract (Draft)
+# Embedding Service Contract
 
-Status: proposed language-neutral REST contract for architecture review. No provider, SDK, database, or inference runtime is prescribed.
+Status: initial CPU-only local runtime contract.
 
 ## Responsibility
 
-Generate embeddings for supplied text under an explicitly named, versioned embedding profile. The service owns profile resolution, input validation, provider/model invocation, vector normalization required by the profile, bounded batching, and per-item result/error semantics.
+Generate vectors for supplied text using one locally installed embedding model. The service owns input validation, local model invocation, normalization, bounded batching, per-item result/error semantics, and model readiness.
 
-It does not own source records, chunking, lexical tokenization, index storage, retrieval, ranking, or prompt-context assembly. Callers invoke it through REST. Index stores derived vectors; Memory and Knowledge remain authoritative for source content.
+Embedding does not own source records, chunking, lexical tokenization, index storage, retrieval, ranking, or prompt-context assembly. Callers use REST. The configured model runs on the CPU. The service does not call hosted inference APIs and never downloads model files at runtime.
 
 ## Endpoints
 
-- POST /api/v1/embeddings: embed one or more text inputs.
-- GET /api/v1/embedding/health: liveness.
-- GET /api/v1/embedding/ready: ability to accept requests under the configured profile/provider readiness policy.
+- \`POST /api/v1/embeddings\`: embed one or more text inputs.
+- \`GET /api/v1/embedding/health\`: process liveness only.
+- \`GET /api/v1/embedding/ready\`: whether the configured local model is installed and loadable.
+
+## Local configuration
+
+The default model root is `~/.FlossWare/models`. Unless overridden, the service looks for the Nomic model at `~/.FlossWare/models/nomic-embed-text-v1.5` and assumes the expected model ID `nomic-ai/nomic-embed-text-v1.5`. Set `CE_EMBEDDING_MODEL_PATH` to override the directory and `CE_EMBEDDING_MODEL_ID` only when explicitly configuring the supported expected ID. `CE_EMBEDDING_MODEL_VERSION` remains required and must identify the exact revision provisioned locally.
+
+Example one-time provisioning (run with network access; never run as part of CE startup):
+
+```sh
+mkdir -p "$HOME/.FlossWare/models/nomic-embed-text-v1.5"
+hf download nomic-ai/nomic-embed-text-v1.5 \\
+  --revision "$NOMIC_EMBEDDING_REVISION" \\
+  --local-dir "$HOME/.FlossWare/models/nomic-embed-text-v1.5"
+export CE_EMBEDDING_MODEL_VERSION="$NOMIC_EMBEDDING_REVISION"
+```
+
+Set `NOMIC_EMBEDDING_REVISION` to the reviewed, immutable model revision chosen for the deployment, and record that revision with its license and checksum. Do not use a moving branch name as the deployment pin. Model files remain outside Git.
+
+The runtime uses Sentence Transformers with \`device="cpu"\`, \`local_files_only=True\`, and \`trust_remote_code=False\`.
+
+Required environment settings:
+
+- \`CE_EMBEDDING_MODEL_PATH\`: path to the complete local model directory.
+- \`CE_EMBEDDING_MODEL_VERSION\`: deployment-pinned model revision/version.
+- \`CE_EMBEDDING_MODEL_ID\`: must be \`nomic-ai/nomic-embed-text-v1.5\`; requests are not served if the configured identity is missing or differs.
+
+The loaded model must report exactly 768 dimensions or readiness fails. The identity and dimension checks validate deployment configuration and model shape; they do not independently verify the model files' provenance.
+
+Model files and runtime dependencies must be provisioned before CE starts. A missing or invalid model causes readiness to report \`ready: false\` and requests to fail with \`503 service_unavailable\`. Serving requests never trigger downloads. Model files are not committed to the repository.
 
 ## Request
 
-<!-- schema-example: docs/contracts/schemas/embedding.schema.json#/$defs/request -->
 ~~~json
 {
-  "index_profile": {"name": "default", "version": "0.1", "digest": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"},
+  "index_profile": {
+    "name": "default",
+    "version": "0.1",
+    "digest": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+  },
   "profile": "technical-default",
   "profile_version": "0.1",
   "inputs": [
-    {"input_id": "chunk-123", "input_type": "document", "text": "Example technical content"}
+    {"input_id": "chunk-123", "input_type": "document", "text": "Example technical content"},
+    {"input_id": "query-1", "input_type": "query", "text": "How does the service work?"}
   ],
   "normalize": "profile-default"
 }
 ~~~
 
-The profile is resolved through Index and each request carries the immutable `index_profile` `{name, version, digest}` plus the component `profile` and `profile_version` from that bundle. The service resolves a pinned provider/model identity, model revision where available, dimensions, input modality, normalization policy, and preprocessing from that exact bundle; it does not silently use a local default. The bundle digest and component version are echoed in the response and recorded by Index. Callers may not silently override model identity or dimensions per request. Query and document embeddings must use compatible profiles. If a provider offers distinct query/document modes, the profile must specify which mode is being requested and compatibility rules.
+The Index profile identity is validated for shape and echoed for correlation; it is not resolved through a profile registry. The effective model is selected by local deployment configuration, not by caller-controlled model IDs. The supported component profile is \`technical-default@0.1\`, backed by the locally provisioned \`nomic-ai/nomic-embed-text-v1.5\` model (768 dimensions). The request text must be unprefixed. For \`input_type: query\`, the service prepends \`search_query: \`; for \`input_type: document\`, it prepends \`search_document: \`. These task prefixes are part of the profile semantics and must not be added by callers. The runtime must reject or clearly report an incompatible configured model rather than silently claiming Nomic profile compatibility.
 
 ## Response
 
-<!-- schema-example: docs/contracts/schemas/embedding.schema.json#/$defs/response -->
 ~~~json
 {
-  "index_profile": {"name": "default", "version": "0.1", "digest": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"},
+  "index_profile": {
+    "name": "default",
+    "version": "0.1",
+    "digest": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+  },
   "profile": "technical-default",
   "profile_version": "0.1",
   "model": {
-    "provider": "provider-id",
-    "model_id": "model-id",
-    "model_version": "model-revision",
+    "provider": "local",
+    "model_id": "test-model",
+    "model_version": "test-v1",
     "dimensions": 2,
     "normalization": "l2"
   },
@@ -52,56 +87,38 @@ The profile is resolved through Index and each request carries the immutable `in
       "input_type": "document",
       "status": "complete",
       "vector": [0.01, 0.02],
-      "dimensions": 2
+      "dimensions": 384
     }
   ],
   "request_id": "correlation-id"
 }
 ~~~
 
-Vector values above are illustrative; real responses must have exactly the declared number of finite numeric values. Contract tests must verify length, finiteness, and normalization within a documented tolerance. Do not return a vector with fabricated, truncated, padded, or silently coerced dimensions.
+The vector values above are illustrative only; the number of values must equal \`dimensions\`. Every completed vector must contain finite numeric values. L2 normalization rejects zero vectors. A failed item has \`status: "failed"\` and a safe \`error_code\`, with no vector. Every input has exactly one result preserving its \`input_id\` and \`input_type\`.
 
-## Semantics
+## Semantics and bounds
 
-- Each input explicitly declares `input_type` as `document` or `query`; provider-specific query/document modes are resolved from that value under the pinned profile. Incompatible modes are rejected rather than silently embedded as the wrong type.
-- Preserve input-to-result identity; result order alone is not a correlation mechanism.
-- A batch may report per-item success or failure only if partial success is explicitly represented. Never silently omit failed items.
-- Profile/model identity and dimensions are returned with results and recorded by Index alongside each representation.
-- The immutable Index profile bundle includes `embedding.max_input_tokens`, the provider/model's per-input token ceiling, alongside model/version/dimensions/mode/normalization/metric. The service validates actual token count against this pinned limit before calling the provider and rejects oversized input without truncation. The profile digest covers this limit. The profile defines normalization behavior. The service must not normalize some results and leave others unnormalized under the same profile.
-- Embedding requests are bounded and deadline-aware. Retries are bounded and only retry transient provider failures; validation and profile errors are not retried.
-- If the caller times out, it must not assume the provider did no work. The embedding endpoint is computationally idempotent by input/profile, but providers may still charge for repeated calls.
-- Do not log raw input text, credentials, or provider response bodies by default. Logs use correlation IDs, profile/model identifiers, counts, latency, and safe error codes.
-- Provider-specific quotas, data retention, and processing location are configuration/operational constraints. A profile must not route data to a provider that violates the caller's approved policy.
-- This service does not persist source text or vectors as authoritative data. Any cache is an explicit bounded optimization with profile/version in the key and must not alter semantics.
-
-## Initial bounds
-
-- Maximum 64 inputs per request and 512 KiB encoded request body.
-- Each input must fit the profile's declared provider token/input limit. The service rejects oversized inputs explicitly rather than silently truncating.
-- The service returns per-item statuses and safe error codes; no unbounded provider payloads or raw exception strings.
-- Deployments document provider-specific rate limits, timeouts, maximum dimensions, and configured profile registry.
-
-## Machine-checkable schemas
-
-The normative request/response schema is [`schemas/embedding.schema.json`](schemas/embedding.schema.json). Each input declares `input_type` as `query` or `document`, and each result preserves the matching mode and effective profile/model identity.
+- Requests contain 1–64 inputs; input IDs must be unique.
+- Input text is non-empty, at most 65,536 Unicode code points and at most 262,144 UTF-8 bytes.
+- Encoded request bodies are limited to 512 KiB.
+- The supported normalization values are \`profile-default\` (currently L2), \`l2\`, and \`none\`.
+- Returned dimensions must exactly match the local model's declared dimension. Wrong-sized, non-finite, or invalid vectors become explicit per-item failures; they are never padded, truncated, or fabricated.
+- A model inference failure is reported as an explicit failure for each affected input. The service does not silently omit items.
+- Do not log raw input text or vectors by default. Log correlation ID, model ID/version, input counts, latency, and safe error codes.
+- There is no profile registry, provider fallback, remote inference, model download, or arbitrary model selection in the runtime path.
 
 ## Errors
 
-Use the common REST error envelope. Distinguish invalid input, unknown/incompatible profile, input too large, unsupported policy/profile, provider rate limit, provider unavailable, deadline exceeded, and internal failure. A valid empty input batch is rejected as invalid; a valid input that produces a zero vector or non-finite vector is a provider/profile failure, not a successful embedding.
+Use the common REST error envelope. Invalid requests use \`400\`; unsupported component profiles use \`422 unsupported_profile\`; oversized requests use \`413\`; unavailable local model files or dependencies use \`503 service_unavailable\`; expired deadlines use \`504 deadline_exceeded\`. Per-item inference failures are returned in the successful batch response as explicit failed results.
 
 ## Acceptance tests
 
-1. Stable input IDs map results to the correct inputs regardless of provider response order.
-2. Result dimensions match the resolved profile exactly; non-finite values are rejected.
-3. Profile/version/model identity is explicit; document and query input modes select the configured provider mode and incompatible modes are rejected.
-4. Batch limits and per-input provider limits are enforced without silent truncation.
-5. Partial batch failures are explicit and retryable only when the error is transient.
-6. Deadlines and cancellation are propagated; retry count and total time are bounded.
-7. Logs omit raw text and credentials by default.
-8. Provider policy/configuration prevents prohibited routing.
-9. Health and readiness have distinct liveness/readiness meanings.
-10. Contract tests can run against a deterministic fake provider; provider integration tests are separate and clearly labeled.
-
-## Approval gate
-
-This contract is a draft for architecture review. It must be reconciled with the common REST contract, Index profile schema, Tokenization/Chunking outputs, and end-to-end ingestion/retrieval acceptance tests before implementation.
+1. A local configured model is loaded in CPU mode and local-only mode.
+2. No model files or hosted inference APIs are accessed at request time.
+3. Readiness is false when model files or the pinned model version are missing.
+4. Stable input IDs map each result to the correct input.
+5. Result dimensions match the model exactly; non-finite, zero-normalization, and wrong-sized vectors fail explicitly.
+6. Batch and text limits are enforced without truncation.
+7. Per-item inference failures are represented without leaking exception details.
+8. Health and readiness have distinct meanings.
+9. Contract tests use a deterministic fake encoder; local-model integration tests are separately labeled and run only when a model has been provisioned.

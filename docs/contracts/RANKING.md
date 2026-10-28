@@ -1,6 +1,6 @@
-# Ranking Service Contract (Draft)
+# Ranking Service Contract
 
-Status: proposed language-neutral REST contract for architecture review. Not implementation approval.
+Status: initial deterministic runtime implementation. The v1 runtime implements fixed-point reciprocal rank fusion and the acceptance behaviors below.
 
 ## Responsibility
 

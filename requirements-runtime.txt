@@ -1,0 +1,6 @@
+# Install separately from test dependencies. Model weights are provisioned locally.
+# Inference always uses device="cpu" and local_files_only=True.
+# Nomic Embed Text v1.5 no longer requires trust_remote_code with these versions.
+sentence-transformers==6.2.0
+transformers==5.21.0
+spacy==3.8.18
