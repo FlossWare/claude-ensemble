@@ -349,6 +349,38 @@ class IndexRuntimeTests(unittest.TestCase):
         self.assertEqual(profile_response["digest"], self.bundle["digest"])
 
 
+    def test_known_index_routes_reject_unsupported_methods_with_405(self):
+        class Headers(dict):
+            def get(self, key, default=None):
+                return super().get(key, default)
+
+        mismatches = [
+            ("POST", "/api/v1/index/health"),
+            ("GET", "/api/v1/index/operations/upsert"),
+            ("GET", "/api/v1/index/operations/delete"),
+            ("GET", "/api/v1/index/vector-neighbors"),
+            ("GET", "/api/v1/index/lexical/lookup"),
+            ("POST", "/api/v1/index/sources/manifest"),
+            ("POST", "/api/v1/index/generations/active"),
+            ("DELETE", "/api/v1/index/generations/gen-test/abandon"),
+            ("GET", "/api/v1/index/generations/gen-test/cutover"),
+            ("POST", "/api/v1/index/sources/knowledge%3Adoc-a/status"),
+        ]
+        for method, path in mismatches:
+            with self.subTest(method=method, path=path):
+                with self.assertRaises(IndexError) as raised:
+                    self.service.handle(method, path, {}, {}, Headers(), "wrong-method")
+                self.assertEqual(raised.exception.status, 405)
+                self.assertEqual(raised.exception.code, "method_not_allowed")
+
+    def test_runtime_error_codes_are_declared_by_index_schema(self):
+        schema_path = Path(__file__).resolve().parents[1] / "docs" / "contracts" / "schemas" / "index.schema.json"
+        schema = json.loads(schema_path.read_text(encoding="utf-8"))
+        allowed = set(schema["$defs"]["errorResponse"]["properties"]["error"]["properties"]["code"]["enum"])
+        for code in ("invalid_cursor", "scope_conflict", "source_not_found"):
+            with self.subTest(code=code):
+                self.assertIn(code, allowed)
+
     def test_terminal_idempotency_binding_expires_after_thirty_days(self):
         request = self.upsert_request()
         self.service.upsert(request, "idem-expire")
