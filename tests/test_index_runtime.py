@@ -198,7 +198,7 @@ class IndexRuntimeTests(unittest.TestCase):
             )
             self.assertTrue(any(item["revision_sequence"] == 1 for item in candidates))
 
-    def test_chroma_tombstone_filters_stale_vectors_after_service_restart(self):
+    def test_chroma_delete_clears_vectors_and_remains_empty_after_restart(self):
         self.service.upsert(self.upsert_request(), "idem-a")
         generation_id = self.service.active_generation()["generation_id"]
         delete = {
@@ -208,6 +208,9 @@ class IndexRuntimeTests(unittest.TestCase):
             "delete_scope": "source",
         }
         self.service.delete(delete, "idem-delete")
+        self.assertEqual(
+            self.service._vector_store(generation_id, self.bundle).list_ids(), set()
+        )
         restarted = IndexService(Path(self.temp.name) / "index.sqlite3", self.bundle)
         query = {
             "request_id": "req-after-restart", "scope": SCOPE, "index_profile": self.identity,
@@ -217,7 +220,6 @@ class IndexRuntimeTests(unittest.TestCase):
         }
         result = restarted.vector_neighbors(query)
         self.assertEqual(result["candidates"], [])
-        self.assertTrue(result["truncated"])
 
     def test_vector_neighbor_rejects_hostile_magnitudes_without_crashing_lookup(self):
         self.service.upsert(self.upsert_request(), "idem-a")
