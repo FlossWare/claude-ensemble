@@ -310,12 +310,13 @@ class IndexService:
 
     @staticmethod
     def _journal_change(db: sqlite3.Connection, generation_id: str, source_id: str,
-                        sequence: int, operation_id: str, kind: str, payload_hash: str) -> None:
+                        sequence: int, operation_id: str, kind: str, payload_hash: str,
+                        status: str = "applied") -> None:
         owner = source_id.split(":", 1)[0]
         db.execute("""INSERT OR IGNORE INTO dual_apply_journal
             (generation_id,owner,source_id,revision_sequence,operation_id,operation_kind,payload_hash,status)
-            VALUES(?,?,?,?,?,?,?,'applied')""",
-            (generation_id, owner, source_id, sequence, operation_id, kind, payload_hash))
+            VALUES(?,?,?,?,?,?,?,?)""",
+            (generation_id, owner, source_id, sequence, operation_id, kind, payload_hash, status))
 
     def provision_profile(self, bundle: dict[str, Any]) -> None:
         bundle = self._validate_profile(bundle)
@@ -530,7 +531,7 @@ class IndexService:
             response = {"operation_id": request["operation_id"], "source_id": source_id, "source_revision": source["revision"],
                         "revision_sequence": seq, "status": "complete", "index_generation": gen["generation_id"],
                         "request_id": request.get("request_id", "index")}
-            db.execute("INSERT INTO operations(operation_id,idempotency_key,payload_hash,status,response_json) VALUES(?,?,?,?,?)",
+            db.execute("INSERT INTO operations(operation_id,idempotency_key,payload_hash,status,response_json,terminal_at) VALUES(?,?,?,?,?,CURRENT_TIMESTAMP)",
                        (request["operation_id"], idempotency_key, payload_hash, "complete", _canonical(response).decode()))
             if is_active_generation:
                 # Active writes and idempotent replays repair/maintain compatible target
@@ -554,6 +555,12 @@ class IndexService:
                              "active mutation conflicts with an existing target-generation revision"))
                         self._journal_change(db, target_id, source_id, seq, request["operation_id"],
                                              "upsert", payload_hash)
+                        continue
+                    if prior_target is not None and seq < prior_target:
+                        # The target already has newer evidence. Record the active
+                        # mutation as observed but not applied to this generation.
+                        self._journal_change(db, target_id, source_id, seq, request["operation_id"],
+                                             "upsert", payload_hash, status="skipped_stale")
                         continue
                     if prior_target is None or seq > prior_target:
                         db.execute("DELETE FROM representations WHERE generation_id=? AND source_id=? AND revision_sequence<?",
