@@ -303,6 +303,60 @@ class IndexRuntimeTests(unittest.TestCase):
                              [("knowledge:doc-a", 1)])
         details = self.service.handle("GET", f"/api/v1/index/generations/{target}", {}, None, Headers(), "status")[1]
         self.assertGreater(int(details["dual_apply_journal_position"]), 0)
+        delete = {
+            "operation_id": "delete-dual", "request_id": "delete-dual", "source_id": "knowledge:doc-a",
+            "source_revision": "tombstone-rev-2", "revision_sequence": 2, "scope": SCOPE,
+            "index_profile": self.identity, "delete_scope": "source",
+        }
+        self.service.delete(delete, "idem-delete-dual")
+        with self.service._connect() as db:
+            remaining = db.execute("SELECT COUNT(*) AS count FROM representations WHERE generation_id=? AND source_id=?",
+                                   (target, "knowledge:doc-a")).fetchone()["count"]
+            journal_count = db.execute("SELECT COUNT(*) AS count FROM dual_apply_journal WHERE generation_id=?",
+                                        (target,)).fetchone()["count"]
+        self.assertEqual(remaining, 0)
+        self.assertEqual(journal_count, 2)
+
+    def test_owner_checkpoints_are_monotonic_and_fences_are_explicit(self):
+        class Headers(dict):
+            def get(self, key, default=None):
+                return super().get(key, default)
+        status, generation = self.service.handle(
+            "POST", "/api/v1/index/generations", {},
+            {"index_profile": self.identity}, Headers({"Idempotency-Key": "build-fence"}), "build"
+        )
+        target = generation["generation_id"]
+        status, checkpoint = self.service.handle(
+            "POST", f"/api/v1/index/generations/{target}/owner-checkpoints", {},
+            {"owner": "memory", "applied_change_sequence": 3}, Headers(), "checkpoint"
+        )
+        self.assertEqual(status, 200)
+        self.assertEqual(checkpoint["applied_change_sequence"], 3)
+        with self.assertRaises(IndexError) as raised:
+            self.service.handle(
+                "POST", f"/api/v1/index/generations/{target}/owner-checkpoints", {},
+                {"owner": "memory", "applied_change_sequence": 2}, Headers(), "checkpoint-regress"
+            )
+        self.assertEqual(raised.exception.code, "revision_sequence_regression")
+        from datetime import datetime, timezone, timedelta
+        expiry = (datetime.now(timezone.utc) + timedelta(minutes=2)).isoformat()
+        fence_payload = {
+            "owner": "memory", "target_generation": target, "fence_id": "memory-fence-1",
+            "fence_token": "fence-token-with-enough-entropy", "sealed_change_sequence": 3,
+            "expires_at": expiry, "state": "held",
+        }
+        status, fence = self.service.handle(
+            "PUT", f"/api/v1/index/generations/{target}/owner-fences/memory/memory-fence-1", {},
+            fence_payload, Headers(), "fence"
+        )
+        self.assertEqual(status, 200)
+        self.assertEqual(fence["fence_state"], "held")
+        status, released = self.service.handle(
+            "DELETE", f"/api/v1/index/generations/{target}/owner-fences/memory/memory-fence-1",
+            {}, None, Headers(), "release"
+        )
+        self.assertEqual(status, 200)
+        self.assertTrue(released["released"])
 
     def test_cutover_remains_fail_closed_until_owner_replay_protocol_is_integrated(self):
         class Headers(dict):
