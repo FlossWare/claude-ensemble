@@ -197,7 +197,7 @@ class RetrievalAlgorithmTests(unittest.TestCase):
             return {"index_profile": PROFILE, "profile": "technical-default", "profile_version": "0.1",
                     "model": {"model_id": "local-nomic", "model_version": "r1", "dimensions": 3},
                     "results": [{"input_id": "q1", "status": "complete", "vector": [1.0, 0.0, 0.0]}]}
-        service = VectorRetrievalService(embed, lambda req: {}, resolve)
+        service = VectorRetrievalService(embed, lambda req: {"index_generation": "g1", "truncated": False, "candidates": [dict(CANDIDATE, distance=0.9)]}, resolve)
         with self.assertRaises(RetrievalError) as raised:
             service.search({
                 "request_id": "r1", "query_id": "q1", "scope": SCOPE, "index_profile": PROFILE,
