@@ -177,6 +177,34 @@ class IndexService:
         except VectorStoreError as exc:
             raise _error("vector_store_unavailable", str(exc), 503) from exc
 
+    def _prune_chroma_source(
+        self, db: sqlite3.Connection, generation_id: str, source_id: str,
+        bundle: dict[str, Any],
+    ) -> None:
+        """Best-effort post-commit removal of stale vector IDs; SQLite remains authoritative."""
+        if self.vector_backend != "chromadb":
+            return
+        store = self._vector_store(generation_id, bundle)
+        rows = db.execute(
+            "SELECT * FROM representations WHERE generation_id=? AND source_id=? AND vector_json IS NOT NULL ORDER BY revision_sequence,chunk_id",
+            (generation_id, source_id),
+        ).fetchall()
+        records = [{
+            "generation_id": generation_id, "profile_digest": profile_digest(bundle),
+            "source_id": row["source_id"], "source_revision": row["source_revision"],
+            "revision_sequence": row["revision_sequence"], "chunk_id": row["chunk_id"],
+            "chunker_profile": row["chunker_profile"], "chunker_version": row["chunker_version"],
+            "embedding_model": row["embedding_model"], "embedding_version": row["embedding_version"],
+            "embedding_dimensions": row["embedding_dimensions"],
+            "scope": json.loads(row["scope_json"]), "text": row["text"],
+            "embedding": json.loads(row["vector_json"]),
+        } for row in rows]
+        try:
+            store.replace_source(source_id, records)
+        except VectorStoreError:
+            # Stale vectors remain harmless: query results must still pass SQLite validation.
+            return
+
     def _initialize(self) -> None:
         with self._connect() as db:
             db.executescript("""
@@ -730,7 +758,19 @@ class IndexService:
                         self._sync_chroma_source(
                             db, generation_row["generation_id"], source_id, bundle
                         )
-                return 202, response
+                result = (202, response)
+            if self.vector_backend == "chromadb":
+                try:
+                    with self._connect() as cleanup_db:
+                        for generation_row in generation_rows:
+                            self._prune_chroma_source(
+                                cleanup_db, generation_row["generation_id"], source_id, bundle
+                            )
+                except (IndexError, sqlite3.Error):
+                    # The committed source remains valid; cleanup can fail without
+                    # making stale vectors visible to retrieval.
+                    pass
+            return result
     
     def delete(self, request: dict[str, Any], idempotency_key: str) -> tuple[int, dict[str, Any]]:
         if not idempotency_key:
@@ -795,7 +835,30 @@ class IndexService:
             for target_row in building:
                 self._journal_change(db, target_row["generation_id"], source_id, seq,
                                      request["operation_id"], "delete", payload_hash)
-            return 202, response
+            result = (202, response)
+        if self.vector_backend == "chromadb":
+            try:
+                with self._connect() as cleanup_db:
+                    generation_rows = cleanup_db.execute(
+                        "SELECT generation_id,profile_name,profile_version FROM generations"
+                    ).fetchall()
+                    for generation_row in generation_rows:
+                        profile_row = cleanup_db.execute(
+                            "SELECT bundle_json FROM profiles WHERE name=? AND version=?",
+                            (generation_row["profile_name"], generation_row["profile_version"]),
+                        ).fetchone()
+                        if profile_row:
+                            try:
+                                self._vector_store(
+                                    generation_row["generation_id"],
+                                    json.loads(profile_row["bundle_json"]),
+                                ).delete_source(source_id)
+                            except (IndexError, VectorStoreError):
+                                # SQLite tombstone filters stale vectors even if physical cleanup fails.
+                                continue
+            except sqlite3.Error:
+                pass
+        return result
 
     def profile_version(self, name: str, version: str) -> dict[str, Any]:
         with self._connect() as db:
