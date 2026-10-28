@@ -494,6 +494,14 @@
           "minLength": 8,
           "maxLength": 135,
           "pattern": "^memory:[A-Za-z0-9._~-]{1,128}$"
+        },
+        "graph_status": {
+          "enum": [
+            "pending_graph",
+            "indexed",
+            "graph_failed",
+            "reconciliation_required"
+          ]
         }
       }
     },
@@ -587,6 +595,14 @@
           "minLength": 8,
           "maxLength": 135,
           "pattern": "^memory:[A-Za-z0-9._~-]{1,128}$"
+        },
+        "graph_status": {
+          "enum": [
+            "pending_graph",
+            "indexed",
+            "graph_failed",
+            "reconciliation_required"
+          ]
         }
       }
     },
@@ -794,7 +810,8 @@
             "pending_graph",
             "deleted",
             "graph_failed",
-            "reconciliation_required"
+            "reconciliation_required",
+            "indexed"
           ]
         }
       }
@@ -854,7 +871,8 @@
             "pending_graph",
             "deleted",
             "graph_failed",
-            "reconciliation_required"
+            "reconciliation_required",
+            "indexed"
           ]
         }
       }
