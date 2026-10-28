@@ -156,9 +156,11 @@ class IndexService:
             old = db.execute("SELECT digest FROM profiles WHERE name=? AND version=?", (bundle["name"], bundle["version"])).fetchone()
             if old and old["digest"] != bundle["digest"]:
                 raise _error("profile_mismatch", "an immutable profile version cannot be changed", 409)
+            active = db.execute("""SELECT g.profile_digest FROM active_generation a JOIN generations g ON g.generation_id=a.generation_id WHERE a.singleton=1""").fetchone()
+            if active and active["profile_digest"] != bundle["digest"]:
+                raise _error("profile_mismatch", "this bounded runtime supports one provisioned profile; profile changes require the reviewed rebuild/registry workflow", 409)
             db.execute("INSERT OR IGNORE INTO profiles(name,version,digest,bundle_json) VALUES(?,?,?,?)",
                        (bundle["name"], bundle["version"], bundle["digest"], encoded))
-            active = db.execute("SELECT generation_id FROM active_generation LIMIT 1").fetchone()
             if not active:
                 generation_id = "gen-" + uuid.uuid4().hex
                 db.execute("INSERT INTO generations(generation_id,status,profile_name,profile_version,profile_digest) VALUES(?,?,?,?,?)",
@@ -584,6 +586,8 @@ class IndexService:
                 raise _error("invalid_request", "Idempotency-Key header is required")
             with self._lock, self._connect() as db:
                 bundle, _ = self._profile(db, payload.get("index_profile"))
+                if bundle.get("status") == "retired":
+                    raise _error("profile_retired", "retired profiles cannot be used for new generations", 409)
                 generation_id = "gen-" + uuid.uuid4().hex
                 db.execute("INSERT INTO generations(generation_id,status,profile_name,profile_version,profile_digest) VALUES(?,?,?,?,?)",
                            (generation_id, "building", bundle["name"], bundle["version"], bundle["digest"]))
