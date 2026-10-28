@@ -159,7 +159,7 @@ class SourceLifecycleTests(unittest.TestCase):
                              "2026-10-28T00:00:00Z")
         class FailingClient(FakeMemoryClient):
             def request(self, method, path, payload=None, idempotency_key=None):
-                if path == "/api/v1/memories":
+                if path == "/api/v1/memories" and payload and payload.get("content") == "bad":
                     return 422, {"error": {"message": "rejected"}}
                 return super().request(method, path, payload, idempotency_key)
         pipeline = SourcePipeline(FailingClient(), self.manifest)
