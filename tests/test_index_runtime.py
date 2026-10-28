@@ -1,0 +1,144 @@
+"""Contract-focused tests for the durable Index retrieval slice."""
+from __future__ import annotations
+
+import tempfile
+import unittest
+from pathlib import Path
+
+from runtime.index import IndexError, IndexService, profile_digest
+
+
+SCOPE = {"type": "project", "id": "project-a", "visibility": "private"}
+
+
+def profile():
+    value = {
+        "name": "test-profile",
+        "version": "0.1",
+        "status": "active",
+        "chunking": {"profile": "markdown-default", "version": "0.1", "max_units": 1200, "overlap_units": 120},
+        "tokenization": {"profile": "technical-default", "version": "0.1"},
+        "lexical": {"profile": "bm25-v1", "version": "0.1", "statistics_policy": "scope_partition"},
+        "embedding": {
+            "required": True, "profile": "technical-default", "version": "0.1",
+            "model": "local-nomic", "model_version": "r1", "input_types": ["query", "document"],
+            "dimensions": 3, "normalization": "l2", "metric": "cosine", "max_input_tokens": 8192,
+        },
+        "limits": {
+            "max_chunks": 256, "max_source_bytes": 262144, "max_chunk_text_bytes": 65536,
+            "max_request_bytes": 2097152, "max_chunk_representation_bytes": 7168,
+            "max_envelope_bytes": 131072, "max_metadata_bytes": 8192,
+            "max_lexical_terms_per_chunk": 512, "max_lexical_term_bytes": 128,
+        },
+    }
+    value["digest"] = profile_digest(value)
+    return value
+
+
+def representation(chunk_id, text, terms, vector):
+    return {
+        "chunk_id": chunk_id,
+        "chunker": {"profile": "markdown-default", "version": "0.1"},
+        "text": text,
+        "lexical": {"profile": "bm25-v1", "version": "0.1", "terms": terms},
+        "vector": {"input_type": "document", "model": "local-nomic", "version": "r1",
+                   "dimensions": 3, "values": vector},
+        "metadata": {},
+    }
+
+
+class IndexRuntimeTests(unittest.TestCase):
+    def setUp(self):
+        self.temp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.temp.cleanup)
+        self.bundle = profile()
+        self.identity = {k: self.bundle[k] for k in ("name", "version", "digest")}
+        self.service = IndexService(Path(self.temp.name) / "index.sqlite3", self.bundle)
+
+    def upsert_request(self, source_id="knowledge:doc-a", sequence=1, operation_id="op-a", reps=None):
+        return {
+            "operation_id": operation_id,
+            "request_id": "req-1",
+            "source": {"source_id": source_id, "revision": f"rev-{sequence}",
+                       "revision_sequence": sequence, "scope": SCOPE},
+            "index_profile": self.identity,
+            "representations": reps or [representation("chunk-a", "ranking fusion", ["ranking", "fusion"], [1.0, 0.0, 0.0])],
+        }
+
+    def test_upsert_is_durable_and_profile_pinned(self):
+        request = self.upsert_request()
+        status, result = self.service.upsert(request, "idem-a")
+        self.assertEqual(status, 200)
+        self.assertEqual(result["status"], "complete")
+        restarted = IndexService(Path(self.temp.name) / "index.sqlite3", self.bundle)
+        self.assertEqual(restarted.operation("op-a")["status"], "complete")
+        self.assertEqual(restarted.source_status("knowledge:doc-a")["indexed_revision_sequence"], 1)
+
+    def test_lexical_lookup_returns_scoped_evidence_and_statistics(self):
+        self.service.upsert(self.upsert_request(), "idem-a")
+        request = {
+            "request_id": "req-2", "scope": SCOPE, "index_profile": self.identity,
+            "lexical_profile": {"name": "bm25-v1", "version": "0.1"},
+            "terms": ["ranking", "fusion"], "limit": 10,
+            "index_generation": self.service.active_generation()["generation_id"],
+        }
+        result = self.service.lexical_lookup(request)
+        self.assertEqual([c["chunk_id"] for c in result["candidates"]], ["chunk-a"])
+        self.assertEqual(result["candidates"][0]["term_frequency_evidence"][0]["term"], "fusion")
+        self.assertEqual(result["corpus_statistics"]["document_count"], 1)
+
+    def test_vector_neighbors_obey_metric_and_profile(self):
+        self.service.upsert(self.upsert_request(), "idem-a")
+        request = {
+            "request_id": "req-3", "scope": SCOPE, "index_profile": self.identity,
+            "embedding_profile": {"name": "technical-default", "version": "0.1"},
+            "query_vector": [1.0, 0.0, 0.0], "input_type": "query", "metric": "cosine", "limit": 5,
+            "index_generation": self.service.active_generation()["generation_id"],
+        }
+        result = self.service.vector_neighbors(request)
+        self.assertEqual(result["candidates"][0]["chunk_id"], "chunk-a")
+        self.assertEqual(result["candidates"][0]["similarity"], 1.0)
+
+    def test_tombstone_is_durable_and_blocks_stale_upsert(self):
+        self.service.upsert(self.upsert_request(), "idem-a")
+        delete = {
+            "operation_id": "delete-a", "request_id": "req-delete", "source_id": "knowledge:doc-a",
+            "source_revision": "tombstone-rev-2", "revision_sequence": 2,
+            "scope": SCOPE, "index_profile": self.identity, "delete_scope": "source",
+        }
+        self.service.delete(delete, "idem-delete")
+        with self.assertRaisesRegex(IndexError, "tombstone sequence"):
+            self.service.upsert(self.upsert_request(sequence=1, operation_id="op-stale"), "idem-stale")
+        restarted = IndexService(Path(self.temp.name) / "index.sqlite3", self.bundle)
+        status = restarted.source_status("knowledge:doc-a")
+        self.assertEqual(status["tombstone_sequence"], 2)
+        self.assertEqual(status["deletion_state"], "tombstoned")
+
+    def test_new_operation_cannot_reuse_a_source_revision_sequence(self):
+        self.service.upsert(self.upsert_request(), "idem-a")
+        with self.assertRaisesRegex(IndexError, "strictly increase"):
+            self.service.upsert(self.upsert_request(operation_id="op-other"), "idem-other")
+
+    def test_profile_digest_mismatch_is_rejected(self):
+        invalid = dict(self.bundle)
+        invalid["lexical"] = dict(invalid["lexical"], profile="other")
+        with self.assertRaisesRegex(IndexError, "digest"):
+            IndexService(Path(self.temp.name) / "bad.sqlite3", invalid)
+
+    def test_handle_exposes_profile_and_health_routes(self):
+        class Headers(dict):
+            def get(self, key, default=None):
+                return super().get(key, default)
+        headers = Headers()
+        status, health = self.service.handle("GET", "/api/v1/index/health", {}, None, headers, "req")
+        self.assertEqual(status, 200)
+        self.assertEqual(health["status"], "alive")
+        status, profile_response = self.service.handle(
+            "GET", "/api/v1/index/profiles/test-profile/versions/0.1", {}, None, headers, "req"
+        )
+        self.assertEqual(status, 200)
+        self.assertEqual(profile_response["digest"], self.bundle["digest"])
+
+
+if __name__ == "__main__":
+    unittest.main()
