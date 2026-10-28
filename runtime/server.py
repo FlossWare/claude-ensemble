@@ -588,8 +588,11 @@ class Handler(BaseHTTPRequestHandler):
                 request["request_id"] = request_id
                 service = get_memory_service()
                 if path == "/api/v1/memories":
-                    self._memory_preflight(request, request_id)
+                    context = self._memory_preflight(request, request_id)
                     status, response = service.create(request, self.headers.get("Idempotency-Key", ""), request_id)
+                    worker = threading.Thread(target=self._memory_ingest,
+                                              args=(response, dict(request), context), daemon=True)
+                    worker.start()
                 elif path == "/api/v1/memories/verify-revisions":
                     if set(request) - {"items", "request_id"} or "items" not in request:
                         raise MemoryServiceError("invalid_request", "verification request has missing or unknown fields", 400)
@@ -669,7 +672,7 @@ class Handler(BaseHTTPRequestHandler):
             self._send(500, _error("internal_error", "request could not be processed"), request_id)
 
     def _memory_rest_json(self, base_url: str, path: str, *, payload: dict[str, Any] | None = None,
-                          request_id: str, timeout: float) -> dict[str, Any]:
+                          request_id: str, timeout: float, extra_headers: dict[str, str] | None = None) -> dict[str, Any]:
         body = None if payload is None else json.dumps(payload, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
         headers = {
             "Accept": "application/json",
@@ -679,6 +682,8 @@ class Handler(BaseHTTPRequestHandler):
         }
         if body is not None:
             headers["Content-Type"] = "application/json"
+        if extra_headers:
+            headers.update(extra_headers)
         request = Request(base_url.rstrip("/") + path, data=body, headers=headers,
                           method="GET" if body is None else "POST")
         try:
@@ -733,6 +738,111 @@ class Handler(BaseHTTPRequestHandler):
             raise MemoryServiceError("source_too_large", "content exceeds the pinned Index profile limits", 422)
         return {"bundle": bundle, "preflight": preflight, "index_base": index_base,
                 "chunking_base": chunking_base, "local_base": local_base}
+
+    def _memory_ingest(self, accepted: dict[str, Any], original_request: dict[str, Any],
+                       context: dict[str, Any]) -> None:
+        """Run the derived ingestion path after canonical commit, using REST only."""
+        service = get_memory_service()
+        operation_id = accepted["operation_id"]
+        request_id = accepted.get("request_id", operation_id)
+        try:
+            service.update_operation(operation_id, "pending", "pending_index")
+            canonical = service.read(accepted["memory_id"], original_request["scope"])
+            bundle = context["bundle"]
+            profile = accepted["index_profile"]
+            source = {
+                "source_id": accepted["source_id"], "revision": accepted["revision"],
+                "revision_sequence": accepted["revision_sequence"],
+                "scope": canonical["scope"], "media_type": "text/markdown",
+                "content": canonical["content"],
+            }
+            chunks_response = self._memory_rest_json(
+                context["chunking_base"], "/api/v1/chunking/chunks",
+                payload={"request_id": request_id, "index_profile": profile,
+                         "source": source, "profile_bundle": bundle},
+                request_id=request_id, timeout=10.0)
+            chunks = chunks_response.get("chunks")
+            if not isinstance(chunks, list) or not chunks:
+                raise MemoryServiceError("invalid_dependency_response", "Chunking returned no chunks", 503)
+            tokenization_profile = bundle["tokenization"]
+            token_results: dict[str, list[str]] = {}
+            for start in range(0, len(chunks), 64):
+                batch = chunks[start:start + 64]
+                token_response = self._memory_rest_json(
+                    context["local_base"], "/api/v1/tokenization/lexical/batch",
+                    payload={
+                        "request_id": request_id, "index_profile": profile,
+                        "profile": tokenization_profile["profile"],
+                        "profile_version": tokenization_profile["version"],
+                        "inputs": [{"input_id": chunk["chunk_id"], "text": chunk["text"]} for chunk in batch],
+                    },
+                    request_id=request_id, timeout=10.0)
+                for item in token_response.get("results", []):
+                    if not isinstance(item, dict) or "error" in item or not isinstance(item.get("tokens"), list):
+                        raise MemoryServiceError("tokenization_failed", "Tokenization failed for one or more chunks", 422)
+                    terms = []
+                    seen = set()
+                    for token in item["tokens"]:
+                        term = token.get("term") if isinstance(token, dict) else None
+                        if isinstance(term, str) and term and term not in seen:
+                            seen.add(term)
+                            terms.append(term)
+                    token_results[item["input_id"]] = terms
+            embedding_profile = bundle["embedding"]
+            embedded: dict[str, dict[str, Any]] = {}
+            for start in range(0, len(chunks), 64):
+                batch = chunks[start:start + 64]
+                embedding_response = self._memory_rest_json(
+                    os.environ.get("CE_EMBEDDING_BASE_URL", context["local_base"]), "/api/v1/embeddings",
+                    payload={
+                        "request_id": request_id, "index_profile": profile,
+                        "profile": embedding_profile["profile"],
+                        "profile_version": embedding_profile["version"],
+                        "normalize": embedding_profile["normalization"],
+                        "inputs": [{"input_id": chunk["chunk_id"], "input_type": "document", "text": chunk["text"]}
+                                   for chunk in batch],
+                    },
+                    request_id=request_id, timeout=20.0)
+                model = embedding_response.get("model", {})
+                if (model.get("model_id") != embedding_profile["model"]
+                        or model.get("model_version") != embedding_profile["model_version"]
+                        or model.get("dimensions") != embedding_profile["dimensions"]):
+                    raise MemoryServiceError("incompatible_representation", "Embedding model identity does not match the pinned Index profile", 422)
+                for item in embedding_response.get("results", []):
+                    if not isinstance(item, dict) or item.get("status") != "complete" or not isinstance(item.get("vector"), list):
+                        raise MemoryServiceError("embedding_failed", "Embedding failed for one or more chunks", 503)
+                    embedded[item["input_id"]] = {"model": model["model_id"], "version": model["model_version"],
+                                                  "dimensions": model["dimensions"], "values": item["vector"]}
+            lexical = bundle["lexical"]
+            representations = []
+            for chunk in chunks:
+                chunk_id = chunk["chunk_id"]
+                if chunk_id not in token_results or chunk_id not in embedded:
+                    raise MemoryServiceError("invalid_dependency_response", "A chunk is missing tokenization or embedding output", 503)
+                representations.append({
+                    "chunk_id": chunk_id,
+                    "chunker": {"profile": chunks_response["chunker"]["profile"],
+                                "version": chunks_response["chunker"]["version"]},
+                    "text": chunk["text"],
+                    "lexical": {"profile": lexical["profile"], "version": lexical["version"],
+                                "terms": token_results[chunk_id]},
+                    "vector": {"input_type": "document", **embedded[chunk_id]},
+                    "metadata": chunk.get("metadata", {}),
+                })
+            self._memory_rest_json(
+                context["index_base"], "/api/v1/index/operations/upsert",
+                payload={"operation_id": operation_id, "request_id": request_id,
+                         "source": {"source_id": accepted["source_id"], "revision": accepted["revision"],
+                                    "revision_sequence": accepted["revision_sequence"], "scope": canonical["scope"]},
+                         "index_profile": profile, "representations": representations},
+                request_id=request_id, timeout=20.0,
+                extra_headers={"Idempotency-Key": operation_id})
+            service.update_operation(operation_id, "complete", "indexed")
+        except Exception:
+            try:
+                service.update_operation(operation_id, "failed", "index_failed")
+            except Exception:
+                pass
 
     def _rank(self, value: Any) -> dict[str, Any]:
         return rank_candidates(value)
