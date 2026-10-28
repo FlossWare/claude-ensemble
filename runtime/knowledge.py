@@ -73,6 +73,9 @@ class KnowledgeService:
                 idempotency_key TEXT PRIMARY KEY, payload_hash TEXT NOT NULL, operation_id TEXT NOT NULL,
                 FOREIGN KEY(operation_id) REFERENCES knowledge_operations(operation_id));
             """)
+            columns = {row["name"] for row in db.execute("PRAGMA table_info(knowledge_operations)")}
+            if "index_profile_json" not in columns:
+                db.execute("ALTER TABLE knowledge_operations ADD COLUMN index_profile_json TEXT NOT NULL DEFAULT '{}'")
 
     @staticmethod
     def _hash(payload: dict[str, Any]) -> str:
