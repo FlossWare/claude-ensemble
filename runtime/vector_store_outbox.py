@@ -9,6 +9,7 @@ and idempotent upserts/deletes.
 from __future__ import annotations
 
 import sqlite3
+from contextlib import contextmanager
 from typing import Any, Callable
 
 
@@ -37,11 +38,19 @@ class VectorStoreOutbox:
                 ON vector_store_intents(status, intent_id)
             """)
 
+    @contextmanager
     def _connect(self):
         db = sqlite3.connect(self.db_path, timeout=5.0)
         db.row_factory = sqlite3.Row
         db.execute("PRAGMA busy_timeout=5000")
-        return db
+        try:
+            yield db
+            db.commit()
+        except Exception:
+            db.rollback()
+            raise
+        finally:
+            db.close()
 
     @staticmethod
     def enqueue(db: sqlite3.Connection, *, generation_id: str, source_id: str,
