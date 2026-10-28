@@ -9,6 +9,7 @@ import hashlib
 import json
 import math
 import os
+import re
 import sqlite3
 import threading
 import uuid
@@ -221,7 +222,7 @@ class IndexService:
         if not isinstance(source, dict) or not isinstance(source.get("source_id"), str) or not isinstance(source.get("revision"), str) or type(source.get("revision_sequence")) is not int or source["revision_sequence"] < 1:
             raise _error("invalid_request", "source identity, revision, and positive revision_sequence are required")
         source_id = source["source_id"]
-        if not (source_id.startswith("memory:") or source_id.startswith("knowledge:")):
+        if not re.fullmatch(r"(memory|knowledge):[A-Za-z0-9._~-]{1,128}", source_id):
             raise _error("invalid_request", "source_id must have a canonical owner prefix")
         scope_json = self._scope(source.get("scope"))
         if not isinstance(request.get("operation_id"), str) or not request["operation_id"]:
@@ -281,7 +282,7 @@ class IndexService:
             raise _error("invalid_request", "Idempotency-Key header is required")
         source_id = request.get("source_id")
         seq = request.get("revision_sequence")
-        if not isinstance(source_id, str) or not (source_id.startswith("memory:") or source_id.startswith("knowledge:")) or type(seq) is not int or seq < 1 or request.get("delete_scope") != "source" or not isinstance(request.get("operation_id"), str) or not request["operation_id"]:
+        if not isinstance(source_id, str) or not re.fullmatch(r"(memory|knowledge):[A-Za-z0-9._~-]{1,128}", source_id) or type(seq) is not int or seq < 1 or request.get("delete_scope") != "source" or not isinstance(request.get("operation_id"), str) or not request["operation_id"]:
             raise _error("invalid_request", "source-wide tombstone with a valid source, operation ID, and positive sequence is required")
         payload_hash = hashlib.sha256(_canonical(request)).hexdigest()
         with self._lock, self._connect() as db:
@@ -339,9 +340,11 @@ class IndexService:
             if not row:
                 raise _error("operation_not_found", "Index operation was not found", 404)
             payload = json.loads(row["response_json"])
-            payload["status"] = row["status"]
-            payload["safe_error_code"] = row["safe_error_code"]
-            return payload
+            return {"operation_id": payload["operation_id"], "status": row["status"],
+                    "source_id": payload.get("source_id"), "source_revision": payload.get("source_revision"),
+                    "revision_sequence": payload.get("revision_sequence"),
+                    "safe_error_code": row["safe_error_code"], "reconciliation_required": row["status"] == "reconciliation_required",
+                    "request_id": payload.get("request_id", "index")}
 
     def source_status(self, source_id: str) -> dict[str, Any]:
         with self._connect() as db:
@@ -461,7 +464,7 @@ class IndexService:
                 return 200, {"service": "index", "status": "ready", "ready": True,
                              "checks": [{"name": "profile_bundle", "status": "ok"},
                                         {"name": "active_generation", "status": "ok"}],
-                             "active_generation": active["generation_id"], "request_id": request_id}
+                             "request_id": request_id}
             except IndexError:
                 return 503, {"service": "index", "status": "not_ready", "ready": False,
                              "checks": [{"name": "profile_bundle", "status": "unavailable"}],
