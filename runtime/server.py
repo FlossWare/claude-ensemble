@@ -857,7 +857,7 @@ class BoundedThreadingHTTPServer(ThreadingHTTPServer):
         response = (
             b"HTTP/1.1 503 Service Unavailable\r\n"
             b"Content-Type: application/json; charset=utf-8\r\n"
-            + f"Content-Length: {len(payload)}\\r\\n".encode("ascii")
+            + f"Content-Length: {len(payload)}\r\n".encode("ascii")
             + f"X-CE-Request-ID: {request_id}\r\n".encode("ascii")
             + b"Connection: close\r\n\r\n"
             + payload
