@@ -29,6 +29,12 @@ def profile_digest(bundle: dict[str, Any]) -> str:
     return hashlib.sha256(_canonical(covered)).hexdigest()
 
 
+def _payload_hash(payload: dict[str, Any]) -> str:
+    # Correlation metadata is not part of the semantic idempotency binding.
+    semantic = {key: value for key, value in payload.items() if key != "request_id"}
+    return hashlib.sha256(_canonical(semantic)).hexdigest()
+
+
 def _error(code: str, message: str, status: int = 400) -> "IndexError":
     return IndexError(code, message, status)
 
@@ -44,9 +50,9 @@ class IndexService:
     """SQLite-backed Index operations, independently testable without HTTP."""
 
     def __init__(self, db_path: str | os.PathLike[str], profile_bundle: dict[str, Any] | None = None):
-        self.db_path = str(db_path)
+        self.db_path = str(Path(db_path).expanduser())
         self._lock = threading.RLock()
-        Path(self.db_path).expanduser().parent.mkdir(parents=True, exist_ok=True)
+        Path(self.db_path).parent.mkdir(parents=True, exist_ok=True)
         self._initialize()
         if profile_bundle is not None:
             self.provision_profile(profile_bundle)
@@ -198,16 +204,23 @@ class IndexService:
         chunker = rep.get("chunker")
         if not isinstance(chunker, dict) or not chunker.get("profile") or not chunker.get("version"):
             raise _error("invalid_request", "representation chunker profile/version is required")
+        limits = bundle["limits"]
+        if len(rep["text"].encode("utf-8")) > limits["max_chunk_text_bytes"]:
+            raise _error("source_too_large", "chunk text exceeds the pinned profile byte limit", 422)
         terms = []
         lexical = rep.get("lexical")
         if lexical is not None:
+            if not isinstance(lexical, dict):
+                raise _error("invalid_request", "lexical representation must be an object")
             if lexical.get("profile") != bundle["lexical"].get("profile") or lexical.get("version") != bundle["lexical"].get("version"):
                 raise _error("incompatible_representation", "lexical representation does not match pinned profile", 422)
             terms = lexical.get("terms", [])
-            if not isinstance(terms, list) or any(not isinstance(t, str) or not t for t in terms):
-                raise _error("invalid_request", "lexical terms are invalid")
+            if not isinstance(terms, list) or not terms or any(not isinstance(t, str) or not t or len(t.encode("utf-8")) > limits["max_lexical_term_bytes"] for t in terms) or len(terms) > limits["max_lexical_terms_per_chunk"]:
+                raise _error("invalid_request", "lexical terms are invalid or exceed profile limits")
         vector = rep.get("vector")
         if vector is not None:
+            if not isinstance(vector, dict):
+                raise _error("invalid_request", "vector representation must be an object")
             emb = bundle["embedding"]
             if vector.get("input_type") != "document" or vector.get("model") != emb.get("model") or vector.get("version") != emb.get("model_version") or vector.get("dimensions") != emb.get("dimensions"):
                 raise _error("incompatible_representation", "vector model, version, dimensions, or input type does not match pinned profile", 422)
@@ -219,8 +232,10 @@ class IndexService:
         if lexical is None and bundle.get("lexical", {}).get("required", True):
             raise _error("incompatible_representation", "pinned profile requires a lexical representation", 422)
         metadata = rep.get("metadata", {})
-        if not isinstance(metadata, dict):
-            raise _error("invalid_request", "representation metadata must be an object")
+        if not isinstance(metadata, dict) or len(_canonical(metadata)) > limits["max_metadata_bytes"]:
+            raise _error("invalid_request", "representation metadata is invalid or exceeds profile limits")
+        if len(_canonical(rep)) > limits["max_chunk_representation_bytes"]:
+            raise _error("source_too_large", "serialized chunk representation exceeds the pinned profile byte limit", 422)
         return {"chunk_id": rep["chunk_id"], "chunker": chunker, "text": rep["text"],
                 "terms": terms, "lexical": lexical, "vector": vector, "metadata": metadata}
 
@@ -239,7 +254,11 @@ class IndexService:
         reps = request.get("representations")
         if not isinstance(reps, list) or not 1 <= len(reps) <= 256:
             raise _error("invalid_request", "representations must contain 1 to 256 items")
-        payload_hash = hashlib.sha256(_canonical(request)).hexdigest()
+        with self._connect() as db:
+            bundle_for_limits, _ = self._profile(db, request.get("index_profile"))
+        if len(_canonical(request)) > bundle_for_limits["limits"]["max_request_bytes"]:
+            raise _error("request_too_large", "upsert exceeds the pinned profile request byte limit", 413)
+        payload_hash = _payload_hash(request)
         with self._lock, self._connect() as db:
             prior = db.execute("SELECT * FROM operations WHERE operation_id=? OR idempotency_key=?", (request["operation_id"], idempotency_key)).fetchone()
             if prior:
@@ -361,10 +380,12 @@ class IndexService:
             tomb = db.execute("SELECT tombstone_sequence FROM tombstones WHERE source_id=?", (source_id,)).fetchone()
             if not source and not tomb:
                 raise _error("source_not_found", "Index source was not found", 404)
+            tomb_sequence = tomb["tombstone_sequence"] if tomb else None
+            restored = source is not None and tomb_sequence is not None and source["indexed_sequence"] > tomb_sequence
             return {"source_id": source_id, "latest_revision_sequence": source["latest_sequence"] if source else None,
                     "indexed_revision_sequence": source["indexed_sequence"] if source else None,
-                    "tombstone_sequence": tomb["tombstone_sequence"] if tomb else None,
-                    "deletion_state": "tombstoned" if tomb else "active", "request_id": "index"}
+                    "tombstone_sequence": tomb_sequence,
+                    "deletion_state": "active" if restored or tomb is None else "tombstoned", "request_id": "index"}
 
     def lexical_lookup(self, request: dict[str, Any]) -> dict[str, Any]:
         scope_json = self._scope(request.get("scope"))
