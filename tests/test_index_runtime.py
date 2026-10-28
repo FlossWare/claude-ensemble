@@ -175,6 +175,34 @@ class IndexRuntimeTests(unittest.TestCase):
             thread.join(timeout=2)
             reset_index_service_for_tests()
 
+    def test_manifest_cursor_uses_stable_snapshot(self):
+        self.service.upsert(self.upsert_request(), "idem-a")
+        self.service.upsert(self.upsert_request(
+            source_id="knowledge:doc-b", operation_id="op-b",
+            reps=[representation("chunk-b", "ranking fusion", ["ranking", "fusion"], [0.0, 1.0, 0.0])],
+        ), "idem-b")
+        class Headers(dict):
+            def get(self, key, default=None):
+                return super().get(key, default)
+        status, first = self.service.handle(
+            "GET", "/api/v1/index/sources/manifest", {"owner": ["knowledge"], "limit": ["1"]},
+            None, Headers(), "manifest-1"
+        )
+        self.assertEqual(status, 200)
+        self.assertEqual([item["source_id"] for item in first["items"]], ["knowledge:doc-a"])
+        self.assertIsNotNone(first["next_cursor"])
+        self.service.upsert(self.upsert_request(
+            source_id="knowledge:doc-c", operation_id="op-c",
+            reps=[representation("chunk-c", "ranking fusion", ["ranking", "fusion"], [0.0, 0.0, 1.0])],
+        ), "idem-c")
+        status, second = self.service.handle(
+            "GET", "/api/v1/index/sources/manifest",
+            {"owner": ["knowledge"], "limit": ["1"], "cursor": [first["next_cursor"]]},
+            None, Headers(), "manifest-2"
+        )
+        self.assertEqual(status, 200)
+        self.assertEqual([item["source_id"] for item in second["items"]], ["knowledge:doc-b"])
+
     def test_generation_creation_is_idempotent_and_payload_matches_schema(self):
         class Headers(dict):
             def get(self, key, default=None):
