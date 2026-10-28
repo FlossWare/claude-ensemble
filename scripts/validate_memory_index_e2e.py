@@ -21,7 +21,7 @@ os.environ["TRANSFORMERS_OFFLINE"] = "1"
 
 from runtime.embedding import EXPECTED_DIMENSIONS, EXPECTED_MODEL_ID, get_engine, reset_engine_for_tests
 from runtime.index import profile_digest, reset_index_service_for_tests
-from runtime.memory import reset_memory_service_for_tests
+from runtime.memory import get_memory_service, reset_memory_service_for_tests
 from runtime.server import BoundedThreadingHTTPServer, Handler
 
 
