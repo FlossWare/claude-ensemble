@@ -244,10 +244,12 @@ class VectorRetrievalService:
         embed_call: Callable[[dict[str, Any]], dict[str, Any]],
         index_neighbors_call: Callable[[dict[str, Any]], dict[str, Any]],
         profile_resolve_call: Callable[[dict[str, Any]], dict[str, Any]],
+        rerank_call: Callable[[dict[str, Any]], dict[str, Any]] | None = None,
     ):
         self._embed_call = embed_call
         self._index_neighbors_call = index_neighbors_call
         self._profile_resolve_call = profile_resolve_call
+        self._rerank_call = rerank_call
 
     def search(self, request: dict[str, Any]) -> dict[str, Any]:
         if not isinstance(request, dict):
@@ -276,6 +278,11 @@ class VectorRetrievalService:
         expected = bundle.get("embedding", {})
         if expected.get("profile") != embedding_profile.get("name") or expected.get("version") != embedding_profile.get("version"):
             raise RetrievalError("unsupported_profile", "embedding profile does not match the pinned Index bundle", 422)
+        rerank = request.get("rerank", False)
+        if type(rerank) is not bool:
+            raise RetrievalError("invalid_request", "rerank must be a boolean")
+        if rerank and self._rerank_call is None:
+            raise RetrievalError("dependency_unavailable", "reranking is enabled but no reranking endpoint is configured", 503)
         query = request.get("query")
         if not isinstance(query, dict):
             raise RetrievalError("invalid_request", "query must be an object")
@@ -321,12 +328,60 @@ class VectorRetrievalService:
         candidates = vector_rank(lookup.get("candidates", []), metric)
         for candidate in candidates:
             candidate["provenance"] = {"index_generation": generation, "embedding_model": model_id, "embedding_model_version": model_version}
-        return {
+        response = {
             "query_id": query_id, "request_id": request_id, "index_generation": generation,
             "index_profile": index_profile, "embedding_profile": embedding_profile,
             "metric": metric, "candidates": candidates[:limit],
             "truncated": bool(lookup.get("truncated", False)),
         }
+        if rerank:
+            rerank_query = query.get("text", request.get("rerank_query"))
+            rerank_query = _string(rerank_query, "rerank_query", 16384)
+            shortlist = candidates[:min(limit, 20)]
+            if shortlist:
+                rerank_request = {
+                    "request_id": request_id,
+                    "query": rerank_query,
+                    "profile": {"name": "default-reranker", "version": "0.1"},
+                    "limit": len(shortlist),
+                    "candidates": [{
+                        "source_id": candidate.get("source_id"),
+                        "source_revision": candidate.get("source_revision"),
+                        "revision_sequence": candidate.get("revision_sequence"),
+                        "chunk_id": candidate.get("chunk_id"),
+                        "chunker": candidate.get("chunker"),
+                        "text": candidate.get("text"),
+                        "prior_rank": candidate.get("retrieval_rank"),
+                        "prior_score": candidate.get("distance"),
+                        "matched_exact_identifiers": candidate.get("matched_exact_identifiers", []),
+                        "provenance": candidate.get("provenance", {}),
+                    } for candidate in shortlist],
+                }
+                reranked = self._rerank_call(rerank_request)
+                expected_profile = {"name": "default-reranker", "version": "0.1"}
+                if reranked.get("profile") != expected_profile or not isinstance(reranked.get("candidates"), list):
+                    raise RetrievalError("dependency_unavailable", "Reranking returned an invalid response contract", 503)
+                reranked_candidates = reranked["candidates"]
+                if len(reranked_candidates) > len(shortlist):
+                    raise RetrievalError("dependency_unavailable", "Reranking returned more candidates than requested", 503)
+                original_by_id = {(c.get("source_id"), c.get("source_revision"), c.get("chunk_id")): c for c in shortlist}
+                restored = []
+                for item in reranked_candidates:
+                    if not isinstance(item, dict):
+                        raise RetrievalError("dependency_unavailable", "Reranking returned an invalid candidate", 503)
+                    identity = (item.get("source_id"), item.get("source_revision"), item.get("chunk_id"))
+                    original = original_by_id.get(identity)
+                    if original is None:
+                        raise RetrievalError("dependency_unavailable", "Reranking returned an unknown candidate identity", 503)
+                    merged = dict(original)
+                    merged["rerank_score"] = item.get("score")
+                    merged["rerank_rank"] = item.get("rerank")
+                    merged["score_semantics"] = item.get("score_semantics")
+                    merged["provenance"] = item.get("provenance", original["provenance"])
+                    restored.append(merged)
+                response["candidates"] = restored
+                response["reranking_profile"] = expected_profile
+        return response
 
 
 
@@ -386,6 +441,7 @@ def configured_retrieval_services(deadline: str | None = None) -> tuple[LexicalR
     index_url = os.environ.get("CE_INDEX_BASE_URL", "http://127.0.0.1:8080")
     tokenization_url = os.environ.get("CE_TOKENIZATION_BASE_URL", "http://127.0.0.1:8080")
     embedding_url = os.environ.get("CE_EMBEDDING_BASE_URL", "http://127.0.0.1:8080")
+    reranking_url = os.environ.get("CE_RERANKING_BASE_URL", "http://127.0.0.1:8080")
 
     def resolve(request: dict[str, Any]) -> dict[str, Any]:
         profile = request["index_profile"]
@@ -419,9 +475,13 @@ def configured_retrieval_services(deadline: str | None = None) -> tuple[LexicalR
         return _rest_json(index_url, "/api/v1/index/vector-neighbors", payload=payload,
                           request_id=payload.get("request_id", "retrieval"), deadline=deadline)
 
+    def rerank_call(payload: dict[str, Any]) -> dict[str, Any]:
+        return _rest_json(reranking_url, "/api/v1/reranking/rerank", payload=payload,
+                          request_id=payload.get("request_id", "retrieval"), deadline=deadline)
+
     return (
         LexicalRetrievalService(tokenize_call, lexical_lookup, resolve),
-        VectorRetrievalService(embed_call, vector_neighbors, resolve),
+        VectorRetrievalService(embed_call, vector_neighbors, resolve, rerank_call),
     )
 
 
