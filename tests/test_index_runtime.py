@@ -143,6 +143,8 @@ class IndexRuntimeTests(unittest.TestCase):
             with patch.dict(os.environ, {
                 "CE_INDEX_PROFILE_BUNDLE_PATH": str(profile_path),
                 "CE_INDEX_DB_PATH": str(db_path),
+                "CE_INDEX_BASE_URL": f"http://127.0.0.1:{server.server_address[1]}",
+                "CE_TOKENIZATION_BASE_URL": f"http://127.0.0.1:{server.server_address[1]}",
             }):
                 base = f"http://127.0.0.1:{server.server_address[1]}"
                 health = json.loads(urlopen(base + "/api/v1/index/health", timeout=2).read())
@@ -169,6 +171,20 @@ class IndexRuntimeTests(unittest.TestCase):
                     lookup = json.loads(response.read())
                 self.assertEqual(upsert["status"], "complete")
                 self.assertEqual(lookup["candidates"][0]["source_id"], "knowledge:doc-a")
+
+                retrieval_body = {
+                    "query_id": "query-http", "request_id": "retrieval-http",
+                    "query_text": "ranking fusion", "scope": SCOPE, "index_profile": self.identity,
+                    "lexical_profile": {"name": "bm25-v1", "version": "0.1"},
+                    "index_generation": generation["generation_id"], "limit": 10,
+                }
+                retrieval_request = Request(base + "/api/v1/lexical-retrieval/search",
+                    data=json.dumps(retrieval_body).encode("utf-8"),
+                    headers={"Content-Type": "application/json"}, method="POST")
+                with urlopen(retrieval_request, timeout=4) as response:
+                    retrieval = json.loads(response.read())
+                self.assertEqual(retrieval["candidates"][0]["source_id"], "knowledge:doc-a")
+                self.assertEqual(retrieval["candidates"][0]["score_semantics"], "bm25-v1")
         finally:
             server.shutdown()
             server.server_close()
