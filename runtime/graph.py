@@ -226,14 +226,16 @@ class GraphService:
             aliases = item.get("aliases", [])
             if not isinstance(aliases, list) or len(aliases) > 32:
                 raise GraphError("invalid_request", "node.aliases exceeds its bound")
-            aliases = [_string(v, "node.alias", 512) for v in aliases]
+            aliases = [_string(v, "node.alias", 1024) for v in aliases]
+            if len(set(aliases)) != len(aliases):
+                raise GraphError("invalid_request", "node.aliases must be unique")
             properties = item.get("properties", {})
             provenance = item.get("provenance", {})
-            if not isinstance(properties, dict) or not isinstance(provenance, dict):
-                raise GraphError("invalid_request", "node properties and provenance must be objects")
+            if not isinstance(properties, dict) or len(properties) > 100 or not isinstance(provenance, dict):
+                raise GraphError("invalid_request", "node properties must be an object with at most 100 keys and provenance must be an object")
             canonical_nodes.append({
                 "node_id": node_id, "node_type": _string(item["node_type"], "node.node_type", 128),
-                "label": _string(item["label"], "node.label", 512), "aliases": aliases,
+                "label": _string(item["label"], "node.label", 1024), "aliases": aliases,
                 "properties": properties, "provenance": provenance,
             })
         canonical_edges: list[dict[str, Any]] = []
@@ -352,7 +354,7 @@ class GraphService:
         if request["delete_scope"] != "source":
             raise GraphError("invalid_request", "delete_scope must be source")
         source_revision = request.get("source_revision", "tombstone")
-        if not isinstance(source_revision, str) or not source_revision:
+        if not isinstance(source_revision, str) or not 1 <= len(source_revision) <= 256:
             raise GraphError("invalid_request", "source_revision is invalid")
         payload_hash = _digest({k: v for k, v in request.items() if k != "request_id"})
         response = {"operation_id": operation_id, "source_id": source_id,
@@ -509,10 +511,10 @@ class GraphService:
                 resolved = sorted(ids)
             else:
                 mentions = request["entity_mentions"]
-                if not isinstance(mentions, list) or not 1 <= len(mentions) <= 16:
+                if not isinstance(mentions, list) or not 1 <= len(mentions) <= 16 or len(set(mentions)) != len(mentions):
                     raise GraphError("invalid_request", "entity_mentions must contain 1 to 16 mentions")
                 for mention in mentions:
-                    mention = _string(mention, "entity_mention", 512)
+                    mention = _string(mention, "entity_mention", 1024)
                     normalized = unicodedata.normalize("NFC", mention).casefold()
                     matches: list[str] = []
                     for node_id, rows in by_node.items():
