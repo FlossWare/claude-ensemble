@@ -31,10 +31,10 @@ def profile():
             "dimensions": 3, "normalization": "l2", "metric": "cosine", "max_input_tokens": 8192,
         },
         "limits": {
-            "max_chunks": 256, "max_source_bytes": 262144, "max_chunk_text_bytes": 65536,
-            "max_request_bytes": 2097152, "max_chunk_representation_bytes": 7168,
-            "max_envelope_bytes": 131072, "max_metadata_bytes": 8192,
-            "max_lexical_terms_per_chunk": 512, "max_lexical_term_bytes": 128,
+            "max_chunks": 64, "max_source_bytes": 131072, "max_chunk_text_bytes": 512,
+            "max_request_bytes": 2097152, "max_chunk_representation_bytes": 18000,
+            "max_envelope_bytes": 16384, "max_metadata_bytes": 1024,
+            "max_lexical_terms_per_chunk": 64, "max_lexical_term_bytes": 32,
         },
     }
     value["digest"] = profile_digest(value)
