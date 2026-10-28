@@ -111,14 +111,31 @@ class IndexService:
                 CREATE TABLE IF NOT EXISTS operations(
                     operation_id TEXT PRIMARY KEY, idempotency_key TEXT NOT NULL UNIQUE,
                     payload_hash TEXT NOT NULL, status TEXT NOT NULL, response_json TEXT NOT NULL,
-                    safe_error_code TEXT
+                    safe_error_code TEXT, created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                    terminal_at TEXT
                 );
                 CREATE TABLE IF NOT EXISTS owner_checkpoints(
                     generation_id TEXT NOT NULL, owner TEXT NOT NULL, applied_sequence INTEGER NOT NULL,
                     PRIMARY KEY(generation_id,owner)
                 );
                 CREATE TABLE IF NOT EXISTS generation_idempotency(
-                    idempotency_key TEXT PRIMARY KEY, payload_hash TEXT NOT NULL, generation_id TEXT NOT NULL
+                    idempotency_key TEXT PRIMARY KEY, payload_hash TEXT NOT NULL, generation_id TEXT NOT NULL,
+                    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+                );
+                CREATE TABLE IF NOT EXISTS generation_source_failures(
+                    generation_id TEXT NOT NULL, source_id TEXT NOT NULL,
+                    revision_sequence INTEGER NOT NULL, reason_code TEXT NOT NULL,
+                    profile_json TEXT NOT NULL, retryable INTEGER NOT NULL,
+                    details TEXT NOT NULL, created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                    PRIMARY KEY(generation_id,source_id,revision_sequence,reason_code)
+                );
+                CREATE TABLE IF NOT EXISTS dual_apply_journal(
+                    journal_id INTEGER PRIMARY KEY AUTOINCREMENT, generation_id TEXT NOT NULL,
+                    owner TEXT NOT NULL, source_id TEXT NOT NULL, revision_sequence INTEGER NOT NULL,
+                    operation_id TEXT NOT NULL, operation_kind TEXT NOT NULL,
+                    payload_hash TEXT NOT NULL, status TEXT NOT NULL,
+                    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                    UNIQUE(generation_id,operation_id)
                 );
                 CREATE TABLE IF NOT EXISTS manifest_snapshots(
                     snapshot_id TEXT PRIMARY KEY, owner TEXT NOT NULL, items_json TEXT NOT NULL, expires_at TEXT NOT NULL
@@ -130,6 +147,18 @@ class IndexService:
                     PRIMARY KEY(generation_id,owner,fence_id)
                 );
             """)
+            # Upgrade databases created by earlier draft commits without losing data.
+            for table, column, definition in (
+                ("operations", "created_at", "TEXT NOT NULL DEFAULT ''"),
+                ("operations", "terminal_at", "TEXT"),
+                ("generation_idempotency", "created_at", "TEXT NOT NULL DEFAULT ''"),
+            ):
+                columns = {row["name"] for row in db.execute(f"PRAGMA table_info({table})").fetchall()}
+                if column not in columns:
+                    db.execute(f"ALTER TABLE {table} ADD COLUMN {column} {definition}")
+                    if column == "created_at":
+                        db.execute(f"UPDATE {table} SET created_at=CURRENT_TIMESTAMP WHERE created_at=''")
+
 
     @staticmethod
     def _validate_profile(bundle: Any) -> dict[str, Any]:
@@ -186,7 +215,35 @@ class IndexService:
             raise _error("invalid_request", "max_chunk_representation_bytes cannot contain the configured worst-case representation")
         return bundle
 
-    def provision_profile(self, bundle: dict[str, Any]) -> None:
+    @staticmethod
+    def _idempotency_expired(created_at: str | None) -> bool:
+        if not created_at:
+            return False
+        try:
+            created = datetime.fromisoformat(created_at.replace("Z", "+00:00"))
+            if created.tzinfo is None:
+                created = created.replace(tzinfo=timezone.utc)
+        except (TypeError, ValueError):
+            return False
+        return datetime.now(timezone.utc) - created >= timedelta(days=30)
+
+    def _record_source_failure(self, generation_id: str, source_id: str, sequence: int,
+                               reason_code: str, profile: dict[str, Any], details: str) -> None:
+        allowed = {"source_too_large", "unsupported_profile", "incompatible_representation", "source_unavailable"}
+        if reason_code not in allowed:
+            return
+        with self._lock, self._connect() as db:
+            generation = db.execute("SELECT status FROM generations WHERE generation_id=?", (generation_id,)).fetchone()
+            if not generation or generation["status"] not in {"building", "eligible"}:
+                return
+            db.execute("""INSERT INTO generation_source_failures
+                (generation_id,source_id,revision_sequence,reason_code,profile_json,retryable,details)
+                VALUES(?,?,?,?,?,?,?) ON CONFLICT(generation_id,source_id,revision_sequence,reason_code)
+                DO UPDATE SET profile_json=excluded.profile_json,retryable=excluded.retryable,details=excluded.details""",
+                (generation_id, source_id, sequence, reason_code, _canonical(profile).decode(),
+                 int(reason_code == "source_unavailable"), details[:1024]))
+
+    def provision_profile(self, bundle: dict[str, Any]) -> None
         bundle = self._validate_profile(bundle)
         encoded = _canonical(bundle).decode("utf-8")
         with self._lock, self._connect() as db:
@@ -311,6 +368,8 @@ class IndexService:
             if prior:
                 if prior["payload_hash"] != payload_hash or prior["idempotency_key"] != idempotency_key or prior["operation_id"] != request["operation_id"]:
                     raise _error("idempotency_conflict", "operation identity was reused with different content", 409)
+                if prior["status"] not in {"pending", "accepted", "reconciliation_required"} and self._idempotency_expired(prior["terminal_at"] or prior["created_at"]):
+                    raise _error("idempotency_key_expired", "terminal idempotency binding expired after 30 days; use a fresh key", 409)
                 return 200, json.loads(prior["response_json"])
             bundle, _ = self._profile(db, request.get("index_profile"))
             if bundle.get("status") == "retired":
@@ -333,7 +392,13 @@ class IndexService:
                 prior_target = db.execute("SELECT MAX(revision_sequence) AS sequence FROM representations WHERE generation_id=? AND source_id=?", (gen["generation_id"], source_id)).fetchone()
                 if prior_target["sequence"] is not None and seq <= prior_target["sequence"]:
                     raise _error("revision_sequence_regression", "target-generation revisions must increase within that generation", 409)
-            validated = [self._check_representation(rep, bundle) for rep in reps]
+            try:
+                validated = [self._check_representation(rep, bundle) for rep in reps]
+            except IndexError as exc:
+                if target is not None and exc.code in {"source_too_large", "unsupported_profile", "incompatible_representation"}:
+                    self._record_source_failure(target, source_id, seq, exc.code, request.get("index_profile", {}),
+                                                str(exc))
+                raise
             db.execute("DELETE FROM representations WHERE generation_id=? AND source_id=? AND revision_sequence<?",
                        (gen["generation_id"], source_id, seq))
             for rep in validated:
@@ -373,6 +438,8 @@ class IndexService:
             if prior:
                 if prior["payload_hash"] != payload_hash or prior["idempotency_key"] != idempotency_key:
                     raise _error("idempotency_conflict", "operation identity was reused with different content", 409)
+                if prior["status"] not in {"pending", "accepted", "reconciliation_required"} and self._idempotency_expired(prior["terminal_at"] or prior["created_at"]):
+                    raise _error("idempotency_key_expired", "terminal idempotency binding expired after 30 days; use a fresh key", 409)
                 return 200, json.loads(prior["response_json"])
             bundle, _ = self._profile(db, request.get("index_profile"))
             if bundle.get("status") == "retired":
@@ -413,14 +480,24 @@ class IndexService:
     def _generation_payload(self, db: sqlite3.Connection, row: sqlite3.Row) -> dict[str, Any]:
         counts = db.execute("SELECT COUNT(DISTINCT source_id) sources, COUNT(*) chunks, SUM(CASE WHEN vector_json IS NOT NULL THEN 1 ELSE 0 END) vectors FROM representations WHERE generation_id=?", (row["generation_id"],)).fetchone()
         tombstones = db.execute("SELECT COUNT(*) AS count FROM tombstones").fetchone()["count"]
+        failures = db.execute("""SELECT source_id,revision_sequence,reason_code,profile_json,retryable,details
+            FROM generation_source_failures WHERE generation_id=?
+            ORDER BY source_id,revision_sequence,reason_code LIMIT 10000""", (row["generation_id"],)).fetchall()
+        source_failures = [{"source_id": item["source_id"], "revision_sequence": item["revision_sequence"],
+            "reason_code": item["reason_code"], "profile": json.loads(item["profile_json"]),
+            "retryable": bool(item["retryable"]), "details": item["details"]} for item in failures]
+        journal = db.execute("SELECT MAX(journal_id) AS position FROM dual_apply_journal WHERE generation_id=?",
+                             (row["generation_id"],)).fetchone()
         checkpoints = {owner: 0 for owner in ("memory", "knowledge")}
         checkpoints.update({item["owner"]: item["applied_sequence"] for item in db.execute(
             "SELECT owner,applied_sequence FROM owner_checkpoints WHERE generation_id=?", (row["generation_id"],)).fetchall()})
         return {"generation_id": row["generation_id"], "status": row["status"],
                 "index_profile": {"name": row["profile_name"], "version": row["profile_version"], "digest": row["profile_digest"]},
-                "request_id": "index", "counts": {"sources": counts["sources"], "chunks": counts["chunks"], "vectors": counts["vectors"] or 0, "tombstones": tombstones, "failed_sources": 0},
+                "request_id": "index", "counts": {"sources": counts["sources"], "chunks": counts["chunks"], "vectors": counts["vectors"] or 0, "tombstones": tombstones, "failed_sources": len(source_failures)},
                 "owner_reconciliation_checkpoints": checkpoints, "applied_owner_cursors": dict(checkpoints),
-                "validation_results": [], "cutover_eligible": False}
+                "dual_apply_journal_position": str(journal["position"] or 0),
+                "source_failures": source_failures, "validation_results": [],
+                "cutover_eligible": row["status"] == "eligible" and not source_failures}
 
     def operation(self, operation_id: str) -> dict[str, Any]:
         with self._connect() as db:
@@ -658,6 +735,8 @@ class IndexService:
                 if prior:
                     if prior["payload_hash"] != semantic_hash:
                         raise _error("idempotency_conflict", "generation idempotency key was reused with different content", 409)
+                    if self._idempotency_expired(prior["created_at"]):
+                        raise _error("idempotency_key_expired", "terminal idempotency binding expired after 30 days; use a fresh key", 409)
                     row = db.execute("SELECT * FROM generations WHERE generation_id=?", (prior["generation_id"],)).fetchone()
                     return 200, self._generation_payload(db, row)
                 bundle, _ = self._profile(db, payload.get("index_profile"))
