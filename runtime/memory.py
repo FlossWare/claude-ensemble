@@ -230,6 +230,33 @@ class MemoryService:
                 "index_profile": json.loads(row["index_profile_json"]),
             }
 
+    def read_for_ingestion(self, memory_id: str, scope_value: Any, revision_sequence: int) -> dict[str, Any]:
+        """Read the exact current revision for indexing; never label newer text as an older revision."""
+        if not MEMORY_ID.fullmatch(memory_id or ""):
+            raise MemoryError("invalid_parameter", "memory_id is invalid", 400)
+        scope = _validate_scope(scope_value)
+        if type(revision_sequence) is not int or not 1 <= revision_sequence <= MAX_SEQUENCE:
+            raise MemoryError("invalid_parameter", "revision_sequence is invalid", 400)
+        with self._connect() as db:
+            row = db.execute("SELECT * FROM memories WHERE memory_id=?", (memory_id,)).fetchone()
+            if row is None or json.loads(row["scope_json"]) != scope:
+                raise MemoryError("not_found", "memory was not found in this scope", 404)
+            if row["tombstone_sequence"] is not None:
+                raise MemoryError("stale_revision", "memory was tombstoned before ingestion completed", 409)
+            if row["current_sequence"] != revision_sequence:
+                raise MemoryError("stale_revision", "a newer canonical revision superseded this ingestion", 409)
+            revision = db.execute("SELECT * FROM revisions WHERE memory_id=? AND revision_sequence=?",
+                                  (memory_id, revision_sequence)).fetchone()
+            if revision is None:
+                raise MemoryError("not_found", "canonical revision was not found", 404)
+            return {
+                "memory_id": memory_id, "scope": scope, "type": row["memory_type"],
+                "revision": row["current_revision"], "revision_sequence": row["current_sequence"],
+                "content": revision["content"], "provenance": json.loads(revision["provenance_json"]),
+                "retention_policy": json.loads(revision["retention_json"]),
+                "index_profile": json.loads(row["index_profile_json"]),
+            }
+
     def operation(self, operation_id: str, memory_id: str | None = None,
                   scope_value: Any = None) -> dict[str, Any]:
         scope = _validate_scope(scope_value) if scope_value is not None else None
