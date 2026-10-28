@@ -6,6 +6,7 @@ content remains with its source owner; all cross-service freshness checks belong
 from __future__ import annotations
 
 import hashlib
+import itertools
 import json
 import os
 import networkx as nx
@@ -593,15 +594,13 @@ class GraphService:
 
             # NetworkX owns the in-memory graph representation and path algorithms;
             # CE owns scope filtering, provenance, and the contract's strict budgets.
-            graph = nx.DiGraph()
+            graph = nx.MultiDiGraph()
             for node, neighbors in adjacency.items():
                 graph.add_node(node)
                 for next_node, edge in neighbors:
-                    # The contract returns one deterministic path per node sequence.
-                    # Keep the first edge in the already-sorted adjacency list when
-                    # parallel relationship types connect the same ordered pair.
-                    if not graph.has_edge(node, next_node):
-                        graph.add_edge(node, next_node, edge=edge)
+                    # Key each parallel relationship by canonical edge ID. Distinct
+                    # relationship types between the same nodes must remain traversable.
+                    graph.add_edge(node, next_node, key=edge["edge_id"], edge=edge)
 
             paths: list[dict[str, Any]] = []
             truncated = starts_truncated or edges_truncated
@@ -638,20 +637,28 @@ class GraphService:
                         if key in seen_node_paths:
                             continue
                         seen_node_paths.add(key)
-                        path_edges = [
-                            bounded_graph[source][target]["edge"]
+                        edge_options = [
+                            [item["edge"] for _, item in sorted(
+                                bounded_graph.get_edge_data(source, target).items(),
+                                key=lambda pair: pair[0],
+                            )]
                             for source, target in zip(node_path, node_path[1:])
                         ]
-                        paths.append({
-                            "path_id": "path:" + _digest({
-                                "nodes": node_path, "edges": [edge["edge_id"] for edge in path_edges]
-                            }),
-                            "node_ids": node_path,
-                            "edges": path_edges,
-                        })
-                        if len(paths) >= path_budget:
-                            truncated = True
-                            stop_enumeration = True
+                        # Enumerate parallel-edge combinations deterministically. The
+                        # service-level path budget bounds the Cartesian product.
+                        for path_edges in itertools.product(*edge_options):
+                            paths.append({
+                                "path_id": "path:" + _digest({
+                                    "nodes": node_path, "edges": [edge["edge_id"] for edge in path_edges]
+                                }),
+                                "node_ids": node_path,
+                                "edges": list(path_edges),
+                            })
+                            if len(paths) >= path_budget:
+                                truncated = True
+                                stop_enumeration = True
+                                break
+                        if stop_enumeration:
                             break
                     if stop_enumeration:
                         break
