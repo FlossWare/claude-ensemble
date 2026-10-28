@@ -138,15 +138,45 @@ class IndexService:
             raise _error("profile_digest_mismatch", "profile bundle digest does not match canonical content", 409)
         if bundle["status"] not in {"active", "deprecated", "retired"}:
             raise _error("invalid_request", "profile status is invalid")
-        embedding = bundle["embedding"]
-        limits = bundle["limits"]
-        lexical = bundle["lexical"]
-        if not isinstance(embedding, dict) or type(embedding.get("dimensions")) is not int or embedding["dimensions"] < 1:
-            raise _error("invalid_request", "profile embedding dimensions are invalid")
-        if not isinstance(lexical, dict) or not isinstance(limits, dict):
-            raise _error("invalid_request", "profile lexical/limits sections are invalid")
-        if limits.get("max_chunks", 0) * limits.get("max_chunk_representation_bytes", 0) + limits.get("max_envelope_bytes", 0) > limits.get("max_request_bytes", 0):
-            raise _error("invalid_request", "profile size limits are inconsistent")
+        def section(value: Any, required_fields: set[str], name: str) -> dict[str, Any]:
+            if not isinstance(value, dict) or set(value) != required_fields:
+                raise _error("invalid_request", f"profile {name} has missing or unknown fields")
+            return value
+
+        chunking = section(bundle["chunking"], {"profile", "version", "max_units", "overlap_units"}, "chunking")
+        tokenization = section(bundle["tokenization"], {"profile", "version"}, "tokenization")
+        lexical = section(bundle["lexical"], {"profile", "version", "statistics_policy"}, "lexical")
+        embedding = section(bundle["embedding"], {"required", "profile", "version", "model", "model_version", "input_types", "dimensions", "normalization", "metric", "max_input_tokens"}, "embedding")
+        limits = section(bundle["limits"], {"max_chunks", "max_source_bytes", "max_chunk_text_bytes", "max_request_bytes", "max_chunk_representation_bytes", "max_envelope_bytes", "max_metadata_bytes", "max_lexical_terms_per_chunk", "max_lexical_term_bytes"}, "limits")
+        if chunking["profile"] != "markdown-default" or chunking["version"] != "0.1" or type(chunking["max_units"]) is not int or not 1 <= chunking["max_units"] <= 65536 or type(chunking["overlap_units"]) is not int or not 0 <= chunking["overlap_units"] <= 8192:
+            raise _error("invalid_request", "profile chunking configuration is invalid")
+        if tokenization != {"profile": "technical-default", "version": "0.1"}:
+            raise _error("invalid_request", "profile tokenization identity is unsupported")
+        if not isinstance(lexical["profile"], str) or not lexical["profile"] or len(lexical["profile"]) > 128 or not isinstance(lexical["version"], str) or not lexical["version"] or len(lexical["version"]) > 64 or lexical["statistics_policy"] not in {"scope_partition", "isolated_corpus"}:
+            raise _error("invalid_request", "profile lexical configuration is invalid")
+        if type(embedding["required"]) is not bool or any(not isinstance(embedding[k], str) or not embedding[k] for k in ("profile", "version", "model", "model_version")) or len(embedding["profile"]) > 128 or len(embedding["version"]) > 64 or len(embedding["model"]) > 256 or len(embedding["model_version"]) > 128:
+            raise _error("invalid_request", "profile embedding identity is invalid")
+        if not isinstance(embedding["input_types"], list) or not 1 <= len(embedding["input_types"]) <= 2 or len(set(embedding["input_types"])) != len(embedding["input_types"]) or any(v not in {"query", "document"} for v in embedding["input_types"]):
+            raise _error("invalid_request", "profile embedding input_types are invalid")
+        if type(embedding["dimensions"]) is not int or not 1 <= embedding["dimensions"] <= 4096 or embedding["normalization"] not in {"none", "l2"} or embedding["metric"] not in {"cosine", "dot_product", "euclidean"} or type(embedding["max_input_tokens"]) is not int or not 1 <= embedding["max_input_tokens"] <= 1_000_000:
+            raise _error("invalid_request", "profile embedding dimensions, normalization, metric, or token limit are invalid")
+        bounds = {
+            "max_chunks": (1, 256), "max_source_bytes": (1, 262144), "max_chunk_text_bytes": (1, 65536),
+            "max_request_bytes": (1024, 2097152), "max_chunk_representation_bytes": (256, 1048576),
+            "max_envelope_bytes": (1024, 131072), "max_metadata_bytes": (0, 8192),
+            "max_lexical_terms_per_chunk": (1, 512), "max_lexical_term_bytes": (1, 128),
+        }
+        for key, (minimum, maximum) in bounds.items():
+            if type(limits[key]) is not int or not minimum <= limits[key] <= maximum:
+                raise _error("invalid_request", f"profile limit {key} is outside its supported range")
+        if limits["max_chunks"] * limits["max_chunk_representation_bytes"] + limits["max_envelope_bytes"] > limits["max_request_bytes"]:
+            raise _error("invalid_request", "profile aggregate request size limits are inconsistent")
+        minimum_representation = (6 * limits["max_chunk_text_bytes"] + 2
+            + (25 * embedding["dimensions"] + 2 if embedding["required"] else 0)
+            + limits["max_lexical_terms_per_chunk"] * (6 * limits["max_lexical_term_bytes"] + 4)
+            + limits["max_metadata_bytes"] + 1024)
+        if limits["max_chunk_representation_bytes"] < minimum_representation:
+            raise _error("invalid_request", "max_chunk_representation_bytes cannot contain the configured worst-case representation")
         return bundle
 
     def provision_profile(self, bundle: dict[str, Any]) -> None:
