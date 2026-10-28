@@ -369,13 +369,23 @@ class VectorRetrievalService:
                 chunker = candidate.get("chunker")
                 if not isinstance(chunker, dict):
                     return ()
+                source_id = candidate.get("source_id")
+                source_revision = candidate.get("source_revision")
+                revision_sequence = candidate.get("revision_sequence")
+                chunk_id = candidate.get("chunk_id")
+                chunker_profile = chunker.get("profile")
+                chunker_version = chunker.get("version")
+                if (any(not isinstance(value, str) or not value for value in
+                        (source_id, source_revision, chunk_id, chunker_profile, chunker_version))
+                        or type(revision_sequence) is not int or revision_sequence < 0):
+                    return ()
                 return (
-                    candidate.get("source_id"),
-                    candidate.get("source_revision"),
-                    candidate.get("revision_sequence"),
-                    candidate.get("chunk_id"),
-                    chunker.get("profile"),
-                    chunker.get("version"),
+                    source_id,
+                    source_revision,
+                    revision_sequence,
+                    chunk_id,
+                    chunker_profile,
+                    chunker_version,
                 )
 
             original_by_id: dict[tuple[Any, ...], dict[str, Any]] = {}
