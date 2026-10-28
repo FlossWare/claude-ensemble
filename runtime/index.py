@@ -61,6 +61,7 @@ class IndexService:
         self.chroma_path = str(Path(os.environ.get("CE_INDEX_CHROMA_PATH", self.db_path + ".chroma")).expanduser())
         self._vector_stores = {}
         self._chroma_client = None
+        self._bootstrapped_generations = set()
         Path(self.db_path).parent.mkdir(parents=True, exist_ok=True)
         self._initialize()
         if profile_bundle is not None:
@@ -99,6 +100,20 @@ class IndexService:
             except Exception as exc:
                 raise _error("vector_store_unavailable", "could not initialize ChromaDB vector storage", 503) from exc
         return self._vector_stores[key]
+
+    def _bootstrap_chroma_generation(
+        self, db: sqlite3.Connection, generation_id: str, bundle: dict[str, Any]
+    ) -> None:
+        """Populate an empty/new Chroma collection from existing SQLite vectors once per process."""
+        if self.vector_backend == "sqlite" or generation_id in self._bootstrapped_generations:
+            return
+        source_rows = db.execute(
+            "SELECT DISTINCT source_id FROM representations WHERE generation_id=? AND vector_json IS NOT NULL",
+            (generation_id,),
+        ).fetchall()
+        for source_row in source_rows:
+            self._sync_chroma_source(db, generation_id, source_row["source_id"], bundle)
+        self._bootstrapped_generations.add(generation_id)
 
     def _sync_chroma_source(self, db: sqlite3.Connection, generation_id: str,
                             source_id: str, bundle: dict[str, Any]) -> None:
@@ -676,6 +691,9 @@ class IndexService:
                         (profile_digest(bundle),),
                     ).fetchall()
                     for generation_row in generation_rows:
+                        self._bootstrap_chroma_generation(
+                            db, generation_row["generation_id"], bundle
+                        )
                         self._sync_chroma_source(
                             db, generation_row["generation_id"], source_id, bundle
                         )
@@ -754,9 +772,13 @@ class IndexService:
                         (generation_row["profile_name"], generation_row["profile_version"]),
                     ).fetchone()
                     if profile_row:
+                        bundle_for_generation = json.loads(profile_row["bundle_json"])
+                        self._bootstrap_chroma_generation(
+                            db, generation_row["generation_id"], bundle_for_generation
+                        )
                         self._sync_chroma_source(
                             db, generation_row["generation_id"], source_id,
-                            json.loads(profile_row["bundle_json"]),
+                            bundle_for_generation,
                         )
             return 202, response
 
@@ -903,6 +925,7 @@ class IndexService:
                     or len(vector) != emb["dimensions"] or metric != emb["metric"]):
                 raise _error("incompatible_representation", "query vector profile/dimensions/metric mismatch", 422)
             if self.vector_backend == "chromadb":
+                self._bootstrap_chroma_generation(db, gen["generation_id"], bundle)
                 store = self._vector_store(gen["generation_id"], bundle)
                 try:
                     raw_candidates = store.query(
