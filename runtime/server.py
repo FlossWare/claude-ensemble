@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import json
 import hmac
+import math
 import re
 import select
 import socket
@@ -161,6 +162,13 @@ def _unique_json_object(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
 
 def _reject_json_constant(value: str) -> None:
     raise ValueError(f"non-standard JSON numeric constant {value} is not permitted")
+
+
+def _parse_json_float(value: str) -> float:
+    parsed = float(value)
+    if not math.isfinite(parsed):
+        raise ValueError("JSON numeric value is outside the finite floating-point range")
+    return parsed
 
 
 def _validate_json_unicode(value: Any) -> None:
@@ -338,7 +346,7 @@ class Handler(BaseHTTPRequestHandler):
                 raw = self._read_body(length)
                 try:
                     body = json.loads(raw.decode("utf-8"), object_pairs_hook=_unique_json_object,
-                                      parse_constant=_reject_json_constant)
+                                      parse_constant=_reject_json_constant, parse_float=_parse_json_float)
                 except (UnicodeDecodeError, json.JSONDecodeError, ValueError) as exc:
                     raise ChunkingError("invalid_request", "request body must be valid UTF-8 JSON without duplicate object keys", status=400) from exc
                 _validate_json_unicode(body)
@@ -844,7 +852,7 @@ class BoundedThreadingHTTPServer(ThreadingHTTPServer):
         # The process-local token prevents an ordinary client from stealing the
         # reserved internal worker pool by spoofing the public marker header.
         try:
-            readable, _, _ = select.select([request], [], [], 0.05)
+            readable, _, _ = select.select([request], [], [], 0)
             if not readable:
                 return False
             head = request.recv(16384, socket.MSG_PEEK).split(b"\r\n\r\n", 1)[0]
