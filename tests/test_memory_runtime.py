@@ -1,9 +1,15 @@
 """Durability and canonical lifecycle tests for Memory owner state."""
 import tempfile
 import unittest
+import json
+import threading
+from urllib.request import Request, urlopen
+from urllib.error import HTTPError
+from unittest.mock import patch
 from pathlib import Path
 
 from runtime.memory import MemoryError, MemoryService
+from runtime.server import BoundedThreadingHTTPServer, Handler
 
 
 SCOPE = {"type": "project", "id": "project-a", "visibility": "private"}
@@ -76,6 +82,42 @@ class MemoryOwnerTests(unittest.TestCase):
         }])
         self.assertEqual(verified[0]["status"], "tombstoned")
         self.assertEqual(verified[0]["canonical_revision_sequence"], deleted["revision_sequence"])
+
+    def test_http_create_read_update_delete_and_verification_routes(self):
+        import runtime.server as server_module
+        httpd = BoundedThreadingHTTPServer(("127.0.0.1", 0), Handler)
+        thread = threading.Thread(target=httpd.serve_forever, daemon=True)
+        thread.start()
+        self.addCleanup(httpd.server_close)
+        self.addCleanup(httpd.shutdown)
+        self.addCleanup(thread.join, 2)
+        base = f"http://127.0.0.1:{httpd.server_address[1]}"
+        with patch.object(server_module, "get_memory_service", return_value=self.service):
+            payload = json.dumps(create_request()).encode()
+            req = Request(base + "/api/v1/memories", data=payload, method="POST",
+                          headers={"Content-Type": "application/json", "Idempotency-Key": "http-create"})
+            with urlopen(req, timeout=3) as response:
+                self.assertEqual(response.status, 202)
+                created = json.loads(response.read())
+            memory_id = created["memory_id"]
+            read_url = (base + f"/api/v1/memories/{memory_id}"
+                        + "?scope_type=project&scope_id=project-a&visibility=private")
+            with urlopen(read_url, timeout=3) as response:
+                self.assertEqual(json.loads(response.read())["content"], "remember the REST contract")
+            verify = json.dumps({"items": [{"source_id": created["source_id"],
+                                            "revision_sequence": created["revision_sequence"]}]}).encode()
+            req = Request(base + "/api/v1/memories/verify-revisions", data=verify, method="POST",
+                          headers={"Content-Type": "application/json"})
+            with urlopen(req, timeout=3) as response:
+                self.assertEqual(json.loads(response.read())["results"][0]["status"], "current")
+            delete = json.dumps({"scope": SCOPE, "delete_scope": "source"}).encode()
+            req = Request(base + f"/api/v1/memories/{memory_id}", data=delete, method="DELETE",
+                          headers={"Content-Type": "application/json", "Idempotency-Key": "http-delete"})
+            with urlopen(req, timeout=3) as response:
+                self.assertEqual(response.status, 202)
+            with self.assertRaises(HTTPError) as caught:
+                urlopen(read_url, timeout=3)
+            self.assertEqual(caught.exception.code, 404)
 
     def test_scope_mismatch_does_not_disclose_record(self):
         _, created = self.service.create(create_request(), "create-1", "req-1")
