@@ -3,6 +3,7 @@ import tempfile
 import unittest
 import json
 import threading
+import time
 from urllib.request import Request, urlopen
 from urllib.error import HTTPError
 from unittest.mock import patch
@@ -138,6 +139,62 @@ class MemoryOwnerTests(unittest.TestCase):
             with self.assertRaises(HTTPError) as caught:
                 urlopen(read_url, timeout=3)
             self.assertEqual(caught.exception.code, 404)
+
+    def test_async_ingestion_wires_chunks_tokens_vectors_and_index_over_rest(self):
+        import runtime.server as server_module
+        bundle = {
+            "name": PROFILE["name"], "version": PROFILE["version"], "digest": PROFILE["digest"], "status": "active",
+            "chunking": {"profile": "markdown-default", "version": "0.1", "max_units": 1200, "overlap_units": 120},
+            "tokenization": {"profile": "technical-default", "version": "0.1"},
+            "lexical": {"profile": "bm25-v1", "version": "0.1", "statistics_policy": "scope_partition"},
+            "embedding": {"required": True, "profile": "technical-default", "version": "0.1",
+                          "model": "test-model", "model_version": "test-v1", "input_types": ["document"],
+                          "dimensions": 3, "normalization": "l2", "metric": "cosine", "max_input_tokens": 8192},
+            "limits": {},
+        }
+        context = {"bundle": bundle, "index_base": "http://unused", "chunking_base": "http://unused",
+                   "tokenization_base": "http://unused", "embedding_base": "http://unused",
+                   "local_base": "http://unused"}
+        def fake_rest(_self, _base, path, *, payload=None, request_id, timeout, extra_headers=None):
+            if path == "/api/v1/chunking/chunks":
+                return {"source_id": payload["source"]["source_id"],
+                        "chunker": {"profile": "markdown-default", "version": "0.1"},
+                        "chunks": [{"chunk_id": "chk_test", "text": "remember REST", "metadata": {}}]}
+            if path == "/api/v1/tokenization/lexical/batch":
+                return {"results": [{"input_id": "chk_test", "tokens": [{"term": "remember"}, {"term": "rest"}]}]}
+            if path == "/api/v1/embeddings":
+                return {"model": {"model_id": "test-model", "model_version": "test-v1", "dimensions": 3},
+                        "results": [{"input_id": "chk_test", "status": "complete", "vector": [1.0, 0.0, 0.0]}]}
+            if path == "/api/v1/index/operations/upsert":
+                self.assertEqual(payload["representations"][0]["lexical"]["terms"], ["remember", "rest"])
+                self.assertEqual(payload["representations"][0]["vector"]["values"], [1.0, 0.0, 0.0])
+                self.assertEqual(extra_headers["Idempotency-Key"], payload["operation_id"])
+                return {"status": "complete"}
+            raise AssertionError(f"unexpected REST dependency path: {path}")
+
+        httpd = BoundedThreadingHTTPServer(("127.0.0.1", 0), Handler)
+        thread = threading.Thread(target=httpd.serve_forever, daemon=True)
+        thread.start()
+        self.addCleanup(httpd.server_close)
+        self.addCleanup(httpd.shutdown)
+        self.addCleanup(thread.join, 2)
+        base = f"http://127.0.0.1:{httpd.server_address[1]}"
+        with patch.object(server_module, "get_memory_service", return_value=self.service), \
+             patch.object(Handler, "_memory_preflight", return_value=context), \
+             patch.object(Handler, "_memory_rest_json", new=fake_rest):
+            req = Request(base + "/api/v1/memories", data=json.dumps(create_request()).encode(), method="POST",
+                          headers={"Content-Type": "application/json", "Idempotency-Key": "async-create"})
+            with urlopen(req, timeout=3) as response:
+                created = json.loads(response.read())
+            deadline = time.monotonic() + 3
+            operation = None
+            while time.monotonic() < deadline:
+                operation = self.service.operation(created["operation_id"], scope_value=SCOPE)
+                if operation["status"] in {"complete", "failed"}:
+                    break
+                time.sleep(0.02)
+            self.assertEqual(operation["status"], "complete")
+            self.assertEqual(operation["indexing_status"], "indexed")
 
     def test_pending_tombstone_contains_stable_index_replay_identity(self):
         _, created = self.service.create(create_request(), "create-1", "req-1")
