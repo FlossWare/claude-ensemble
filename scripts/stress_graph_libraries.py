@@ -145,6 +145,10 @@ def measure(name, builder, starts, shape, nodes, edge_count, round_id):
             if distance is None or distance < 0 or distance == float("inf") or distance > MAX_DEPTH:
                 continue
             normalized.append((int(node), int(distance)))
+        # rustworkx's Dijkstra iterator omits the source vertex at distance zero;
+        # normalize that API difference before comparing algorithm results.
+        if not any(node == start for node, _ in normalized):
+            normalized.append((start, 0))
         native_signatures.append(sorted(normalized))
     rss_after = proc.memory_info().rss
     _, peak = tracemalloc.get_traced_memory()
