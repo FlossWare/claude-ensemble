@@ -75,7 +75,7 @@ class IndexRuntimeTests(unittest.TestCase):
     def test_upsert_is_durable_and_profile_pinned(self):
         request = self.upsert_request()
         status, result = self.service.upsert(request, "idem-a")
-        self.assertEqual(status, 200)
+        self.assertEqual(status, 202)
         self.assertEqual(result["status"], "complete")
         restarted = IndexService(Path(self.temp.name) / "index.sqlite3", self.bundle)
         self.assertEqual(restarted.operation("op-a")["status"], "complete")
@@ -162,7 +162,7 @@ class IndexRuntimeTests(unittest.TestCase):
                                   headers={"Content-Type": "application/json", "Idempotency-Key": "http-idem"},
                                   method="POST")
                 with urlopen(request, timeout=2) as response:
-                    self.assertEqual(response.status, 200)
+                    self.assertEqual(response.status, 202)
                     upsert = json.loads(response.read())
                 generation = json.loads(urlopen(base + "/api/v1/index/generations/active", timeout=2).read())
                 lookup_body = {
@@ -328,14 +328,14 @@ class IndexRuntimeTests(unittest.TestCase):
         target = generation["generation_id"]
         status, checkpoint = self.service.handle(
             "POST", f"/api/v1/index/generations/{target}/owner-checkpoints", {},
-            {"owner": "memory", "applied_change_sequence": 3}, Headers(), "checkpoint"
+            {"owner": "memory", "applied_change_sequence": 3}, Headers({"Idempotency-Key": "checkpoint-3"}), "checkpoint"
         )
         self.assertEqual(status, 200)
         self.assertEqual(checkpoint["applied_change_sequence"], 3)
         with self.assertRaises(IndexError) as raised:
             self.service.handle(
                 "POST", f"/api/v1/index/generations/{target}/owner-checkpoints", {},
-                {"owner": "memory", "applied_change_sequence": 2}, Headers(), "checkpoint-regress"
+                {"owner": "memory", "applied_change_sequence": 2}, Headers({"Idempotency-Key": "checkpoint-2"}), "checkpoint-regress"
             )
         self.assertEqual(raised.exception.code, "revision_sequence_regression")
         from datetime import datetime, timezone, timedelta
@@ -375,6 +375,69 @@ class IndexRuntimeTests(unittest.TestCase):
             )
         self.assertEqual(raised.exception.status, 503)
         self.assertEqual(raised.exception.code, "not_ready")
+
+    def test_target_generation_replay_accepts_same_revision_only_for_same_payload(self):
+        class Headers(dict):
+            def get(self, key, default=None):
+                return super().get(key, default)
+        _, generation = self.service.handle(
+            "POST", "/api/v1/index/generations", {},
+            {"index_profile": self.identity}, Headers({"Idempotency-Key": "build-replay"}), "build"
+        )
+        target = generation["generation_id"]
+        active_request = self.upsert_request(operation_id="active-op")
+        self.service.upsert(active_request, "active-key")
+        replay = dict(active_request)
+        replay["operation_id"] = "replay-op"
+        replay["target_generation"] = target
+        status, result = self.service.upsert(replay, "replay-key")
+        self.assertEqual(status, 202)
+        self.assertEqual(result["index_generation"], target)
+        conflicting = dict(replay)
+        conflicting["operation_id"] = "replay-conflict"
+        conflicting["representations"] = [representation("chunk-a", "different payload", ["different"], [0.0, 1.0, 0.0])]
+        with self.assertRaises(IndexError) as raised:
+            self.service.upsert(conflicting, "replay-conflict-key")
+        self.assertEqual(raised.exception.code, "revision_conflict")
+
+    def test_delete_rejects_scope_partition_mismatch(self):
+        self.service.upsert(self.upsert_request(), "scope-upsert")
+        delete = {
+            "operation_id": "wrong-scope-delete", "source_id": "knowledge:doc-a",
+            "source_revision": "tombstone-rev-2", "revision_sequence": 2,
+            "scope": {"type": "project", "id": "project-b", "visibility": "private"},
+            "index_profile": self.identity, "delete_scope": "source",
+        }
+        with self.assertRaises(IndexError) as raised:
+            self.service.delete(delete, "wrong-scope-key")
+        self.assertEqual(raised.exception.code, "scope_conflict")
+
+    def test_abandon_and_checkpoint_require_idempotency_and_allow_safe_retries(self):
+        class Headers(dict):
+            def get(self, key, default=None):
+                return super().get(key, default)
+        _, generation = self.service.handle(
+            "POST", "/api/v1/index/generations", {},
+            {"index_profile": self.identity}, Headers({"Idempotency-Key": "build-lifecycle"}), "build"
+        )
+        target = generation["generation_id"]
+        with self.assertRaises(IndexError) as missing_key:
+            self.service.handle("POST", f"/api/v1/index/generations/{target}/owner-checkpoints", {},
+                               {"owner": "memory", "applied_change_sequence": 0}, Headers(), "missing-key")
+        self.assertEqual(missing_key.exception.code, "invalid_request")
+        checkpoint_headers = Headers({"Idempotency-Key": "checkpoint-retry"})
+        first = self.service.handle("POST", f"/api/v1/index/generations/{target}/owner-checkpoints", {},
+                                    {"owner": "memory", "applied_change_sequence": 1}, checkpoint_headers, "first")[1]
+        second = self.service.handle("POST", f"/api/v1/index/generations/{target}/owner-checkpoints", {},
+                                     {"owner": "memory", "applied_change_sequence": 1}, checkpoint_headers, "second")[1]
+        self.assertEqual(first["applied_change_sequence"], second["applied_change_sequence"])
+        abandon_headers = Headers({"Idempotency-Key": "abandon-retry"})
+        first_abandon = self.service.handle("POST", f"/api/v1/index/generations/{target}/abandon", {},
+                                            {}, abandon_headers, "abandon-1")[1]
+        second_abandon = self.service.handle("POST", f"/api/v1/index/generations/{target}/abandon", {},
+                                             {}, abandon_headers, "abandon-2")[1]
+        self.assertEqual(first_abandon["status"], "abandoned")
+        self.assertEqual(second_abandon["status"], "abandoned")
 
     def test_target_generation_source_failure_is_durable_and_blocks_eligibility(self):
         class Headers(dict):
