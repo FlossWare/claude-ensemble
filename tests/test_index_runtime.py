@@ -385,7 +385,7 @@ class IndexRuntimeTests(unittest.TestCase):
         request = self.upsert_request()
         self.service.upsert(request, "idem-expire")
         with self.service._connect() as db:
-            db.execute("UPDATE operations SET created_at='2000-01-01 00:00:00' WHERE idempotency_key='idem-expire'")
+            db.execute("UPDATE operations SET created_at='2000-01-01 00:00:00', terminal_at='2000-01-01 00:00:00' WHERE idempotency_key='idem-expire'")
         with self.assertRaises(IndexError) as raised:
             self.service.upsert(request, "idem-expire")
         self.assertEqual(raised.exception.code, "idempotency_key_expired")
@@ -452,7 +452,7 @@ class IndexRuntimeTests(unittest.TestCase):
         self.service.upsert(active, "active-older-key")
         with self.service._connect() as db:
             rows = db.execute(
-                "SELECT status,revision_sequence FROM dual_apply_journal WHERE generation_id=? AND source_id=?",
+                "SELECT status,revision_sequence FROM dual_apply_journal WHERE generation_id=? AND source_id=? ORDER BY revision_sequence",
                 (target, "knowledge:stale-doc")
             ).fetchall()
             target_sequence = db.execute(
