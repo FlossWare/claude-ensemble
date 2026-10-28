@@ -61,6 +61,9 @@ class IndexRuntimeTests(unittest.TestCase):
         self.addCleanup(self.temp.cleanup)
         self.bundle = profile()
         self.identity = {k: self.bundle[k] for k in ("name", "version", "digest")}
+        self._vector_backend_patcher = patch.dict(os.environ, {"CE_INDEX_VECTOR_BACKEND": "chromadb"})
+        self._vector_backend_patcher.start()
+        self.addCleanup(self._vector_backend_patcher.stop)
         self.service = IndexService(Path(self.temp.name) / "index.sqlite3", self.bundle)
 
     def upsert_request(self, source_id="knowledge:doc-a", sequence=1, operation_id="op-a", reps=None):
