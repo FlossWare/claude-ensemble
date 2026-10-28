@@ -1,10 +1,10 @@
 # Graph library evaluation
 
-Status: **provisional; simulated-load comparison pending**.
+Status: **NetworkX selected for the initial implementation**.
 
 ## Decision so far
 
-NetworkX 3.5 is currently integrated in the Graph runtime as an initial candidate, not a proven winner. Do not treat that integration as final until the candidates have been compared against the same CE-like workload and Graph contract tests.
+NetworkX 3.5 is selected for the initial Graph implementation so CE delivery is not blocked on further library comparison. The REST contract is the stable boundary; another implementation can replace NetworkX later without requiring client changes. Use `networkx.MultiDiGraph` so distinct relationships between the same ordered node pair remain distinct during traversal.
 
 SQLite remains the canonical durable store. The candidate library supplies in-memory graph representation and traversal primitives; it does not own CE's REST contract or domain semantics.
 
@@ -38,7 +38,7 @@ First three-round GitHub Actions run (Ubuntu runner, Python 3.12; medians across
 
 All candidates produced identical result signatures for the tested workloads. The compiled libraries built graphs substantially faster; NetworkX had slightly lower query latency in this harness, which uses the same Python-level bounded traversal for all candidates. This is a data-structure/integration comparison, **not** a comparison of each library's native path algorithms. The memory column is not a fair total-memory comparison because tracemalloc misses native allocations, particularly for rustworkx and igraph.
 
-These results do not establish a winner. The workloads are synthetic, only two graph sizes/shapes have been exercised, and CE's full traversal includes direction, source supports, scope filtering, and deterministic result rules. Next, run the candidate structures through representative contract-level scenarios and measure native/process memory if memory is a deciding factor. If the current query algorithm remains NetworkX-specific, separately compare native algorithm implementations before claiming equivalent coverage.
+These synthetic results are not a universal performance ranking. We are proceeding with NetworkX because it is already integrated and its `MultiDiGraph` supports parallel relationships while keeping implementation complexity low. Contract tests must verify that different relationship types and source edge IDs survive traversal. Revisit the library only if real CE workloads demonstrate a material limitation.
 
 ## Contract constraints that remain CE-owned
 
@@ -63,4 +63,4 @@ Choose based on evidence across:
 4. Python/runtime compatibility, dependency footprint, maintenance, and license.
 5. Integration complexity and how much CE-specific code is still required.
 
-A raw speed win does not justify a library that changes result semantics or makes CE's contract harder to enforce. If performance is similar, prefer the simplest dependable integration. Keep NetworkX provisional until the benchmark and Graph runtime tests provide evidence.
+A raw speed win does not justify a library that changes result semantics or makes CE's contract harder to enforce. NetworkX is the initial implementation choice; the REST contract and persisted SQLite representation keep a future replacement behind the service boundary.
