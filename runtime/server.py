@@ -641,7 +641,6 @@ class Handler(BaseHTTPRequestHandler):
                         worker = threading.Thread(target=self._memory_ingest,
                                                   args=(service, response, dict(request), context), daemon=True)
                         worker.start()
-                        threading.Thread(target=self._memory_graph_project, args=(service,), daemon=True).start()
                 elif path == "/api/v1/memories/verify-revisions":
                     if set(request) - {"items", "request_id"} or "items" not in request:
                         raise MemoryServiceError("invalid_request", "verification request has missing or unknown fields", 400)
@@ -662,7 +661,8 @@ class Handler(BaseHTTPRequestHandler):
                         worker = threading.Thread(target=self._memory_ingest,
                                                   args=(service, response, ingestion_request, context), daemon=True)
                         worker.start()
-                        threading.Thread(target=self._memory_graph_project, args=(service,), daemon=True).start()
+                if response.get("source_id", "").startswith("memory:") and response.get("graph_status") != "indexed":
+                    threading.Thread(target=self._memory_graph_project, args=(service,), daemon=True).start()
                 response["request_id"] = request_id
                 self._send(status, response, request_id)
                 return
@@ -843,6 +843,7 @@ class Handler(BaseHTTPRequestHandler):
                 pass
 
     def _recover_pending_memory(self, service: Any) -> None:
+        self._memory_graph_project(service)
         for item in service.pending_ingestions():
             accepted = item["accepted"]
             request = item["request"]
