@@ -187,6 +187,85 @@ class RetrievalAlgorithmTests(unittest.TestCase):
         self.assertEqual(result["candidates"][0]["source_revision"], "rev-2")
         self.assertEqual(result["reranking_profile"], {"name": "default-reranker", "version": "0.1"})
 
+    def _vector_service_for_rerank_contract_test(self, rerank):
+        def resolve(req):
+            return {"profile_bundle": {
+                "name": "default", "version": "0.1", "digest": "a" * 64,
+                "embedding": {"profile": "technical-default", "version": "0.1", "metric": "cosine",
+                              "model": "local-nomic", "model_version": "r1", "dimensions": 3},
+            }}
+        def embed(req):
+            return {"index_profile": PROFILE, "profile": "technical-default", "profile_version": "0.1",
+                    "model": {"model_id": "local-nomic", "model_version": "r1", "dimensions": 3},
+                    "results": [{"input_id": "q1", "status": "complete", "vector": [1.0, 0.0, 0.0]}]}
+        def neighbors(req):
+            first = dict(CANDIDATE, distance=0.9, retrieval_rank=1)
+            second = dict(CANDIDATE, source_id="knowledge:doc-b", source_revision="rev-2", revision_sequence=2,
+                          chunk_id="chunk-b", distance=0.8, retrieval_rank=2)
+            return {"index_generation": "g1", "truncated": False, "candidates": [first, second]}
+        return VectorRetrievalService(embed, neighbors, resolve, rerank)
+
+    def _run_vector_rerank_contract_test(self, rerank):
+        service = self._vector_service_for_rerank_contract_test(rerank)
+        return service.search({
+            "request_id": "r1", "query_id": "q1", "scope": SCOPE, "index_profile": PROFILE,
+            "embedding_profile": {"name": "technical-default", "version": "0.1"},
+            "index_generation": "g1", "limit": 5, "query": {"text": "ranking algorithm"},
+        })
+
+    def _valid_rerank_response(self, req):
+        ranked = list(reversed(req["candidates"]))
+        return {"request_id": req["request_id"], "profile": req["profile"], "candidates": [
+            {**item, "score": 0.75, "score_semantics": "cross-encoder-profile-score-v1", "rerank": rank}
+            for rank, item in enumerate(ranked, 1)
+        ]}
+
+    def test_vector_reranking_rejects_missing_candidate(self):
+        def rerank(req):
+            return {**self._valid_rerank_response(req), "candidates": self._valid_rerank_response(req)["candidates"][:1]}
+        with self.assertRaises(RetrievalError) as raised:
+            self._run_vector_rerank_contract_test(rerank)
+        self.assertEqual(raised.exception.code, "dependency_unavailable")
+        self.assertEqual(raised.exception.status, 503)
+
+    def test_vector_reranking_rejects_duplicate_candidate_identity(self):
+        def rerank(req):
+            response = self._valid_rerank_response(req)
+            response["candidates"][1] = dict(response["candidates"][0], rerank=2)
+            return response
+        with self.assertRaises(RetrievalError) as raised:
+            self._run_vector_rerank_contract_test(rerank)
+        self.assertEqual(raised.exception.status, 503)
+
+    def test_vector_reranking_rejects_non_finite_score(self):
+        def rerank(req):
+            response = self._valid_rerank_response(req)
+            response["candidates"][0]["score"] = float("nan")
+            return response
+        with self.assertRaises(RetrievalError) as raised:
+            self._run_vector_rerank_contract_test(rerank)
+        self.assertEqual(raised.exception.status, 503)
+
+    def test_vector_reranking_rejects_invalid_or_duplicate_rank(self):
+        for invalid_rank in (0, 3, 1.5, True):
+            with self.subTest(rank=invalid_rank):
+                def rerank(req, rank=invalid_rank):
+                    response = self._valid_rerank_response(req)
+                    response["candidates"][0]["rerank"] = rank
+                    return response
+                with self.assertRaises(RetrievalError) as raised:
+                    self._run_vector_rerank_contract_test(rerank)
+                self.assertEqual(raised.exception.status, 503)
+
+    def test_vector_reranking_matches_full_candidate_identity(self):
+        def rerank(req):
+            response = self._valid_rerank_response(req)
+            response["candidates"][0]["revision_sequence"] = 999
+            return response
+        with self.assertRaises(RetrievalError) as raised:
+            self._run_vector_rerank_contract_test(rerank)
+        self.assertEqual(raised.exception.status, 503)
+
     def test_vector_service_requires_reranking_dependency_by_default(self):
         def resolve(req):
             return {"profile_bundle": {
