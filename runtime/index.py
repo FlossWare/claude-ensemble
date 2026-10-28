@@ -14,6 +14,7 @@ import sqlite3
 import threading
 import uuid
 from datetime import datetime, timezone
+from contextlib import contextmanager
 from urllib.parse import unquote, parse_qs
 from pathlib import Path
 from typing import Any
@@ -50,12 +51,20 @@ class IndexService:
         if profile_bundle is not None:
             self.provision_profile(profile_bundle)
 
-    def _connect(self) -> sqlite3.Connection:
+    @contextmanager
+    def _connect(self):
         conn = sqlite3.connect(self.db_path, timeout=5.0)
         conn.row_factory = sqlite3.Row
         conn.execute("PRAGMA foreign_keys=ON")
         conn.execute("PRAGMA busy_timeout=5000")
-        return conn
+        try:
+            yield conn
+            conn.commit()
+        except Exception:
+            conn.rollback()
+            raise
+        finally:
+            conn.close()
 
     def _initialize(self) -> None:
         with self._connect() as db:
