@@ -116,6 +116,9 @@ class IndexService:
                     generation_id TEXT NOT NULL, owner TEXT NOT NULL, applied_sequence INTEGER NOT NULL,
                     PRIMARY KEY(generation_id,owner)
                 );
+                CREATE TABLE IF NOT EXISTS generation_idempotency(
+                    idempotency_key TEXT PRIMARY KEY, payload_hash TEXT NOT NULL, generation_id TEXT NOT NULL
+                );
                 CREATE TABLE IF NOT EXISTS owner_fences(
                     generation_id TEXT NOT NULL, owner TEXT NOT NULL, fence_id TEXT NOT NULL,
                     fence_token TEXT NOT NULL, sealed_sequence INTEGER NOT NULL,
@@ -228,8 +231,12 @@ class IndexService:
 
     @staticmethod
     def _scope(scope: Any) -> str:
-        if not isinstance(scope, dict) or not all(isinstance(scope.get(k), str) and scope[k] for k in ("type", "id", "visibility")):
+        if not isinstance(scope, dict) or set(scope) != {"type", "id", "visibility"} or not all(isinstance(scope.get(k), str) and scope[k] for k in ("type", "id", "visibility")):
             raise _error("invalid_request", "canonical scope partition is required")
+        if scope["type"] not in {"user", "project", "shared", "global"} or scope["visibility"] not in {"private", "shared", "global"}:
+            raise _error("invalid_request", "scope type or visibility is invalid")
+        if len(scope["id"]) > 256:
+            raise _error("invalid_request", "scope ID exceeds 256 characters")
         return _canonical({k: scope[k] for k in ("type", "id", "visibility")}).decode("utf-8")
 
     def _check_representation(self, rep: Any, bundle: dict[str, Any]) -> dict[str, Any]:
@@ -402,12 +409,14 @@ class IndexService:
     def _generation_payload(self, db: sqlite3.Connection, row: sqlite3.Row) -> dict[str, Any]:
         counts = db.execute("SELECT COUNT(DISTINCT source_id) sources, COUNT(*) chunks, SUM(CASE WHEN vector_json IS NOT NULL THEN 1 ELSE 0 END) vectors FROM representations WHERE generation_id=?", (row["generation_id"],)).fetchone()
         tombstones = db.execute("SELECT COUNT(*) AS count FROM tombstones").fetchone()["count"]
-        checkpoints = {item["owner"]: item["applied_sequence"] for item in db.execute(
-            "SELECT owner,applied_sequence FROM owner_checkpoints WHERE generation_id=?", (row["generation_id"],)).fetchall()}
+        checkpoints = {owner: 0 for owner in ("memory", "knowledge")}
+        checkpoints.update({item["owner"]: item["applied_sequence"] for item in db.execute(
+            "SELECT owner,applied_sequence FROM owner_checkpoints WHERE generation_id=?", (row["generation_id"],)).fetchall()})
         return {"generation_id": row["generation_id"], "status": row["status"],
                 "index_profile": {"name": row["profile_name"], "version": row["profile_version"], "digest": row["profile_digest"]},
                 "request_id": "index", "counts": {"sources": counts["sources"], "chunks": counts["chunks"], "vectors": counts["vectors"] or 0, "tombstones": tombstones, "failed_sources": 0},
-                "owner_reconciliation_checkpoints": checkpoints, "validation_results": [], "cutover_eligible": False}
+                "owner_reconciliation_checkpoints": checkpoints, "applied_owner_cursors": dict(checkpoints),
+                "validation_results": [], "cutover_eligible": False}
 
     def operation(self, operation_id: str) -> dict[str, Any]:
         with self._connect() as db:
@@ -498,6 +507,8 @@ class IndexService:
                 if tomb and row["revision_sequence"] <= tomb["tombstone_sequence"]:
                     continue
                 if request.get("source_ids") and row["source_id"] not in request["source_ids"]:
+                    continue
+                if request.get("source_revisions") and row["source_revision"] not in request["source_revisions"]:
                     continue
                 candidate = json.loads(row["vector_json"])
                 if metric == "euclidean":
@@ -609,15 +620,25 @@ class IndexService:
         if method == "POST" and tail == ["vector-neighbors"]:
             return 200, self.vector_neighbors(payload)
         if method == "POST" and tail == ["generations"]:
-            if not headers.get("Idempotency-Key"):
+            idempotency_key = headers.get("Idempotency-Key", "")
+            if not idempotency_key:
                 raise _error("invalid_request", "Idempotency-Key header is required")
+            semantic_hash = _payload_hash(payload)
             with self._lock, self._connect() as db:
+                prior = db.execute("SELECT * FROM generation_idempotency WHERE idempotency_key=?", (idempotency_key,)).fetchone()
+                if prior:
+                    if prior["payload_hash"] != semantic_hash:
+                        raise _error("idempotency_conflict", "generation idempotency key was reused with different content", 409)
+                    row = db.execute("SELECT * FROM generations WHERE generation_id=?", (prior["generation_id"],)).fetchone()
+                    return 200, self._generation_payload(db, row)
                 bundle, _ = self._profile(db, payload.get("index_profile"))
                 if bundle.get("status") == "retired":
                     raise _error("profile_retired", "retired profiles cannot be used for new generations", 409)
                 generation_id = "gen-" + uuid.uuid4().hex
                 db.execute("INSERT INTO generations(generation_id,status,profile_name,profile_version,profile_digest) VALUES(?,?,?,?,?)",
                            (generation_id, "building", bundle["name"], bundle["version"], bundle["digest"]))
+                db.execute("INSERT INTO generation_idempotency(idempotency_key,payload_hash,generation_id) VALUES(?,?,?)",
+                           (idempotency_key, semantic_hash, generation_id))
                 row = db.execute("SELECT * FROM generations WHERE generation_id=?", (generation_id,)).fetchone()
                 return 202, self._generation_payload(db, row)
         if method == "POST" and len(tail) == 3 and tail[0] == "generations" and tail[2] == "abandon":
