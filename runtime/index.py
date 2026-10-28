@@ -446,7 +446,9 @@ class IndexService:
         with self._lock, self._connect() as db:
             prior = db.execute("SELECT * FROM operations WHERE operation_id=? OR idempotency_key=?", (request["operation_id"], idempotency_key)).fetchone()
             if prior:
-                if prior["status"] not in {"pending", "accepted", "reconciliation_required"} and self._idempotency_expired(prior["terminal_at"] or prior["created_at"]):
+                if (prior["idempotency_key"] == idempotency_key
+                        and prior["status"] not in {"pending", "accepted", "reconciliation_required"}
+                        and self._idempotency_expired(prior["terminal_at"] or prior["created_at"])):
                     raise _error("idempotency_key_expired", "terminal idempotency binding expired after 30 days; use a fresh key", 409)
                 if prior["payload_hash"] != payload_hash or prior["idempotency_key"] != idempotency_key or prior["operation_id"] != request["operation_id"]:
                     raise _error("idempotency_conflict", "operation identity was reused with different content", 409)
@@ -557,7 +559,9 @@ class IndexService:
         with self._lock, self._connect() as db:
             prior = db.execute("SELECT * FROM operations WHERE operation_id=? OR idempotency_key=?", (request.get("operation_id"), idempotency_key)).fetchone()
             if prior:
-                if prior["status"] not in {"pending", "accepted", "reconciliation_required"} and self._idempotency_expired(prior["terminal_at"] or prior["created_at"]):
+                if (prior["idempotency_key"] == idempotency_key
+                        and prior["status"] not in {"pending", "accepted", "reconciliation_required"}
+                        and self._idempotency_expired(prior["terminal_at"] or prior["created_at"])):
                     raise _error("idempotency_key_expired", "terminal idempotency binding expired after 30 days; use a fresh key", 409)
                 if prior["payload_hash"] != payload_hash or prior["idempotency_key"] != idempotency_key:
                     raise _error("idempotency_conflict", "operation identity was reused with different content", 409)

@@ -121,10 +121,11 @@ class IndexRuntimeTests(unittest.TestCase):
         self.assertEqual(status["tombstone_sequence"], 2)
         self.assertEqual(status["deletion_state"], "tombstoned")
 
-    def test_new_operation_cannot_reuse_a_source_revision_sequence(self):
+    def test_new_operation_can_reuse_a_matching_source_revision_sequence(self):
         self.service.upsert(self.upsert_request(), "idem-a")
-        with self.assertRaisesRegex(IndexError, "strictly increase"):
-            self.service.upsert(self.upsert_request(operation_id="op-other"), "idem-other")
+        status, result = self.service.upsert(self.upsert_request(operation_id="op-other"), "idem-other")
+        self.assertEqual(status, 202)
+        self.assertEqual(result["revision_sequence"], 1)
 
     def test_profile_digest_mismatch_is_rejected(self):
         invalid = dict(self.bundle)
@@ -286,6 +287,9 @@ class IndexRuntimeTests(unittest.TestCase):
         with self.assertRaises(IndexError) as reused:
             self.service.upsert(changed, "idem-expire")
         self.assertEqual(reused.exception.code, "idempotency_key_expired")
+        with self.assertRaises(IndexError) as operation_reuse:
+            self.service.upsert(request, "fresh-idempotency-key")
+        self.assertEqual(operation_reuse.exception.code, "idempotency_conflict")
 
     def test_active_writes_are_dual_applied_to_building_generation(self):
         class Headers(dict):

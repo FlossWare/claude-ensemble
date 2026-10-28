@@ -208,7 +208,7 @@ Memory and Knowledge resolve the bundle through Index before accepting a source 
 
 ## Error behavior
 
-Use the shared error envelope. At minimum distinguish `invalid_request` (400), `not_found`/`profile_not_found` (404), `idempotency_conflict`, `revision_conflict`, `generation_not_caught_up`, and `active_generation_cannot_be_abandoned` (409), `request_too_large` (413), `source_too_large`/`unsupported_profile`/`incompatible_representation` (422), `service_unavailable`/`not_ready` (503), `deadline_exceeded` (504), and `internal_error` (500). A valid empty lookup is not an error; unavailable or incompatible index state is.
+Use the shared error envelope. At minimum distinguish `invalid_request` (400), `not_found`/`profile_not_found` (404), `idempotency_conflict`, `revision_conflict`, `scope_conflict`, `generation_not_caught_up`, and `active_generation_cannot_be_abandoned` (409), `request_too_large` (413), `source_too_large`/`unsupported_profile`/`incompatible_representation` (422), `service_unavailable`/`not_ready` (503), `deadline_exceeded` (504), and `internal_error` (500). A valid empty lookup is not an error; unavailable or incompatible index state is.
 
 ## Machine-checkable schemas
 
