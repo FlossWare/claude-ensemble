@@ -779,9 +779,13 @@ class IndexService:
                              "checks": [{"name": "profile_bundle", "status": "unavailable"}],
                              "request_id": request_id}
         if method == "GET" and tail == ["generations", "active"]:
-            return 200, self.active_generation()
+            result = self.active_generation()
+            result["request_id"] = request_id
+            return 200, result
         if method == "GET" and len(tail) == 4 and tail[0] == "profiles" and tail[2] == "versions":
-            return 200, self.profile_version(tail[1], tail[3])
+            result = self.profile_version(tail[1], tail[3])
+            result["request_id"] = request_id
+            return 200, result
         if method == "GET" and len(tail) == 3 and tail[0] == "profiles" and tail[2] == "current":
             with self._connect() as db:
                 rows = db.execute("SELECT bundle_json FROM profiles WHERE name=? ORDER BY version", (tail[1],)).fetchall()
@@ -878,7 +882,9 @@ class IndexService:
                     if prior["payload_hash"] != semantic_hash:
                         raise _error("idempotency_conflict", "generation idempotency key was reused with different content", 409)
                     row = db.execute("SELECT * FROM generations WHERE generation_id=?", (prior["generation_id"],)).fetchone()
-                    return 200, self._generation_payload(db, row)
+                    response = self._generation_payload(db, row)
+                    response["request_id"] = request_id
+                    return 200, response
                 bundle, _ = self._profile(db, payload.get("index_profile"))
                 if bundle.get("status") == "retired":
                     raise _error("profile_retired", "retired profiles cannot be used for new generations", 409)
@@ -888,7 +894,9 @@ class IndexService:
                 db.execute("INSERT INTO generation_idempotency(idempotency_key,payload_hash,generation_id) VALUES(?,?,?)",
                            (idempotency_key, semantic_hash, generation_id))
                 row = db.execute("SELECT * FROM generations WHERE generation_id=?", (generation_id,)).fetchone()
-                return 202, self._generation_payload(db, row)
+                response = self._generation_payload(db, row)
+                response["request_id"] = request_id
+                return 202, response
         if method == "POST" and len(tail) == 3 and tail[0] == "generations" and tail[2] == "abandon":
             key = headers.get("Idempotency-Key", "")
             endpoint = f"POST /api/v1/index/generations/{tail[1]}/abandon"

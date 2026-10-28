@@ -152,6 +152,16 @@ class IndexRuntimeTests(unittest.TestCase):
                 base = f"http://127.0.0.1:{server.server_address[1]}"
                 health = json.loads(urlopen(base + "/api/v1/index/health", timeout=2).read())
                 self.assertEqual(health["status"], "alive")
+                profile_request = Request(base + "/api/v1/index/profiles/test-profile/versions/0.1",
+                                          headers={"X-CE-Request-ID": "profile-http"})
+                with urlopen(profile_request, timeout=2) as response:
+                    profile_response = json.loads(response.read())
+                self.assertEqual(profile_response["request_id"], "profile-http")
+                active_request = Request(base + "/api/v1/index/generations/active",
+                                          headers={"X-CE-Request-ID": "active-http"})
+                with urlopen(active_request, timeout=2) as response:
+                    active_response = json.loads(response.read())
+                self.assertEqual(active_response["request_id"], "active-http")
                 expired = Request(base + "/api/v1/index/health",
                                   headers={"X-CE-Deadline": "2000-01-01T00:00:00Z"})
                 with self.assertRaises(HTTPError) as timeout_error:
@@ -200,7 +210,7 @@ class IndexRuntimeTests(unittest.TestCase):
                     # inference remains covered by the separate offline CPU CI job.
                     def embed(self, inputs, normalization):
                         return (
-                            {"provider": "test", "model_id": "local-nomic", "model_version": "r1",
+                            {"provider": "local", "model_id": "local-nomic", "model_version": "r1",
                              "dimensions": 3, "normalization": "l2"},
                             [{"input_id": item["input_id"], "input_type": item["input_type"],
                               "status": "complete", "vector": [1.0, 0.0, 0.0], "dimensions": 3}
@@ -267,12 +277,14 @@ class IndexRuntimeTests(unittest.TestCase):
             "POST", "/api/v1/index/generations", {}, {"index_profile": self.identity, "request_id": "one"}, headers, "one"
         )
         self.assertEqual(status, 202)
+        self.assertEqual(first["request_id"], "one")
         self.assertEqual(set(first["owner_reconciliation_checkpoints"]), {"memory", "knowledge"})
         self.assertIn("failed_sources", first["counts"])
         status, second = self.service.handle(
             "POST", "/api/v1/index/generations", {}, {"index_profile": self.identity, "request_id": "two"}, headers, "two"
         )
         self.assertEqual(status, 200)
+        self.assertEqual(second["request_id"], "two")
         self.assertEqual(first["generation_id"], second["generation_id"])
         with self.assertRaisesRegex(IndexError, "idempotency key was reused"):
             self.service.handle(
