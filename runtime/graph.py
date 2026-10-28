@@ -290,6 +290,8 @@ class GraphService:
             if current and revision_sequence <= current["revision_sequence"]:
                 if revision_sequence == current["revision_sequence"] and current["status"] == "active":
                     if current["source_revision"] != source_revision or current["payload_hash"] != source_payload_hash:
+                        db.execute("UPDATE graph_owner_state SET reconciliation_required=1 WHERE owner=?", (owner,))
+                        db.commit()
                         raise GraphError("revision_conflict", "equal source revision was reused with a different projection", 409)
                 disposition = "superseded"
                 self._store_event(db, owner, owner_sequence, operation_id, payload_hash, disposition)
@@ -534,6 +536,7 @@ class GraphService:
             starts_truncated = len(resolved) > max_visited
             if starts_truncated:
                 resolved = resolved[:max_visited]
+                evidence = [e for e in evidence if e["node_id"] in resolved]
             edge_count = db.execute("SELECT COUNT(*) AS n FROM graph_edges WHERE scope_json=?", (scope_json,)).fetchone()["n"]
             edges_rows = db.execute("SELECT * FROM graph_edges WHERE scope_json=? ORDER BY edge_id,source_id LIMIT 10000", (scope_json,)).fetchall()
             edges_truncated = edge_count > len(edges_rows)
