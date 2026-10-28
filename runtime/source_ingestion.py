@@ -175,7 +175,7 @@ class PatentAdapter:
     """Parse patent XML (including common publication XML) or saved patent HTML."""
 
     def read(self, source: str | Path) -> list[SourceDocument]:
-        path = Path(source).expanduser().resolve()
+        path = Path(source).expanduser().absolute()
         raw = _safe_read(path)
         decoded = raw.decode("utf-8", errors="replace")
         metadata: dict[str, object] = {"format": path.suffix.lower().lstrip(".")}
@@ -241,7 +241,7 @@ class GitRepositoryAdapter:
         self.max_files = max_files
 
     def read(self, source: str | Path) -> list[SourceDocument]:
-        root = Path(source).expanduser().resolve()
+        root = Path(source).expanduser().absolute()
         if not root.is_dir():
             raise SourceIngestionError(f"repository path is not a directory: {root}")
         documents: list[SourceDocument] = []
@@ -275,7 +275,7 @@ class DocumentAdapter:
     """Parse Markdown/text directly and PDF text through optional pypdf."""
 
     def read(self, source: str | Path) -> list[SourceDocument]:
-        path = Path(source).expanduser().resolve()
+        path = Path(source).expanduser().absolute()
         raw = _safe_read(path)
         suffix = path.suffix.lower()
         if suffix == ".pdf":
