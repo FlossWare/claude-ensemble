@@ -936,7 +936,7 @@ class IndexService:
                         "source_id": row["source_id"], "source_revision": row["source_revision"],
                         "revision_sequence": row["revision_sequence"], "chunk_id": row["chunk_id"],
                         "chunker": {"profile": row["chunker_profile"], "version": row["chunker_version"]},
-                        "text": row["text"], "retrieval_rank": len(candidates) + 1,
+                        "text": row["text"],
                         "embedding": {"model": row["embedding_model"], "version": row["embedding_version"],
                                       "dimensions": row["embedding_dimensions"], "metric": metric,
                                       "input_type": "document"},
@@ -945,9 +945,16 @@ class IndexService:
                         candidate["distance"] if metric == "euclidean" else candidate["similarity"]
                     )
                     candidates.append(item)
-                    if len(candidates) >= limit:
-                        break
-                return {"candidates": candidates, "truncated": len(raw_candidates) > len(candidates),
+                candidates.sort(key=lambda item: (
+                    item["distance"] if metric == "euclidean" else -item["similarity"],
+                    item["source_id"], -item["revision_sequence"], item["chunk_id"],
+                    item["chunker"]["profile"], item["chunker"]["version"],
+                ))
+                truncated = len(candidates) > limit or len(raw_candidates) == 100
+                candidates = candidates[:limit]
+                for rank, candidate in enumerate(candidates, 1):
+                    candidate["retrieval_rank"] = rank
+                return {"candidates": candidates, "truncated": truncated,
                         "index_generation": gen["generation_id"], "request_id": request.get("request_id", "index")}
             rows = db.execute("SELECT * FROM representations WHERE generation_id=? AND scope_json=? AND vector_json IS NOT NULL AND embedding_model=? AND embedding_version=? AND embedding_dimensions=?",
                               (gen["generation_id"], scope_json, emb["model"], emb["model_version"], emb["dimensions"])).fetchall()
