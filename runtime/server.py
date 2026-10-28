@@ -845,11 +845,13 @@ class Handler(BaseHTTPRequestHandler):
             canonical = service.read_for_ingestion(accepted["memory_id"], original_request["scope"], accepted["revision_sequence"])
             bundle = context["bundle"]
             profile = accepted["index_profile"]
+            # Chunking owns document structure, not access-control scope.
+            # Its source contract rejects unknown fields; scope is supplied
+            # separately to Index after representations are produced.
             source = {
                 "source_id": accepted["source_id"], "revision": accepted["revision"],
                 "revision_sequence": accepted["revision_sequence"],
-                "scope": canonical["scope"], "media_type": "text/markdown",
-                "content": canonical["content"],
+                "media_type": "text/markdown", "content": canonical["content"],
             }
             chunks_response = self._memory_rest_json(
                 context["chunking_base"], "/api/v1/chunking/chunks",
