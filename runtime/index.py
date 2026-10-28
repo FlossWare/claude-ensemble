@@ -48,7 +48,7 @@ class IndexError(ValueError):
 
 
 class IndexService:
-    """SQLite-backed Index operations, independently testable without HTTP."""
+    """SQLite-authoritative Index operations with persistent Chroma vector retrieval."""
 
     def __init__(self, db_path: str | os.PathLike[str], profile_bundle: dict[str, Any] | None = None):
         self.db_path = str(Path(db_path).expanduser())
