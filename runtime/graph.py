@@ -373,9 +373,22 @@ class GraphService:
                     db.commit()
                     raise GraphError("revision_conflict", "owner projection sequence was reused with a different operation or payload", 409)
             current = db.execute("SELECT * FROM graph_sources WHERE source_id=?", (source_id,)).fetchone()
-            if current and revision_sequence <= current["revision_sequence"]:
-                raise GraphError("revision_conflict", "tombstone sequence must exceed the source high-water mark", 409)
             scope_json = _json(scope)
+            if current and revision_sequence < current["revision_sequence"]:
+                disposition = "superseded"
+                self._store_event(db, owner, owner_sequence, operation_id, payload_hash, disposition)
+                self._persist_operation(db, response, payload_hash, owner, owner_sequence, source_id,
+                                        revision_sequence, disposition)
+                return 202, response
+            if current and revision_sequence == current["revision_sequence"]:
+                if (current["status"] == "tombstoned" and current["source_revision"] == source_revision
+                        and current["scope_json"] == scope_json):
+                    disposition = "superseded"
+                    self._store_event(db, owner, owner_sequence, operation_id, payload_hash, disposition)
+                    self._persist_operation(db, response, payload_hash, owner, owner_sequence, source_id,
+                                            revision_sequence, disposition)
+                    return 202, response
+                raise GraphError("revision_conflict", "tombstone sequence must exceed the active source high-water mark", 409)
             if current and current["scope_json"] != scope_json:
                 raise GraphError("invalid_scope", "source deletion scope does not match the active source", 409)
             db.execute("DELETE FROM graph_nodes WHERE source_id=?", (source_id,))
