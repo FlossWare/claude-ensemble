@@ -4,6 +4,7 @@ from __future__ import annotations
 import json
 import hmac
 import math
+import os
 import re
 import select
 import socket
@@ -11,7 +12,9 @@ import threading
 import time
 import uuid
 from datetime import datetime, timezone
-from urllib.parse import parse_qs, urlsplit
+from urllib.parse import parse_qs, quote, urlsplit
+from urllib.request import Request, urlopen
+from urllib.error import HTTPError, URLError
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from typing import Any
 
@@ -585,6 +588,7 @@ class Handler(BaseHTTPRequestHandler):
                 request["request_id"] = request_id
                 service = get_memory_service()
                 if path == "/api/v1/memories":
+                    self._memory_preflight(request, request_id)
                     status, response = service.create(request, self.headers.get("Idempotency-Key", ""), request_id)
                 elif path == "/api/v1/memories/verify-revisions":
                     if set(request) - {"items", "request_id"} or "items" not in request:
@@ -663,6 +667,72 @@ class Handler(BaseHTTPRequestHandler):
             self._send(exc.status, _error(exc.code, str(exc), retryable=exc.status >= 500), request_id)
         except Exception:
             self._send(500, _error("internal_error", "request could not be processed"), request_id)
+
+    def _memory_rest_json(self, base_url: str, path: str, *, payload: dict[str, Any] | None = None,
+                          request_id: str, timeout: float) -> dict[str, Any]:
+        body = None if payload is None else json.dumps(payload, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
+        headers = {
+            "Accept": "application/json",
+            "X-CE-Request-ID": request_id,
+            "X-CE-Internal-Call": "true",
+            "X-CE-Internal-Token": INTERNAL_CALL_TOKEN,
+        }
+        if body is not None:
+            headers["Content-Type"] = "application/json"
+        request = Request(base_url.rstrip("/") + path, data=body, headers=headers,
+                          method="GET" if body is None else "POST")
+        try:
+            with urlopen(request, timeout=timeout) as response:
+                decoded = json.loads(response.read().decode("utf-8"))
+        except HTTPError as exc:
+            try:
+                error_body = json.loads(exc.read().decode("utf-8"))
+                error = error_body.get("error", {})
+                code = error.get("code", "dependency_unavailable")
+                message = error.get("message", "Memory dependency request failed")
+            except Exception:
+                code, message = "dependency_unavailable", "Memory dependency request failed"
+            raise MemoryServiceError(code, message, exc.code if exc.code in {400, 404, 409, 413, 422, 503, 504} else 503) from exc
+        except (URLError, TimeoutError, OSError, ValueError) as exc:
+            raise MemoryServiceError("dependency_unavailable", "Memory dependency did not return a valid response", 503) from exc
+        if not isinstance(decoded, dict):
+            raise MemoryServiceError("dependency_unavailable", "Memory dependency returned an invalid response", 503)
+        return decoded
+
+    def _memory_preflight(self, request: dict[str, Any], request_id: str) -> dict[str, Any]:
+        profile = request.get("index_profile")
+        if not isinstance(profile, dict) or not isinstance(profile.get("name"), str) or not isinstance(profile.get("version"), str):
+            raise MemoryServiceError("invalid_request", "index_profile identity is required", 400)
+        local_base = f"http://127.0.0.1:{self.server.server_address[1]}"
+        index_base = os.environ.get("CE_INDEX_BASE_URL", local_base)
+        chunking_base = os.environ.get("CE_CHUNKING_BASE_URL", local_base)
+        profile_path = ("/api/v1/index/profiles/" + quote(profile["name"], safe="")
+                        + "/versions/" + quote(profile["version"], safe=""))
+        resolved = self._memory_rest_json(index_base, profile_path, request_id=request_id, timeout=2.0)
+        bundle = resolved.get("bundle", resolved.get("profile_bundle"))
+        if not isinstance(bundle, dict):
+            raise MemoryServiceError("profile_not_found", "Index did not return the requested profile bundle", 503)
+        for field in ("name", "version", "digest"):
+            if bundle.get(field) != profile.get(field):
+                raise MemoryServiceError("profile_mismatch", "Index returned a different pinned profile identity", 409)
+        chunking = bundle.get("chunking")
+        if not isinstance(chunking, dict):
+            raise MemoryServiceError("profile_mismatch", "Index profile has no chunking policy", 409)
+        preflight = self._memory_rest_json(
+            chunking_base, "/api/v1/chunking/preflight",
+            payload={
+                "request_id": request_id,
+                "index_profile": {key: profile[key] for key in ("name", "version", "digest")},
+                "source_text": request.get("content"),
+                "chunking_profile": {key: chunking[key] for key in ("profile", "version", "max_units", "overlap_units")},
+                "profile_bundle": bundle,
+            },
+            request_id=request_id, timeout=0.5,
+        )
+        if preflight.get("fits_profile") is not True:
+            raise MemoryServiceError("source_too_large", "content exceeds the pinned Index profile limits", 422)
+        return {"bundle": bundle, "preflight": preflight, "index_base": index_base,
+                "chunking_base": chunking_base, "local_base": local_base}
 
     def _rank(self, value: Any) -> dict[str, Any]:
         return rank_candidates(value)
