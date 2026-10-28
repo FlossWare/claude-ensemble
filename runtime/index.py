@@ -779,10 +779,11 @@ class IndexService:
             gen = self._generation(db, request.get("index_generation"), request["index_profile"])
             emb = bundle["embedding"]
             ep = request.get("embedding_profile")
+            # The public contract's component profile identity is name/version only.
+            # Model identity, dimensions, and metric are pinned by the provisioned bundle.
             if (not isinstance(ep, dict) or ep.get("name") != emb["profile"] or ep.get("version") != emb["version"]
-                    or ep.get("model") != emb["model"] or ep.get("model_version") != emb["model_version"]
-                    or ep.get("dimensions") != emb["dimensions"] or len(vector) != emb["dimensions"] or metric != emb["metric"]):
-                raise _error("incompatible_representation", "query vector profile/model/version/dimensions/metric mismatch", 422)
+                    or len(vector) != emb["dimensions"] or metric != emb["metric"]):
+                raise _error("incompatible_representation", "query vector profile/dimensions/metric mismatch", 422)
             rows = db.execute("SELECT * FROM representations WHERE generation_id=? AND scope_json=? AND vector_json IS NOT NULL AND embedding_model=? AND embedding_version=? AND embedding_dimensions=?",
                               (gen["generation_id"], scope_json, emb["model"], emb["model_version"], emb["dimensions"])).fetchall()
             scored = []
