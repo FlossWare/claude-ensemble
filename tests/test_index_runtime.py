@@ -785,6 +785,73 @@ class IndexRuntimeTests(unittest.TestCase):
         self.assertEqual(details["counts"]["failed_sources"], 0)
         self.assertEqual(details["source_failures"], [])
 
+
+    def test_stale_invalid_target_revision_does_not_recreate_failure_after_newer_success(self):
+        class Headers(dict):
+            def get(self, key, default=None):
+                return super().get(key, default)
+
+        source_id = "knowledge:stale-invalid-success"
+        _, generation = self.service.handle(
+            "POST", "/api/v1/index/generations", {},
+            {"index_profile": self.identity}, Headers({"Idempotency-Key": "build-stale-invalid-success"}), "build"
+        )
+        target = generation["generation_id"]
+        newer = self.upsert_request(source_id=source_id, sequence=4, operation_id="target-success-4")
+        newer["target_generation"] = target
+        self.service.upsert(newer, "target-success-4-key")
+
+        stale_invalid = self.upsert_request(
+            source_id=source_id, sequence=3, operation_id="target-invalid-3",
+            reps=[representation("chunk-a", "x" * 513, ["x"], [1.0, 0.0, 0.0])]
+        )
+        stale_invalid["target_generation"] = target
+        with self.assertRaises(IndexError) as raised:
+            self.service.upsert(stale_invalid, "target-invalid-3-key")
+        self.assertEqual(raised.exception.code, "source_too_large")
+
+        restarted = IndexService(Path(self.temp.name) / "index.sqlite3", self.bundle)
+        details = restarted.handle(
+            "GET", f"/api/v1/index/generations/{target}", {}, None, Headers(), "status"
+        )[1]
+        self.assertEqual(details["counts"]["failed_sources"], 0)
+        self.assertEqual(details["source_failures"], [])
+
+    def test_stale_invalid_target_revision_does_not_recreate_failure_after_tombstone(self):
+        class Headers(dict):
+            def get(self, key, default=None):
+                return super().get(key, default)
+
+        source_id = "knowledge:stale-invalid-tombstone"
+        _, generation = self.service.handle(
+            "POST", "/api/v1/index/generations", {},
+            {"index_profile": self.identity}, Headers({"Idempotency-Key": "build-stale-invalid-tombstone"}), "build"
+        )
+        target = generation["generation_id"]
+        delete = {
+            "operation_id": "tombstone-5", "request_id": "tombstone-5",
+            "source_id": source_id, "source_revision": "rev-5",
+            "revision_sequence": 5, "scope": SCOPE, "index_profile": self.identity,
+            "delete_scope": "source",
+        }
+        self.service.delete(delete, "tombstone-5-key")
+
+        stale_invalid = self.upsert_request(
+            source_id=source_id, sequence=3, operation_id="target-invalid-after-delete-3",
+            reps=[representation("chunk-a", "x" * 513, ["x"], [1.0, 0.0, 0.0])]
+        )
+        stale_invalid["target_generation"] = target
+        with self.assertRaises(IndexError) as raised:
+            self.service.upsert(stale_invalid, "target-invalid-after-delete-3-key")
+        self.assertEqual(raised.exception.code, "source_too_large")
+
+        restarted = IndexService(Path(self.temp.name) / "index.sqlite3", self.bundle)
+        details = restarted.handle(
+            "GET", f"/api/v1/index/generations/{target}", {}, None, Headers(), "status"
+        )[1]
+        self.assertEqual(details["counts"]["failed_sources"], 0)
+        self.assertEqual(details["source_failures"], [])
+
     def test_target_generation_source_failure_is_durable_and_blocks_eligibility(self):
         class Headers(dict):
             def get(self, key, default=None):
