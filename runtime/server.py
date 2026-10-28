@@ -15,6 +15,7 @@ from .embedding import EmbeddingError, PROFILE_NAME as EMBEDDING_PROFILE_NAME, P
 from .ranking import RankingError, rank as rank_candidates
 from .intent_classification import IntentClassificationError, classify as classify_intent
 from .entity_extraction import EntityExtractionError, PROFILE_NAME as ENTITY_PROFILE_NAME, PROFILE_VERSION as ENTITY_PROFILE_VERSION, get_extractor as get_entity_extractor
+from .reranking import RerankingError, get_engine as get_reranking_engine
 from .chunking import (
     MAX_CONTENT_BYTES, MAX_CHUNKS, DEFAULT_POLICY, ChunkingError, Policy, chunk_document, chunk_spans, validate_index_profile,
 )
@@ -364,6 +365,11 @@ class Handler(BaseHTTPRequestHandler):
             self._send(200, {"service": "entity-extraction", "status": "alive"}, request_id)
         elif self.path == "/api/v1/entity-extraction/ready":
             self._send(200, get_entity_extractor().readiness(), request_id)
+        elif self.path == "/api/v1/reranking/health":
+            self._send(200, {"service": "reranking", "status": "alive"}, request_id)
+        elif self.path == "/api/v1/reranking/ready":
+            response = get_reranking_engine().readiness()
+            self._send(200 if response["ready"] else 503, response, request_id)
         else:
             self._send(404, _error("endpoint_not_found", "endpoint not found"), request_id)
 
@@ -381,6 +387,7 @@ class Handler(BaseHTTPRequestHandler):
             "/api/v1/tokenization/lexical", "/api/v1/tokenization/lexical/batch",
             "/api/v1/embeddings", "/api/v1/ranking/rank",
             "/api/v1/intent-classification/classify", "/api/v1/entity-extraction/extract",
+            "/api/v1/reranking/rerank",
         ):
             self._send(404, _error("endpoint_not_found", "endpoint not found"), request_id)
             return
@@ -435,6 +442,8 @@ class Handler(BaseHTTPRequestHandler):
                 response = self._classify_intent(request)
             elif self.path == "/api/v1/entity-extraction/extract":
                 response = self._extract_entities(request)
+            elif self.path == "/api/v1/reranking/rerank":
+                response = get_reranking_engine().rerank(request)
             else:
                 response = self._chunks(request)
             if (deadline_error := self._deadline_error()) is not None:
@@ -459,6 +468,8 @@ class Handler(BaseHTTPRequestHandler):
             self._send(exc.status, _error(exc.code, str(exc)), request_id)
         except EntityExtractionError as exc:
             self._send(exc.status, _error(exc.code, str(exc)), request_id)
+        except RerankingError as exc:
+            self._send(exc.status, _error(exc.code, str(exc), retryable=exc.status >= 500), request_id)
         except Exception:
             self._send(500, _error("internal_error", "request could not be processed"), request_id)
 
