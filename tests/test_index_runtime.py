@@ -3,9 +3,15 @@ from __future__ import annotations
 
 import tempfile
 import unittest
+import json
+import os
+import threading
+from urllib.request import Request, urlopen
+from unittest.mock import patch
 from pathlib import Path
 
-from runtime.index import IndexError, IndexService, profile_digest
+from runtime.index import IndexError, IndexService, profile_digest, reset_index_service_for_tests
+from runtime.server import BoundedThreadingHTTPServer, Handler
 
 
 SCOPE = {"type": "project", "id": "project-a", "visibility": "private"}
@@ -124,6 +130,50 @@ class IndexRuntimeTests(unittest.TestCase):
         invalid["lexical"] = dict(invalid["lexical"], profile="other")
         with self.assertRaisesRegex(IndexError, "digest"):
             IndexService(Path(self.temp.name) / "bad.sqlite3", invalid)
+
+    def test_http_dispatch_supports_upsert_and_lexical_lookup(self):
+        profile_path = Path(self.temp.name) / "profile.json"
+        profile_path.write_text(json.dumps(self.bundle), encoding="utf-8")
+        db_path = Path(self.temp.name) / "http-index.sqlite3"
+        reset_index_service_for_tests()
+        server = BoundedThreadingHTTPServer(("127.0.0.1", 0), Handler)
+        thread = threading.Thread(target=server.serve_forever, daemon=True)
+        thread.start()
+        try:
+            with patch.dict(os.environ, {
+                "CE_INDEX_PROFILE_BUNDLE_PATH": str(profile_path),
+                "CE_INDEX_DB_PATH": str(db_path),
+            }):
+                base = f"http://127.0.0.1:{server.server_address[1]}"
+                health = json.loads(urlopen(base + "/api/v1/index/health", timeout=2).read())
+                self.assertEqual(health["status"], "alive")
+                request_body = self.upsert_request()
+                request = Request(base + "/api/v1/index/operations/upsert",
+                                  data=json.dumps(request_body).encode("utf-8"),
+                                  headers={"Content-Type": "application/json", "Idempotency-Key": "http-idem"},
+                                  method="POST")
+                with urlopen(request, timeout=2) as response:
+                    self.assertEqual(response.status, 200)
+                    upsert = json.loads(response.read())
+                generation = json.loads(urlopen(base + "/api/v1/index/generations/active", timeout=2).read())
+                lookup_body = {
+                    "request_id": "http-lookup", "scope": SCOPE, "index_profile": self.identity,
+                    "lexical_profile": {"name": "bm25-v1", "version": "0.1"},
+                    "terms": ["ranking", "fusion"], "limit": 10,
+                    "index_generation": generation["generation_id"],
+                }
+                lookup_request = Request(base + "/api/v1/index/lexical/lookup",
+                                         data=json.dumps(lookup_body).encode("utf-8"),
+                                         headers={"Content-Type": "application/json"}, method="POST")
+                with urlopen(lookup_request, timeout=2) as response:
+                    lookup = json.loads(response.read())
+                self.assertEqual(upsert["status"], "complete")
+                self.assertEqual(lookup["candidates"][0]["source_id"], "knowledge:doc-a")
+        finally:
+            server.shutdown()
+            server.server_close()
+            thread.join(timeout=2)
+            reset_index_service_for_tests()
 
     def test_handle_exposes_profile_and_health_routes(self):
         class Headers(dict):
