@@ -103,6 +103,7 @@ def main() -> int:
                 "CE_EMBEDDING_MODEL_PATH": str(model_path),
                 "CE_EMBEDDING_MODEL_ID": EXPECTED_MODEL_ID,
                 "CE_EMBEDDING_MODEL_VERSION": revision,
+                "CE_GATEWAY_WRITE_PROFILE_NAME": "memory-index-e2e",
             })
             for name in ("CE_INDEX_BASE_URL", "CE_CHUNKING_BASE_URL",
                          "CE_TOKENIZATION_BASE_URL", "CE_EMBEDDING_BASE_URL"):
@@ -133,6 +134,12 @@ def main() -> int:
 
             server = BoundedThreadingHTTPServer(("127.0.0.1", 0), Handler)
             base = f"http://127.0.0.1:{server.server_address[1]}"
+            # Retrieval services make their own REST calls. Point every dependency
+            # back at this isolated server rather than the normal :8080 default.
+            for name in ("CE_INDEX_BASE_URL", "CE_TOKENIZATION_BASE_URL",
+                         "CE_EMBEDDING_BASE_URL", "CE_RERANKING_BASE_URL",
+                         "CE_GATEWAY_INTERNAL_BASE_URL"):
+                os.environ[name] = base
             thread = __import__("threading").Thread(target=server.serve_forever, daemon=True)
             thread.start()
 
@@ -224,6 +231,30 @@ def main() -> int:
             ):
                 raise RuntimeError(f"Lexical lookup did not retrieve the created Memory source: {lookup!r}")
 
+            # Exercise the public Gateway endpoint against the real local REST services.
+            gateway_result = _request(
+                base, "/api/v1/requests",
+                payload={
+                    "request_id": "memory-index-e2e-gateway",
+                    "query": "source revision retrieval contract",
+                    "scope": SCOPE,
+                    "mode": "lookup",
+                    "context_budget": {"unit": "provider_tokens", "model": "test-model", "max": 512},
+                    "limit": 10,
+                },
+                timeout=60.0,
+            )
+            if gateway_result.get("status") != "complete":
+                raise RuntimeError(f"Gateway RAG request did not complete without degradation: {gateway_result!r}")
+            if not any(
+                item.get("source_id") == created.get("source_id")
+                and item.get("freshness") == "verified_current"
+                for item in gateway_result.get("candidates", []) if isinstance(item, dict)
+            ):
+                raise RuntimeError(f"Gateway did not return the current indexed Memory source: {gateway_result!r}")
+            if created.get("source_id", "") + "@" not in gateway_result.get("context", ""):
+                raise RuntimeError("Gateway context did not include the indexed Memory source identity")
+
             # Re-open the persistent Index store and repeat the lookup.
             reset_index_service_for_tests()
             active = _request(base, "/api/v1/index/generations/active")
@@ -252,6 +283,7 @@ def main() -> int:
             print("PASS: recovered Memory source was retrievable from Index.")
             print("PASS: Memory -> Chunking -> Tokenization -> Embedding -> Index completed over HTTP.")
             print("PASS: lexical retrieval found the created source before and after Index storage reopen.")
+            print("PASS: Gateway completed a live REST RAG request with current-source verification and bounded context.")
             return 0
     except (HTTPError, OSError, ValueError, RuntimeError) as exc:
         print(f"FAIL: Memory-to-Index real-model HTTP acceptance failed ({type(exc).__name__}: {exc})",

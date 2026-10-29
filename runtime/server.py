@@ -29,6 +29,10 @@ from .retrieval import RetrievalError, configured_retrieval_services, retrieval_
 from .index import IndexError as IndexServiceError, get_index_service
 from .memory import MemoryError as MemoryServiceError, get_memory_service
 from .graph import GraphError, get_graph_service
+from .thompson import ThompsonError, get_thompson_service
+from .learning import LearningError, get_learning_service
+from .knowledge import KnowledgeError, get_knowledge_service
+from .gateway import GatewayError, GatewayService
 from .internal_calls import INTERNAL_CALL_TOKEN
 from .chunking import (
     MAX_CONTENT_BYTES, MAX_CHUNKS, DEFAULT_POLICY, ChunkingError, Policy, chunk_document, chunk_spans, validate_index_profile,
@@ -380,7 +384,9 @@ class Handler(BaseHTTPRequestHandler):
         self._method_not_allowed()
 
     def do_DELETE(self) -> None:
-        if not urlsplit(self.path).path.startswith("/api/v1/memories/"):
+        delete_path = urlsplit(self.path).path
+        is_knowledge_delete = delete_path.startswith("/api/v1/knowledge/sources/")
+        if not delete_path.startswith("/api/v1/memories/") and not is_knowledge_delete:
             self._dispatch_index_method("DELETE", False)
             return
         request_id, invalid_id = self._request_id()
@@ -408,10 +414,10 @@ class Handler(BaseHTTPRequestHandler):
                 raise ChunkingError("invalid_request", "request body must be a JSON object", status=400)
             if set(body) - {"scope", "delete_scope", "request_id"} or not {"scope", "delete_scope"}.issubset(body):
                 raise MemoryServiceError("invalid_request", "delete request has missing or unknown fields", 400)
-            memory_id = urlsplit(self.path).path.rsplit("/", 1)[-1]
-            service = get_memory_service()
+            source_key = urlsplit(self.path).path.rsplit("/", 1)[-1]
+            service = get_knowledge_service() if is_knowledge_delete else get_memory_service()
             status, response = service.delete(
-                memory_id, body.get("scope"), body.get("delete_scope"),
+                source_key, body.get("scope"), body.get("delete_scope"),
                 self.headers.get("Idempotency-Key", ""), request_id)
             response["request_id"] = request_id
             if response.get("status") in {"accepted", "pending", "failed"} and response.get("indexing_status") != "indexed":
@@ -421,6 +427,8 @@ class Handler(BaseHTTPRequestHandler):
                 _MEMORY_GRAPH_EXECUTOR.submit(self._memory_graph_project, service)
             self._send(status, response, request_id)
         except MemoryServiceError as exc:
+            self._send(exc.status, _error(exc.code, str(exc), retryable=exc.status >= 500), request_id)
+        except KnowledgeError as exc:
             self._send(exc.status, _error(exc.code, str(exc), retryable=exc.status >= 500), request_id)
         except (UnicodeDecodeError, json.JSONDecodeError, ValueError):
             self._send(400, _error("invalid_request", "request body must be valid UTF-8 JSON"), request_id)
@@ -542,6 +550,35 @@ class Handler(BaseHTTPRequestHandler):
                 self._send(200, response, request_id)
             except MemoryServiceError as exc:
                 self._send(exc.status, _error(exc.code, str(exc), retryable=exc.status >= 500), request_id)
+        elif urlsplit(self.path).path.startswith("/api/v1/learning/"):
+            try:
+                parsed = urlsplit(self.path)
+                status, response = get_learning_service().handle("GET", parsed.path, None, self.headers, request_id)
+                self._send(status, response, request_id)
+            except LearningError as exc:
+                self._send(exc.status, _error(exc.code, str(exc), retryable=exc.status >= 500), request_id)
+        elif urlsplit(self.path).path.startswith("/api/v1/thompson/"):
+            try:
+                parsed = urlsplit(self.path)
+                status, response = get_thompson_service().handle("GET", parsed.path, parse_qs(parsed.query), None, self.headers, request_id)
+                self._send(status, response, request_id)
+            except ThompsonError as exc:
+                self._send(exc.status, _error(exc.code, str(exc), retryable=exc.status >= 500), request_id)
+        elif urlsplit(self.path).path.startswith("/api/v1/gateway/"):
+            try:
+                parsed = urlsplit(self.path)
+                base_url = f"http://127.0.0.1:{self.server.server_address[1]}"
+                status, response = GatewayService(base_url).handle("GET", parsed.path, parse_qs(parsed.query), None, self.headers, request_id)
+                self._send(status, response, request_id)
+            except GatewayError as exc:
+                self._send(exc.status, _error(exc.code, str(exc), retryable=exc.retryable), request_id)
+        elif urlsplit(self.path).path.startswith("/api/v1/knowledge/"):
+            try:
+                parsed = urlsplit(self.path)
+                status, response = get_knowledge_service().handle("GET", parsed.path, parse_qs(parsed.query), None, self.headers, request_id)
+                self._send(status, response, request_id)
+            except KnowledgeError as exc:
+                self._send(exc.status, _error(exc.code, str(exc), retryable=exc.status >= 500), request_id)
         elif urlsplit(self.path).path.startswith("/api/v1/graph/"):
             try:
                 parsed = urlsplit(self.path)
@@ -576,7 +613,11 @@ class Handler(BaseHTTPRequestHandler):
         is_memory_route = memory_path == "/api/v1/memories" or memory_path == "/api/v1/memories/verify-revisions" or (
             memory_path.startswith("/api/v1/memories/") and memory_path.endswith("/revisions"))
         is_graph_route = memory_path.startswith("/api/v1/graph/")
-        if not is_index_route and not is_memory_route and not is_graph_route and self.path not in (
+        is_thompson_route = memory_path.startswith("/api/v1/thompson/")
+        is_learning_route = memory_path.startswith("/api/v1/learning/")
+        is_knowledge_route = memory_path.startswith("/api/v1/knowledge/")
+        is_gateway_route = memory_path.startswith("/api/v1/gateway/") or memory_path in ("/api/v1/requests", "/api/v1/selections", "/api/v1/outcomes")
+        if not is_index_route and not is_memory_route and not is_graph_route and not is_thompson_route and not is_learning_route and not is_knowledge_route and not is_gateway_route and self.path not in (
             "/api/v1/chunking/chunks", "/api/v1/chunking/preflight",
             "/api/v1/tokenization/lexical", "/api/v1/tokenization/lexical/batch",
             "/api/v1/embeddings", "/api/v1/ranking/rank",
@@ -627,6 +668,52 @@ class Handler(BaseHTTPRequestHandler):
             except (UnicodeDecodeError, json.JSONDecodeError, ValueError) as exc:
                 raise ChunkingError("invalid_request", "request body must be valid UTF-8 JSON without duplicate object keys", status=400) from exc
             _validate_json_unicode(request)
+            if is_gateway_route:
+                parsed = urlsplit(self.path)
+                base_url = f"http://127.0.0.1:{self.server.server_address[1]}"
+                status, response = GatewayService(base_url).handle("POST", parsed.path, parse_qs(parsed.query), request, self.headers, request_id)
+                response.setdefault("request_id", request_id)
+                self._send(status, response, request_id)
+                return
+            if is_learning_route:
+                parsed = urlsplit(self.path)
+                status, response = get_learning_service().handle("POST", parsed.path, request, self.headers, request_id)
+                self._send(status, response, request_id)
+                return
+            if is_knowledge_route:
+                parsed = urlsplit(self.path)
+                path = parsed.path
+                service = get_knowledge_service()
+                if path == "/api/v1/knowledge/sources":
+                    context = self._memory_preflight(request, request_id)
+                    status, response = service.create(request, self.headers.get("Idempotency-Key", ""), request_id)
+                    accepted = {**response, "memory_id": response["source_id"].removeprefix("knowledge:")}
+                    if response.get("indexing_status") != "indexed":
+                        _MEMORY_INGEST_EXECUTOR.submit(self._memory_ingest, service, accepted, dict(request), context)
+                    _MEMORY_GRAPH_EXECUTOR.submit(self._memory_graph_project, service)
+                elif path.startswith("/api/v1/knowledge/sources/") and path.endswith("/revisions"):
+                    source_key = path.split("/")[-2]
+                    query = parse_qs(parsed.query)
+                    scope = {"type": query.get("scope_type", [""])[0],
+                             "id": query.get("scope_id", [""])[0],
+                             "visibility": query.get("visibility", [""])[0]}
+                    context_request = {**request, "scope": scope}
+                    context = self._memory_preflight(context_request, request_id)
+                    status, response = service.update(source_key, request, self.headers.get("Idempotency-Key", ""), request_id, scope)
+                    accepted = {**response, "memory_id": source_key}
+                    if response.get("indexing_status") != "indexed":
+                        _MEMORY_INGEST_EXECUTOR.submit(self._memory_ingest, service, accepted, context_request, context)
+                    _MEMORY_GRAPH_EXECUTOR.submit(self._memory_graph_project, service)
+                else:
+                    status, response = service.handle("POST", path, parse_qs(parsed.query), request, self.headers, request_id)
+                response["request_id"] = request_id
+                self._send(status, response, request_id)
+                return
+            if is_thompson_route:
+                parsed = urlsplit(self.path)
+                status, response = get_thompson_service().handle("POST", parsed.path, parse_qs(parsed.query), request, self.headers, request_id)
+                self._send(status, response, request_id)
+                return
             if is_graph_route:
                 parsed = urlsplit(self.path)
                 status, response = get_graph_service().handle("POST", parsed.path, parse_qs(parsed.query), request, request_id)
@@ -725,7 +812,15 @@ class Handler(BaseHTTPRequestHandler):
             self._send(exc.status, _error(exc.code, str(exc), retryable=exc.status >= 500), request_id)
         except RetrievalError as exc:
             self._send(exc.status, _error(exc.code, str(exc), retryable=exc.status >= 500), request_id)
+        except GatewayError as exc:
+            self._send(exc.status, _error(exc.code, str(exc), retryable=exc.retryable), request_id)
+        except ThompsonError as exc:
+            self._send(exc.status, _error(exc.code, str(exc), retryable=exc.status >= 500), request_id)
+        except LearningError as exc:
+            self._send(exc.status, _error(exc.code, str(exc), retryable=exc.status >= 500), request_id)
         except MemoryServiceError as exc:
+            self._send(exc.status, _error(exc.code, str(exc), retryable=exc.status >= 500), request_id)
+        except KnowledgeError as exc:
             self._send(exc.status, _error(exc.code, str(exc), retryable=exc.status >= 500), request_id)
         except GraphError as exc:
             self._send(exc.status, _error(exc.code, str(exc), retryable=exc.status >= 500), request_id)
