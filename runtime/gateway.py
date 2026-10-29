@@ -157,11 +157,16 @@ class GatewayService:
                           reasons: list[str], failures: list[dict[str, Any]], call=None) -> list[dict[str, Any]]:
         call = call or self._call
         by_owner: dict[str, list[dict[str, Any]]] = {"memory": [], "knowledge": []}
+        unsupported_owner_seen = False
         for candidate in candidates:
             source_id = candidate.get("source_id", "")
-            owner = source_id.split(":", 1)[0]
+            owner = source_id.split(":", 1)[0] if isinstance(source_id, str) else ""
             if owner in by_owner:
                 by_owner[owner].append({"source_id": source_id, "revision_sequence": candidate.get("revision_sequence")})
+            else:
+                unsupported_owner_seen = True
+        if unsupported_owner_seen:
+            reasons.append("unsupported_candidate_owner")
         status_by_identity: dict[tuple[str, int], str] = {}
         for owner, items in by_owner.items():
             unique = {(item["source_id"], item["revision_sequence"]) for item in items
