@@ -1039,13 +1039,25 @@ class IndexService:
                     try:
                         raw_candidates = store.query(
                             vector, scope=json.loads(scope_json), limit=fetch_limit, metric=metric,
-                            source_ids=query_source_ids,
-                            source_revisions=request.get("source_revisions"),
+                            # Chroma applies metadata filters during approximate HNSW
+                            # traversal. A small authorized subset can therefore hide
+                            # valid neighbors behind orphaned vectors. Query the bounded
+                            # scope-only window and enforce all source/revision authority
+                            # against SQLite below.
+                            source_ids=None,
+                            source_revisions=None,
                         )
                     except VectorStoreError as exc:
                         raise _error("vector_store_unavailable", str(exc), 503) from exc
                     candidates = []
+                    requested_source_ids = set(request.get("source_ids") or [])
+                    requested_source_revisions = set(request.get("source_revisions") or [])
                     for candidate in raw_candidates:
+                        if (candidate.get("source_id") not in authorized_source_ids
+                                or (requested_source_ids and candidate.get("source_id") not in requested_source_ids)
+                                or (requested_source_revisions and candidate.get("source_revision") not in requested_source_revisions)):
+                            discarded_candidates = True
+                            continue
                         row = db.execute(
                             """SELECT * FROM representations
                                WHERE generation_id=? AND source_id=? AND source_revision=?
@@ -1091,10 +1103,11 @@ class IndexService:
                             or fetch_limit >= MAX_QUERY_RESULTS):
                         break
                     fetch_limit = min(fetch_limit * 2, MAX_QUERY_RESULTS)
-                truncated = (
-                    len(candidates) > limit
-                    or len(raw_candidates) == fetch_limit
-                    or discarded_candidates
+                # Reaching the bounded scan ceiling means additional authorized
+                # neighbors may remain unseen. Filtering known unauthorized/orphan
+                # rows alone is not truncation when the query exhausted the collection.
+                truncated = len(candidates) > limit or (
+                    fetch_limit >= MAX_QUERY_RESULTS and len(raw_candidates) == fetch_limit
                 )
                 candidates = candidates[:limit]
                 for rank, candidate in enumerate(candidates, 1):
