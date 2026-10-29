@@ -176,11 +176,14 @@ class GatewayService:
                 continue
             path = "/api/v1/memories/verify-revisions" if owner == "memory" else "/api/v1/knowledge/sources/verify-revisions"
             try:
-                _, response = call("POST", path, {"items": [
-                    {"source_id": source, "revision_sequence": sequence} for source, sequence in sorted(unique)
-                ], "request_id": request_id}, request_id)
-                for result in response.get("results", []):
-                    status_by_identity[(result.get("source_id"), result.get("requested_revision_sequence"))] = result.get("status")
+                ordered = sorted(unique)
+                for offset in range(0, len(ordered), 100):
+                    batch = ordered[offset:offset + 100]
+                    _, response = call("POST", path, {"items": [
+                        {"source_id": source, "revision_sequence": sequence} for source, sequence in batch
+                    ], "request_id": request_id}, request_id)
+                    for result in response.get("results", []):
+                        status_by_identity[(result.get("source_id"), result.get("requested_revision_sequence"))] = result.get("status")
             except GatewayError as exc:
                 reasons.append("freshness_verification_degraded")
                 failures.append({"service": owner, "code": exc.code, "retryable": exc.retryable})
