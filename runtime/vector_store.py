@@ -96,6 +96,8 @@ def _where(scope: dict[str, str], source_ids: list[str] | None,
         clauses.append({"source_id": {"$in": source_ids}})
     if source_revisions:
         clauses.append({"source_revision": {"$in": source_revisions}})
+    if not clauses:
+        return {}
     if len(clauses) == 1:
         return clauses[0]
     return {"$and": clauses}
