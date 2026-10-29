@@ -184,11 +184,11 @@ class IndexRuntimeTests(unittest.TestCase):
         observed_limits = []
         original_query = store.query
 
-        def observe_query(query_vector, *, scope, limit, metric, source_ids=None, source_revisions=None):
+        def observe_query(query_vector, *, scope, limit, metric, source_ids=None, source_revisions=None, filter_scope=True):
             observed_limits.append(limit)
             return original_query(
                 query_vector, scope=scope, limit=limit, metric=metric,
-                source_ids=source_ids, source_revisions=source_revisions,
+                source_ids=source_ids, source_revisions=source_revisions, filter_scope=filter_scope,
             )
 
         query = {
