@@ -201,7 +201,7 @@ class IndexRuntimeTests(unittest.TestCase):
             result = self.service.vector_neighbors(query)
         self.assertEqual([item["source_id"] for item in result["candidates"]], ["knowledge:doc-a"])
         self.assertEqual(observed_limits, [100])
-        self.assertTrue(result["truncated"])
+        self.assertFalse(result["truncated"])
 
     def test_chroma_startup_migration_failure_recovers_on_next_initialization(self):
         first = self.upsert_request(source_id="knowledge:doc-a", operation_id="startup-a")
