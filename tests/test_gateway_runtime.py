@@ -128,7 +128,7 @@ def test_gateway_health_route_is_reachable():
 
 
 
-def test_gateway_request_route_dispatches_to_service(monkeypatch):
+def test_gateway_request_route_runs_rag_orchestration_over_http(monkeypatch):
     import json
     import threading
     from urllib.request import Request, urlopen
@@ -136,18 +136,67 @@ def test_gateway_request_route_dispatches_to_service(monkeypatch):
     from runtime.gateway import GatewayService
     from runtime.server import BoundedThreadingHTTPServer, Handler
 
-    def fake_search(self, body, request_id):
-        assert body == {"query": "test query"}
-        return {"request_id": request_id, "status": "complete", "candidates": [], "degraded": False}
+    monkeypatch.setenv("CE_GATEWAY_WRITE_PROFILE_NAME", "default")
+    identity = {"name": "default", "version": "0.1", "digest": "a" * 64}
+    bundle = {
+        **identity,
+        "lexical": {"profile": "technical-default", "version": "0.1"},
+        "embedding": {"profile": "default-embedding", "version": "0.1"},
+    }
+    candidate = {
+        "source_id": "knowledge:src-1",
+        "source_revision": "rev-1",
+        "revision_sequence": 1,
+        "chunk_id": "chunk-1",
+        "chunker": {"profile": "markdown-default", "version": "0.1"},
+        "retrieval_rank": 1,
+        "score_semantics": "bm25-v1",
+        "text": "CE-42 is a useful source chunk",
+        "matched_exact_identifiers": [],
+        "provenance": {"origin": "fixture"},
+        "score": 1.2,
+    }
 
-    monkeypatch.setattr(GatewayService, "search", fake_search)
+    def fake_rest(self, method, path, payload=None, request_id="gateway", headers=None, timeout=30.0):
+        if method == "GET" and path == "/api/v1/index/generations/active":
+            return 200, {"generation_id": "gen-1", "index_profile": identity}
+        if method == "GET" and path == "/api/v1/index/profiles/default/versions/0.1":
+            return 200, {"name": "default", "version": "0.1", "digest": "a" * 64, "bundle": bundle}
+        if path == "/api/v1/intent-classification/classify":
+            return 200, {"results": [{"intent": "knowledge_lookup"}]}
+        if path == "/api/v1/entity-extraction/extract":
+            return 200, {"entities": [{"kind": "technical_identifier", "text": "CE-42", "exact": True}]}
+        if path == "/api/v1/lexical-retrieval/search":
+            return 200, {"candidates": [candidate], "truncated": False}
+        if path == "/api/v1/vector-retrieval/search":
+            return 200, {"metric": "cosine", "candidates": [], "truncated": False}
+        if path == "/api/v1/knowledge/sources/verify-revisions":
+            return 200, {"results": [{"source_id": "knowledge:src-1", "requested_revision_sequence": 1, "status": "current"}]}
+        if path == "/api/v1/ranking/rank":
+            return 200, {"candidates": [{
+                "source_id": "knowledge:src-1", "source_revision": "rev-1", "revision_sequence": 1,
+                "chunk_id": "chunk-1", "chunker": candidate["chunker"], "rank": 1, "score": 100,
+                "score_semantics": "rrf-v1", "evidence": [{"retrieval_path": "lexical", "retrieval_rank": 1}],
+                "provenance": {"origin": "fixture"}, "text": candidate["text"],
+                "matched_exact_identifiers": ["CE-42"],
+            }]}
+        raise AssertionError(f"unexpected REST call: {method} {path}")
+
+    monkeypatch.setattr(GatewayService, "_call", fake_rest)
     server = BoundedThreadingHTTPServer(("127.0.0.1", 0), Handler)
     thread = threading.Thread(target=server.serve_forever, daemon=True)
     thread.start()
     try:
+        body = {
+            "request_id": "req-route",
+            "query": "find CE-42",
+            "scope": {"type": "project", "id": "p1", "visibility": "private"},
+            "mode": "lookup",
+            "context_budget": {"unit": "provider_tokens", "model": "test-model", "max": 100},
+        }
         request = Request(
             f"http://127.0.0.1:{server.server_port}/api/v1/requests",
-            data=json.dumps({"query": "test query"}).encode("utf-8"),
+            data=json.dumps(body).encode("utf-8"),
             headers={"Content-Type": "application/json"},
             method="POST",
         )
@@ -155,7 +204,9 @@ def test_gateway_request_route_dispatches_to_service(monkeypatch):
             payload = json.loads(response.read())
             assert response.status == 200
             assert payload["status"] == "complete"
-            assert payload["request_id"]
+            assert payload["request_id"] == "req-route"
+            assert payload["candidates"][0]["freshness"] == "verified_current"
+            assert "knowledge:src-1@1" in payload["context"]
     finally:
         server.shutdown()
         server.server_close()
