@@ -29,9 +29,11 @@ def test_gateway_rag_request_runs_rest_plan_retrieval_freshness_and_ranking(monk
     }
     candidate = _candidate()
     calls = []
+    propagated_deadlines = []
 
     def transport(method, path, payload, request_id, headers, timeout):
         calls.append((method, path, payload))
+        propagated_deadlines.append((headers.get("X-CE-Deadline"), timeout))
         if method == "GET" and path == "/api/v1/index/generations/active":
             return 200, {"generation_id": "gen-1", "index_profile": index_profile}
         if method == "GET" and path == "/api/v1/index/profiles/default/versions/0.1":
@@ -60,8 +62,11 @@ def test_gateway_rag_request_runs_rest_plan_retrieval_freshness_and_ranking(monk
     result = service.search({
         "request_id": "req-1", "query": "find CE-42", "scope": {"type": "project", "id": "p1", "visibility": "private"},
         "mode": "lookup", "context_budget": {"unit": "provider_tokens", "model": "test-model", "max": 100},
-    }, "req-1")
+    }, "req-1", headers={"X-CE-Deadline": "2099-01-01T00:00:00Z"})
     assert result["status"] == "complete"
+    assert propagated_deadlines
+    assert all(deadline == "2099-01-01T00:00:00Z" for deadline, _ in propagated_deadlines)
+    assert all(0 < timeout <= 30.0 for _, timeout in propagated_deadlines)
     assert result["plan"]["intent"] == "knowledge_lookup"
     assert result["candidates"][0]["freshness"] == "verified_current"
     assert result["candidates"][0]["matched_exact_identifiers"] == ["CE-42"]
@@ -104,8 +109,84 @@ def test_gateway_filters_stale_candidates_before_ranking(monkeypatch):
         "mode": "lookup", "context_budget": {"unit": "provider_tokens", "model": "test-model", "max": 100},
     }, "req-2")
     assert result["candidates"] == []
+    assert result["index_freshness"] == "unknown"
     assert "stale_candidates_filtered" in result["degradation_reasons"]
     assert "/api/v1/ranking/rank" in calls
+
+
+
+def test_gateway_after_operation_id_waits_until_indexing_is_complete():
+    service = GatewayService()
+    calls = []
+    states = iter(["pending_index", "pending_index", "indexed"])
+
+    def call(method, path, payload=None, request_id="req-barrier", headers=None, timeout=30.0):
+        calls.append((method, path, timeout))
+        return 200, {"status": "accepted", "indexing_status": next(states)}
+
+    service._wait_for_operation(
+        "knowledge:op:abc123",
+        {"type": "project", "id": "p1", "visibility": "private"},
+        "req-barrier",
+        call,
+        None,
+    )
+    assert len(calls) == 3
+    assert all(method == "GET" for method, _, _ in calls)
+    assert all(path == "/api/v1/knowledge/operations/knowledge:op:abc123" for _, path, _ in calls)
+    assert all(0 < timeout <= 1.0 for _, _, timeout in calls)
+
+
+def test_gateway_after_operation_id_rejects_unknown_owner():
+    import pytest
+    from runtime.gateway import GatewayError
+
+    with pytest.raises(GatewayError) as error:
+        GatewayService()._wait_for_operation(
+            "other:op:abc123",
+            {"type": "project", "id": "p1", "visibility": "private"},
+            "req-barrier",
+            lambda *args, **kwargs: (200, {"indexing_status": "indexed"}),
+            None,
+        )
+    assert error.value.code == "invalid_request"
+
+
+
+def test_gateway_chunks_freshness_verification_at_owner_contract_limit():
+    calls = []
+
+    def transport(method, path, payload, request_id, headers, timeout):
+        assert method == "POST"
+        assert path == "/api/v1/memories/verify-revisions"
+        items = payload["items"]
+        assert 1 <= len(items) <= 100
+        calls.append(len(items))
+        return 200, {
+            "results": [
+                {
+                    "source_id": item["source_id"],
+                    "requested_revision_sequence": item["revision_sequence"],
+                    "status": "current",
+                }
+                for item in items
+            ]
+        }
+
+    candidates = [
+        {"source_id": f"memory:src-{index:03d}", "revision_sequence": 1}
+        for index in range(150)
+    ]
+    reasons = []
+    failures = []
+    fresh = GatewayService(transport=transport)._fresh_candidates(
+        candidates, "req-chunked-freshness", reasons, failures
+    )
+
+    assert calls == [100, 50]
+    assert len(fresh) == 150
+    assert reasons == []
+    assert failures == []
 
 
 def test_gateway_health_route_is_reachable():
@@ -207,6 +288,115 @@ def test_gateway_request_route_runs_rag_orchestration_over_http(monkeypatch):
             assert payload["request_id"] == "req-route"
             assert payload["candidates"][0]["freshness"] == "verified_current"
             assert "knowledge:src-1@1" in payload["context"]
+    finally:
+        server.shutdown()
+        server.server_close()
+        thread.join(timeout=2)
+
+
+
+def test_gateway_rag_acceptance_uses_real_http_services_without_transport_mocking(monkeypatch, tmp_path):
+    """Exercise Gateway, retrieval, freshness, and ranking through the actual HTTP handlers."""
+    import json
+    import threading
+    from urllib.request import Request, urlopen
+
+    import runtime.index as index_module
+    import runtime.knowledge as knowledge_module
+    from runtime.index import IndexService, profile_digest
+    from runtime.knowledge import KnowledgeService
+    from runtime.server import BoundedThreadingHTTPServer, Handler
+
+    monkeypatch.setenv("CE_INDEX_VECTOR_BACKEND", "sqlite")
+    monkeypatch.setenv("CE_GATEWAY_WRITE_PROFILE_NAME", "default")
+
+    bundle = {
+        "name": "default",
+        "version": "0.1",
+        "status": "active",
+        "chunking": {"profile": "markdown-default", "version": "0.1", "max_units": 1200, "overlap_units": 120},
+        "tokenization": {"profile": "technical-default", "version": "0.1"},
+        "lexical": {"profile": "bm25-v1", "version": "0.1", "statistics_policy": "scope_partition"},
+        "embedding": {
+            "required": True, "profile": "technical-default", "version": "0.1",
+            "model": "local-nomic", "model_version": "r1", "input_types": ["query", "document"],
+            "dimensions": 3, "normalization": "l2", "metric": "cosine", "max_input_tokens": 8192,
+        },
+        "limits": {
+            "max_chunks": 64, "max_source_bytes": 131072, "max_chunk_text_bytes": 512,
+            "max_request_bytes": 2097152, "max_chunk_representation_bytes": 18000,
+            "max_envelope_bytes": 16384, "max_metadata_bytes": 1024,
+            "max_lexical_terms_per_chunk": 64, "max_lexical_term_bytes": 32,
+        },
+    }
+    bundle["digest"] = profile_digest(bundle)
+    identity = {key: bundle[key] for key in ("name", "version", "digest")}
+    scope = {"type": "project", "id": "gateway-integration", "visibility": "private"}
+    content = "Useful source chunk integration confirms CE-42 behavior."
+    index_service = IndexService(tmp_path / "index.sqlite3", bundle)
+    knowledge_service = KnowledgeService(tmp_path / "knowledge.sqlite3")
+    monkeypatch.setattr(index_module, "_service", index_service)
+    monkeypatch.setattr(knowledge_module, "_SERVICE", knowledge_service)
+
+    _, created = knowledge_service.create({
+        "scope": scope,
+        "source_kind": "document",
+        "content": content,
+        "provenance": {"origin": "gateway-integration-test"},
+        "retention_policy": {"policy": "test"},
+        "index_profile": identity,
+    }, "gateway-integration-source", "gateway-integration-test")
+    source_id = created["source_id"]
+    index_service.upsert({
+        "operation_id": "gateway-integration-index",
+        "request_id": "gateway-integration-test",
+        "source": {
+            "source_id": source_id,
+            "revision": created["revision"],
+            "revision_sequence": 1,
+            "scope": scope,
+        },
+        "index_profile": identity,
+        "representations": [{
+            "chunk_id": "gateway-integration-chunk",
+            "chunker": {"profile": "markdown-default", "version": "0.1"},
+            "text": content,
+            "lexical": {"profile": "bm25-v1", "version": "0.1",
+                        "terms": ["useful", "source", "chunk", "integration", "confirms", "behavior"]},
+            "vector": {"input_type": "document", "model": "local-nomic", "version": "r1",
+                       "dimensions": 3, "values": [1.0, 0.0, 0.0]},
+            "metadata": {},
+        }],
+    }, "gateway-integration-index")
+
+    server = BoundedThreadingHTTPServer(("127.0.0.1", 0), Handler)
+    base_url = f"http://127.0.0.1:{server.server_port}"
+    for name in ("CE_INDEX_BASE_URL", "CE_TOKENIZATION_BASE_URL", "CE_EMBEDDING_BASE_URL", "CE_RERANKING_BASE_URL"):
+        monkeypatch.setenv(name, base_url)
+    thread = threading.Thread(target=server.serve_forever, daemon=True)
+    thread.start()
+    try:
+        body = {
+            "request_id": "req-real-rag",
+            "query": "find useful source chunk integration",
+            "scope": scope,
+            "mode": "lookup",
+            "context_budget": {"unit": "provider_tokens", "model": "test-model", "max": 100},
+        }
+        request = Request(
+            f"{base_url}/api/v1/requests",
+            data=json.dumps(body).encode("utf-8"),
+            headers={"Content-Type": "application/json"},
+            method="POST",
+        )
+        with urlopen(request, timeout=10) as response:
+            payload = json.loads(response.read())
+            assert response.status == 200
+            assert payload["request_id"] == "req-real-rag"
+            assert payload["index_freshness"] == "current"
+            assert any(candidate["source_id"] == source_id for candidate in payload["candidates"])
+            assert f"[{source_id}@1]" in payload["context"]
+            assert payload["candidates"][0]["freshness"] == "verified_current"
     finally:
         server.shutdown()
         server.server_close()

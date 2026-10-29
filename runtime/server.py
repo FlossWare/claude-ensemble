@@ -1388,6 +1388,8 @@ class BoundedThreadingHTTPServer(ThreadingHTTPServer):
                 if not readable:
                     return False
                 head = request.recv(16384, socket.MSG_PEEK)
+                if not head:
+                    return False
                 if b"\r\n\r\n" in head or len(head) >= 16384:
                     break
                 if wait_seconds <= 0 or time.monotonic() >= deadline:

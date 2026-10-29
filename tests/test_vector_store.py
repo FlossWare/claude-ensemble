@@ -237,5 +237,59 @@ class PersistentChromaIntegrationTests(unittest.TestCase):
             })
 
 
+    def test_exact_fallback_scores_match_chroma_query_scores_for_each_metric(self):
+        import tempfile
+        from unittest.mock import patch
+        import chromadb
+
+        vectors = [
+            record(generation_id="generation-score-parity", source_id="knowledge:score-a",
+                   chunk_id="score-a", embedding=[0.8, 0.6, 0.0]),
+            record(generation_id="generation-score-parity", source_id="knowledge:score-b",
+                   chunk_id="score-b", embedding=[0.0, 1.0, 0.0]),
+        ]
+        query_vector = [1.0, 0.0, 0.0]
+        with tempfile.TemporaryDirectory(prefix="ce-chroma-score-parity-") as directory:
+            for metric in ("cosine", "dot_product", "euclidean"):
+                with self.subTest(metric=metric):
+                    store = ChromaVectorStore(
+                        directory, profile_digest=PROFILE,
+                        generation_id="generation-score-parity", metric=metric,
+                        client=chromadb.PersistentClient(path=directory),
+                    )
+                    store.upsert(vectors)
+                    normal = store.query(
+                        query_vector, scope=SCOPE, limit=5, metric=metric,
+                        source_ids=["knowledge:score-a", "knowledge:score-b"],
+                        filter_scope=False,
+                    )
+                    self.assertEqual(len(normal), 2)
+
+                    # Force the zero-result path while leaving the real Chroma
+                    # collection.get() intact, so fallback scoring uses stored vectors.
+                    with patch.object(
+                        store._collection, "query",
+                        return_value={"ids": [[]], "metadatas": [[]],
+                                      "documents": [[]], "distances": [[]]},
+                    ):
+                        fallback = store.query(
+                            query_vector, scope=SCOPE, limit=5, metric=metric,
+                            source_ids=["knowledge:score-a", "knowledge:score-b"],
+                            filter_scope=False,
+                        )
+
+                    normal_by_source = {item["source_id"]: item for item in normal}
+                    fallback_by_source = {item["source_id"]: item for item in fallback}
+                    self.assertEqual(set(fallback_by_source), set(normal_by_source))
+                    score_key = "distance" if metric == "euclidean" else "similarity"
+                    for source_id, normal_item in normal_by_source.items():
+                        self.assertAlmostEqual(
+                            fallback_by_source[source_id][score_key],
+                            normal_item[score_key],
+                            places=5,
+                            msg=f"{metric} score mismatch for {source_id}",
+                        )
+
+
 if __name__ == "__main__":
     unittest.main()
