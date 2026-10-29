@@ -216,8 +216,11 @@ def rank(request: Any) -> dict[str, Any]:
                 }
                 candidates[key] = entry
             elif (entry["source_revision"] != candidate["source_revision"]
-                  or entry["text"] != candidate["text"]
-                  or _canonical_json(entry["provenance"]) != _canonical_json(candidate["provenance"])):
+                  or entry["text"] != candidate["text"]):
+                # Retrieval paths may attach different lineage metadata (for example,
+                # the vector path records embedding model/generation). The canonical
+                # source revision and chunk text must agree; retain the first path's
+                # provenance while recording each path separately in ranking evidence.
                 raise RankingError("candidate_identity_conflict", "duplicate candidate identity has conflicting source data", status=409)
 
             entry["matched_exact_identifiers"].update(candidate["matched_exact_identifiers"])
