@@ -280,6 +280,8 @@ class ChromaVectorStore:
             exact_metas = exact.get("metadatas")
             exact_docs = exact.get("documents")
             exact_vectors = exact.get("embeddings")
+            if hasattr(exact_vectors, "tolist"):
+                exact_vectors = exact_vectors.tolist()
             if not all(isinstance(values, list) for values in
                        (exact_ids, exact_metas, exact_docs, exact_vectors)):
                 raise VectorStoreError("Chroma exact fallback returned malformed arrays")
