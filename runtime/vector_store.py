@@ -268,7 +268,7 @@ class ChromaVectorStore:
         # matching vectors exist. For the SQLite-authorized source set, use an
         # exact metadata read as a bounded-recall fallback rather than silently
         # losing valid candidates behind orphaned or unrelated vectors.
-        if source_ids and not filter_scope and len(candidates) < limit:
+        if source_ids and not filter_scope and not candidates:
             try:
                 exact = self._collection.get(
                     where=_where({}, source_ids, source_revisions),
