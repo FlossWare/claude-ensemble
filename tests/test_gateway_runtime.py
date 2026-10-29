@@ -29,9 +29,11 @@ def test_gateway_rag_request_runs_rest_plan_retrieval_freshness_and_ranking(monk
     }
     candidate = _candidate()
     calls = []
+    propagated_deadlines = []
 
     def transport(method, path, payload, request_id, headers, timeout):
         calls.append((method, path, payload))
+        propagated_deadlines.append((headers.get("X-CE-Deadline"), timeout))
         if method == "GET" and path == "/api/v1/index/generations/active":
             return 200, {"generation_id": "gen-1", "index_profile": index_profile}
         if method == "GET" and path == "/api/v1/index/profiles/default/versions/0.1":
@@ -60,8 +62,11 @@ def test_gateway_rag_request_runs_rest_plan_retrieval_freshness_and_ranking(monk
     result = service.search({
         "request_id": "req-1", "query": "find CE-42", "scope": {"type": "project", "id": "p1", "visibility": "private"},
         "mode": "lookup", "context_budget": {"unit": "provider_tokens", "model": "test-model", "max": 100},
-    }, "req-1")
+    }, "req-1", headers={"X-CE-Deadline": "2099-01-01T00:00:00Z"})
     assert result["status"] == "complete"
+    assert propagated_deadlines
+    assert all(deadline == "2099-01-01T00:00:00Z" for deadline, _ in propagated_deadlines)
+    assert all(0 < timeout <= 30.0 for _, timeout in propagated_deadlines)
     assert result["plan"]["intent"] == "knowledge_lookup"
     assert result["candidates"][0]["freshness"] == "verified_current"
     assert result["candidates"][0]["matched_exact_identifiers"] == ["CE-42"]
@@ -104,6 +109,7 @@ def test_gateway_filters_stale_candidates_before_ranking(monkeypatch):
         "mode": "lookup", "context_budget": {"unit": "provider_tokens", "model": "test-model", "max": 100},
     }, "req-2")
     assert result["candidates"] == []
+    assert result["index_freshness"] == "unknown"
     assert "stale_candidates_filtered" in result["degradation_reasons"]
     assert "/api/v1/ranking/rank" in calls
 
