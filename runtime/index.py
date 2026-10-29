@@ -1040,12 +1040,13 @@ class IndexService:
                         raw_candidates = store.query(
                             vector, scope=json.loads(scope_json), limit=fetch_limit, metric=metric,
                             # Chroma applies metadata filters during approximate HNSW
-                            # traversal. A small authorized subset can therefore hide
-                            # valid neighbors behind orphaned vectors. Query the bounded
-                            # scope-only window and enforce all source/revision authority
-                            # against SQLite below.
+                            # traversal. A small authorized subset (including a scope)
+                            # can hide valid neighbors behind unrelated vectors. Query
+                            # the bounded collection window and enforce scope, source,
+                            # revision, and tombstone authority against SQLite below.
                             source_ids=None,
                             source_revisions=None,
+                            filter_scope=False,
                         )
                     except VectorStoreError as exc:
                         raise _error("vector_store_unavailable", str(exc), 503) from exc
