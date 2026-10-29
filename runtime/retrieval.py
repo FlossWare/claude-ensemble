@@ -478,13 +478,13 @@ def _rest_json(base_url: str, path: str, *, payload: dict[str, Any] | None = Non
     except TimeoutError as exc:
         if deadline is not None:
             raise RetrievalError("deadline_exceeded", "dependency call exceeded the request deadline", 504) from exc
-        raise RetrievalError("dependency_unavailable", "required CE REST dependency is unavailable", 503) from exc
+        raise RetrievalError("dependency_unavailable", f"required CE REST dependency is unavailable at {path} ({type(exc).__name__})", 503) from exc
     except (URLError, OSError, ValueError, UnicodeDecodeError) as exc:
         if deadline is not None and isinstance(getattr(exc, "reason", None), TimeoutError):
             raise RetrievalError("deadline_exceeded", "dependency call exceeded the request deadline", 504) from exc
         raise RetrievalError("dependency_unavailable", "required CE REST dependency is unavailable", 503) from exc
     if not isinstance(decoded, dict):
-        raise RetrievalError("dependency_unavailable", "CE REST dependency returned a non-object response", 503)
+        raise RetrievalError("dependency_unavailable", f"CE REST dependency at {path} returned a non-object response", 503)
     return decoded
 
 
