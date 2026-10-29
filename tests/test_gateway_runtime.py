@@ -152,6 +152,43 @@ def test_gateway_after_operation_id_rejects_unknown_owner():
     assert error.value.code == "invalid_request"
 
 
+
+def test_gateway_chunks_freshness_verification_at_owner_contract_limit():
+    calls = []
+
+    def transport(method, path, payload, request_id, headers, timeout):
+        assert method == "POST"
+        assert path == "/api/v1/memories/verify-revisions"
+        items = payload["items"]
+        assert 1 <= len(items) <= 100
+        calls.append(len(items))
+        return 200, {
+            "results": [
+                {
+                    "source_id": item["source_id"],
+                    "requested_revision_sequence": item["revision_sequence"],
+                    "status": "current",
+                }
+                for item in items
+            ]
+        }
+
+    candidates = [
+        {"source_id": f"memory:src-{index:03d}", "revision_sequence": 1}
+        for index in range(150)
+    ]
+    reasons = []
+    failures = []
+    fresh = GatewayService(transport=transport)._fresh_candidates(
+        candidates, "req-chunked-freshness", reasons, failures
+    )
+
+    assert calls == [100, 50]
+    assert len(fresh) == 150
+    assert reasons == []
+    assert failures == []
+
+
 def test_gateway_health_route_is_reachable():
     from runtime.server import BoundedThreadingHTTPServer, Handler
     import json
