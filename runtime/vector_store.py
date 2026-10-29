@@ -129,7 +129,8 @@ class ChromaVectorStore:
         try:
             self._collection = client.get_or_create_collection(
                 name=self.name,
-                metadata={"hnsw:space": space, "ce:profile_digest": profile_digest,
+                metadata={"hnsw:space": space, "hnsw:search_ef": MAX_QUERY_RESULTS,
+                          "ce:profile_digest": profile_digest,
                           "ce:generation_id": generation_id},
             )
         except Exception as exc:
