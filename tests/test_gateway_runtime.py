@@ -19,7 +19,8 @@ def _candidate(source_id="knowledge:src-1", revision="rev-1", sequence=1, text="
     }
 
 
-def test_gateway_rag_request_runs_rest_plan_retrieval_freshness_and_ranking():
+def test_gateway_rag_request_runs_rest_plan_retrieval_freshness_and_ranking(monkeypatch):
+    monkeypatch.setenv("CE_GATEWAY_WRITE_PROFILE_NAME", "default")
     index_profile = {"name": "default", "version": "0.1", "digest": "a" * 64}
     bundle = {
         **index_profile,
@@ -69,7 +70,8 @@ def test_gateway_rag_request_runs_rest_plan_retrieval_freshness_and_ranking():
     assert any(path == "/api/v1/ranking/rank" for _, path, _ in calls)
 
 
-def test_gateway_filters_stale_candidates_before_ranking():
+def test_gateway_filters_stale_candidates_before_ranking(monkeypatch):
+    monkeypatch.setenv("CE_GATEWAY_WRITE_PROFILE_NAME", "default")
     index_profile = {"name": "default", "version": "0.1", "digest": "a" * 64}
     bundle = {**index_profile, "lexical": {"profile": "technical-default", "version": "0.1"},
               "embedding": {"profile": "default-embedding", "version": "0.1"}}
