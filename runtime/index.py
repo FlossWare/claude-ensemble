@@ -1107,7 +1107,7 @@ class IndexService:
                 # Reaching the bounded scan ceiling means additional authorized
                 # neighbors may remain unseen. Filtering known unauthorized/orphan
                 # rows alone is not truncation when the query exhausted the collection.
-                truncated = len(candidates) > limit or (
+                truncated = discarded_candidates or len(candidates) > limit or (
                     fetch_limit >= MAX_QUERY_RESULTS and len(raw_candidates) == fetch_limit
                 )
                 candidates = candidates[:limit]
