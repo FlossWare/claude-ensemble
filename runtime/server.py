@@ -32,6 +32,7 @@ from .graph import GraphError, get_graph_service
 from .thompson import ThompsonError, get_thompson_service
 from .learning import LearningError, get_learning_service
 from .knowledge import KnowledgeError, get_knowledge_service
+from .gateway import GatewayError, GatewayService
 from .internal_calls import INTERNAL_CALL_TOKEN
 from .chunking import (
     MAX_CONTENT_BYTES, MAX_CHUNKS, DEFAULT_POLICY, ChunkingError, Policy, chunk_document, chunk_spans, validate_index_profile,
@@ -561,8 +562,18 @@ class Handler(BaseHTTPRequestHandler):
                 parsed = urlsplit(self.path)
                 status, response = get_thompson_service().handle("GET", parsed.path, parse_qs(parsed.query), None, self.headers, request_id)
                 self._send(status, response, request_id)
-            except ThompsonError as exc:
+            except GatewayError as exc:
+            self._send(exc.status, _error(exc.code, str(exc), retryable=exc.retryable), request_id)
+        except ThompsonError as exc:
                 self._send(exc.status, _error(exc.code, str(exc), retryable=exc.status >= 500), request_id)
+        elif urlsplit(self.path).path.startswith("/api/v1/gateway/"):
+            try:
+                parsed = urlsplit(self.path)
+                base_url = f"http://127.0.0.1:{self.server.server_address[1]}"
+                status, response = GatewayService(base_url).handle("GET", parsed.path, parse_qs(parsed.query), None, self.headers, request_id)
+                self._send(status, response, request_id)
+            except GatewayError as exc:
+                self._send(exc.status, _error(exc.code, str(exc), retryable=exc.retryable), request_id)
         elif urlsplit(self.path).path.startswith("/api/v1/knowledge/"):
             try:
                 parsed = urlsplit(self.path)
@@ -607,7 +618,8 @@ class Handler(BaseHTTPRequestHandler):
         is_thompson_route = memory_path.startswith("/api/v1/thompson/")
         is_learning_route = memory_path.startswith("/api/v1/learning/")
         is_knowledge_route = memory_path.startswith("/api/v1/knowledge/")
-        if not is_index_route and not is_memory_route and not is_graph_route and not is_thompson_route and not is_learning_route and not is_knowledge_route and self.path not in (
+        is_gateway_route = memory_path.startswith("/api/v1/gateway/") or memory_path in ("/api/v1/requests", "/api/v1/selections", "/api/v1/outcomes")
+        if not is_index_route and not is_memory_route and not is_graph_route and not is_thompson_route and not is_learning_route and not is_knowledge_route and not is_gateway_route and self.path not in (
             "/api/v1/chunking/chunks", "/api/v1/chunking/preflight",
             "/api/v1/tokenization/lexical", "/api/v1/tokenization/lexical/batch",
             "/api/v1/embeddings", "/api/v1/ranking/rank",
@@ -658,6 +670,13 @@ class Handler(BaseHTTPRequestHandler):
             except (UnicodeDecodeError, json.JSONDecodeError, ValueError) as exc:
                 raise ChunkingError("invalid_request", "request body must be valid UTF-8 JSON without duplicate object keys", status=400) from exc
             _validate_json_unicode(request)
+            if is_gateway_route:
+                parsed = urlsplit(self.path)
+                base_url = f"http://127.0.0.1:{self.server.server_address[1]}"
+                status, response = GatewayService(base_url).handle("POST", parsed.path, parse_qs(parsed.query), request, self.headers, request_id)
+                response.setdefault("request_id", request_id)
+                self._send(status, response, request_id)
+                return
             if is_learning_route:
                 parsed = urlsplit(self.path)
                 status, response = get_learning_service().handle("POST", parsed.path, request, self.headers, request_id)
