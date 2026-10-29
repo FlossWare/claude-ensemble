@@ -562,9 +562,7 @@ class Handler(BaseHTTPRequestHandler):
                 parsed = urlsplit(self.path)
                 status, response = get_thompson_service().handle("GET", parsed.path, parse_qs(parsed.query), None, self.headers, request_id)
                 self._send(status, response, request_id)
-            except GatewayError as exc:
-            self._send(exc.status, _error(exc.code, str(exc), retryable=exc.retryable), request_id)
-        except ThompsonError as exc:
+            except ThompsonError as exc:
                 self._send(exc.status, _error(exc.code, str(exc), retryable=exc.status >= 500), request_id)
         elif urlsplit(self.path).path.startswith("/api/v1/gateway/"):
             try:
@@ -814,6 +812,8 @@ class Handler(BaseHTTPRequestHandler):
             self._send(exc.status, _error(exc.code, str(exc), retryable=exc.status >= 500), request_id)
         except RetrievalError as exc:
             self._send(exc.status, _error(exc.code, str(exc), retryable=exc.status >= 500), request_id)
+        except GatewayError as exc:
+            self._send(exc.status, _error(exc.code, str(exc), retryable=exc.retryable), request_id)
         except ThompsonError as exc:
             self._send(exc.status, _error(exc.code, str(exc), retryable=exc.status >= 500), request_id)
         except LearningError as exc:
