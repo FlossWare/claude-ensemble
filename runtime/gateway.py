@@ -274,7 +274,7 @@ class GatewayService:
             except (TypeError, ValueError) as exc:
                 raise GatewayError("invalid_parameter", "X-CE-Deadline must be an RFC 3339 UTC timestamp ending in Z") from exc
 
-        def request_call(method, path, payload=None, call_request_id=request_id, headers=None, timeout=30.0):
+        def request_call(method, path, payload=None, request_id=request_id, headers=None, timeout=30.0):
             extra = dict(headers or {})
             if deadline is not None:
                 remaining = (deadline_at - datetime.now(timezone.utc)).total_seconds()
@@ -283,7 +283,7 @@ class GatewayService:
                 timeout = min(timeout, remaining)
                 extra["X-CE-Deadline"] = deadline
             try:
-                return self._call(method, path, payload, call_request_id, headers=extra, timeout=timeout)
+                return self._call(method, path, payload, request_id, headers=extra, timeout=timeout)
             except GatewayError as exc:
                 if deadline is not None and exc.code == "dependency_unavailable":
                     raise GatewayError("deadline_exceeded", "dependency call exceeded the request deadline", 504) from exc
