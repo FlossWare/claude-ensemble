@@ -273,7 +273,7 @@ class GatewayService:
                 except GatewayError as exc:
                     reasons.append("lexical_degraded" if name == "lexical" else "vector_degraded")
                     failures.append({"service": "lexical-retrieval" if name == "lexical" else "vector-retrieval",
-                                     "code": exc.code, "retryable": exc.retryable})
+                                     "code": exc.code, "message": str(exc), "retryable": exc.retryable})
                     responses[name] = {"candidates": [], "truncated": False}
         all_candidates: list[dict[str, Any]] = []
         raw_by_path: dict[str, list[dict[str, Any]]] = {"lexical": [], "vector": []}
