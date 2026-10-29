@@ -1039,13 +1039,12 @@ class IndexService:
                     try:
                         raw_candidates = store.query(
                             vector, scope=json.loads(scope_json), limit=fetch_limit, metric=metric,
-                            # Chroma applies metadata filters during approximate HNSW
-                            # traversal. A small authorized subset (including a scope)
-                            # can hide valid neighbors behind unrelated vectors. Query
-                            # the bounded collection window and enforce scope, source,
-                            # revision, and tombstone authority against SQLite below.
-                            source_ids=None,
-                            source_revisions=None,
+                            # Use SQLite's authorized source set to keep orphaned
+                            # vectors out of the approximate candidate universe. Do not
+                            # apply scope metadata filtering in Chroma: SQLite remains
+                            # authoritative for scope, revision, and tombstone checks.
+                            source_ids=query_source_ids,
+                            source_revisions=request.get("source_revisions"),
                             filter_scope=False,
                         )
                     except VectorStoreError as exc:
