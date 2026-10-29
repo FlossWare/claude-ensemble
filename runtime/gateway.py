@@ -7,6 +7,7 @@ import os
 import re
 import unicodedata
 import uuid
+import time
 from datetime import datetime, timezone
 from concurrent.futures import ThreadPoolExecutor
 from urllib.error import HTTPError, URLError
@@ -201,6 +202,39 @@ class GatewayService:
             reasons.append("stale_candidates_filtered")
         return fresh
 
+    def _wait_for_operation(self, operation_id: str, scope: dict[str, str], request_id: str,
+                            call, deadline_at: datetime | None) -> None:
+        """Enforce a read-your-writes barrier before starting retrieval."""
+        match = re.fullmatch(r"(memory|knowledge):op:[A-Za-z0-9._~-]{1,128}", operation_id)
+        if not match:
+            raise GatewayError("invalid_request", "after_operation_id is invalid")
+        owner = match.group(1)
+        if owner == "memory":
+            path = "/api/v1/memories/operations/" + quote(operation_id, safe=":")
+            path += self._query({
+                "scope_type": [scope["type"]], "scope_id": [scope["id"]],
+                "visibility": [scope["visibility"]],
+            })
+        else:
+            path = "/api/v1/knowledge/operations/" + quote(operation_id, safe=":")
+        # Without an explicit caller deadline, bound the barrier to the hook's
+        # 1.5-second budget rather than allowing a pending write to hang recall.
+        local_deadline = time.monotonic() + 1.5
+        while True:
+            remaining = local_deadline - time.monotonic()
+            if deadline_at is not None:
+                remaining = min(remaining, (deadline_at - datetime.now(timezone.utc)).total_seconds())
+            if remaining <= 0:
+                raise GatewayError("deadline_exceeded", "after_operation_id is still pending at the request deadline", 504)
+            _, status = call("GET", path, request_id=request_id, timeout=min(1.0, remaining))
+            indexing_status = status.get("indexing_status")
+            operation_status = status.get("status")
+            if indexing_status == "indexed":
+                return
+            if operation_status in {"failed", "operation_failed"} or indexing_status in {"failed", "reconciliation_required"}:
+                raise GatewayError("operation_failed", "after_operation_id did not reach indexed state", 409)
+            time.sleep(min(0.05, max(0.0, remaining)))
+
     def search(self, request: Any, request_id: str, headers: dict[str, str] | None = None) -> dict[str, Any]:
         allowed = {"request_id", "query", "scope", "mode", "context_budget", "exact_identifiers", "limit", "after_operation_id"}
         required = {"query", "scope", "mode", "context_budget"}
@@ -253,6 +287,11 @@ class GatewayService:
                     raise GatewayError("deadline_exceeded", "dependency call exceeded the request deadline", 504) from exc
                 raise
 
+        after_operation_id = request.get("after_operation_id")
+        if after_operation_id is not None:
+            if not isinstance(after_operation_id, str):
+                raise GatewayError("invalid_request", "after_operation_id must be a string")
+            self._wait_for_operation(after_operation_id, scope, request_id, request_call, deadline_at)
         generation, index_profile, bundle = self._active_generation(request_id, call=request_call)
         reasons: list[str] = []
         failures: list[dict[str, Any]] = []
