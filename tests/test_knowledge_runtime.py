@@ -165,3 +165,4 @@ def test_graph_projection_journal_is_owner_scoped_and_completion_waits_for_index
     operation = service.operation(operation_id, None, "req-3")
     assert operation["status"] == "complete"
     assert service.pending_graph_projections() == []
+
