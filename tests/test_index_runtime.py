@@ -6,6 +6,8 @@ import unittest
 import json
 import os
 import threading
+import subprocess
+import sys
 from datetime import datetime, timezone, timedelta
 from urllib.request import Request, urlopen
 from urllib.error import HTTPError
@@ -1088,6 +1090,83 @@ class IndexRuntimeTests(unittest.TestCase):
         self.assertEqual(details["counts"]["failed_sources"], 1)
         self.assertEqual(details["source_failures"][0]["reason_code"], "source_too_large")
         self.assertFalse(details["cutover_eligible"])
+
+
+    def test_chroma_active_generation_and_vectors_survive_process_restart(self):
+        db_path = Path(self.temp.name) / "process-restart.sqlite3"
+        chroma_path = Path(self.temp.name) / "process-restart.chroma"
+        request = self.upsert_request(
+            source_id="knowledge:process-restart",
+            operation_id="process-restart-write",
+            reps=[representation("chunk-persistent", "persistent retrieval evidence", ["persistent", "retrieval"], [1.0, 0.0, 0.0])],
+        )
+        child = r"""
+import json
+import os
+import sys
+from runtime.index import IndexService
+
+db_path, phase = sys.argv[1], sys.argv[2]
+bundle = json.loads(os.environ["CE_TEST_PROFILE_BUNDLE"])
+request = json.loads(os.environ["CE_TEST_UPSERT_REQUEST"])
+service = IndexService(db_path, bundle)
+active = service.active_generation()
+if phase == "write":
+    status, result = service.upsert(request, "process-restart-idempotency")
+    print(json.dumps({"status": status, "operation": result["status"], "generation_id": active["generation_id"]}))
+else:
+    query = {
+        "request_id": "process-restart-query",
+        "scope": request["source"]["scope"],
+        "index_profile": {key: bundle[key] for key in ("name", "version", "digest")},
+        "embedding_profile": {"name": "technical-default", "version": "0.1"},
+        "query_vector": [1.0, 0.0, 0.0],
+        "input_type": "query",
+        "metric": "cosine",
+        "limit": 5,
+        "index_generation": active["generation_id"],
+    }
+    result = service.vector_neighbors(query)
+    print(json.dumps({
+        "generation_id": active["generation_id"],
+        "candidates": [{"source_id": item["source_id"], "chunk_id": item["chunk_id"]} for item in result["candidates"]],
+    }))
+"""
+        env = os.environ.copy()
+        env["CE_INDEX_VECTOR_BACKEND"] = "chromadb"
+        env["CE_INDEX_CHROMA_PATH"] = str(chroma_path)
+        env["CE_TEST_PROFILE_BUNDLE"] = json.dumps(self.bundle)
+        env["CE_TEST_UPSERT_REQUEST"] = json.dumps(request)
+        repo_root = Path(__file__).resolve().parents[1]
+
+        def run_child(phase):
+            completed = subprocess.run(
+                [sys.executable, "-c", child, str(db_path), phase],
+                cwd=repo_root,
+                env=env,
+                capture_output=True,
+                text=True,
+                timeout=30,
+                check=False,
+            )
+            self.assertEqual(
+                completed.returncode, 0,
+                f"child process {phase} failed\\nstdout: {completed.stdout}\\nstderr: {completed.stderr}",
+            )
+            return json.loads(completed.stdout.strip().splitlines()[-1])
+
+        written = run_child("write")
+        self.assertEqual(written["status"], 202)
+        self.assertEqual(written["operation"], "complete")
+
+        # A separate interpreter reopens both durable stores, proving this is
+        # a process restart rather than another service object in one process.
+        queried = run_child("query")
+        self.assertEqual(queried["generation_id"], written["generation_id"])
+        self.assertEqual(
+            queried["candidates"],
+            [{"source_id": "knowledge:process-restart", "chunk_id": "chunk-persistent"}],
+        )
 
 
 if __name__ == "__main__":
