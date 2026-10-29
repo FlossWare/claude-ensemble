@@ -219,11 +219,13 @@ class GatewayService:
             path = "/api/v1/knowledge/operations/" + quote(operation_id, safe=":")
         # Without an explicit caller deadline, bound the barrier to the hook's
         # 1.5-second budget rather than allowing a pending write to hang recall.
-        local_deadline = time.monotonic() + 1.5
+        local_deadline = time.monotonic() + 1.5 if deadline_at is None else None
         while True:
-            remaining = local_deadline - time.monotonic()
-            if deadline_at is not None:
-                remaining = min(remaining, (deadline_at - datetime.now(timezone.utc)).total_seconds())
+            remaining = (
+                local_deadline - time.monotonic()
+                if deadline_at is None
+                else (deadline_at - datetime.now(timezone.utc)).total_seconds()
+            )
             if remaining <= 0:
                 raise GatewayError("deadline_exceeded", "after_operation_id is still pending at the request deadline", 504)
             _, status = call("GET", path, request_id=request_id, timeout=min(1.0, remaining))
