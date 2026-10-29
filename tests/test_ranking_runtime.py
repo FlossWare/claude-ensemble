@@ -75,6 +75,22 @@ class RankingUnitTests(unittest.TestCase):
         self.assertEqual({item["retrieval_path"] for item in chunk_a["evidence"]}, {"lexical", "vector"})
         self.assertEqual(chunk_a["score_semantics"], "rrf-v1-fixed-point-1e12")
 
+    def test_cross_path_provenance_can_differ_without_conflicting_source_identity(self):
+        lexical_candidate = make_candidate("shared", 1, source="lexical")
+        vector_candidate = make_candidate("shared", 2, source="vector")
+        vector_candidate["provenance"] = {
+            "index_generation": "generation-1",
+            "embedding_model": "nomic",
+            "embedding_model_version": "revision-1",
+        }
+        result = rank(request([
+            make_list("lexical", "project-A", [lexical_candidate]),
+            make_list("vector", "project-A", [vector_candidate]),
+        ]))
+        self.assertEqual(len(result["candidates"]), 1)
+        self.assertEqual(len(result["candidates"][0]["evidence"]), 2)
+        self.assertEqual(result["candidates"][0]["provenance"], lexical_candidate["provenance"])
+
     def test_exact_identifier_tier_precedes_higher_rrf_score(self):
         lexical = make_list("lexical", "project-A", [
             make_candidate("common", 1),
