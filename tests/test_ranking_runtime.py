@@ -90,6 +90,9 @@ class RankingUnitTests(unittest.TestCase):
         self.assertEqual(len(result["candidates"]), 1)
         self.assertEqual(len(result["candidates"][0]["evidence"]), 2)
         self.assertEqual(result["candidates"][0]["provenance"], lexical_candidate["provenance"])
+        evidence_by_path = {item["retrieval_path"]: item for item in result["candidates"][0]["evidence"]}
+        self.assertEqual(evidence_by_path["lexical"]["provenance"], lexical_candidate["provenance"])
+        self.assertEqual(evidence_by_path["vector"]["provenance"], vector_candidate["provenance"])
 
     def test_exact_identifier_tier_precedes_higher_rrf_score(self):
         lexical = make_list("lexical", "project-A", [
