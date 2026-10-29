@@ -234,6 +234,9 @@ def rank(request: Any) -> dict[str, Any]:
             }
             if "source_score" in candidate:
                 evidence["source_score"] = candidate["source_score"]
+            # Preserve retrieval-specific lineage without conflating it with the
+            # canonical source provenance retained on the fused candidate.
+            evidence["provenance"] = dict(candidate["provenance"])
             evidence_bytes = _canonical_json(evidence)
             if evidence_bytes not in entry["evidence_bytes"]:
                 entry["evidence_bytes"].add(evidence_bytes)
