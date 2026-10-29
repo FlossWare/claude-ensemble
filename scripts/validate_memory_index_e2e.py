@@ -134,6 +134,12 @@ def main() -> int:
 
             server = BoundedThreadingHTTPServer(("127.0.0.1", 0), Handler)
             base = f"http://127.0.0.1:{server.server_address[1]}"
+            # Retrieval services make their own REST calls. Point every dependency
+            # back at this isolated server rather than the normal :8080 default.
+            for name in ("CE_INDEX_BASE_URL", "CE_TOKENIZATION_BASE_URL",
+                         "CE_EMBEDDING_BASE_URL", "CE_RERANKING_BASE_URL",
+                         "CE_GATEWAY_INTERNAL_BASE_URL"):
+                os.environ[name] = base
             thread = __import__("threading").Thread(target=server.serve_forever, daemon=True)
             thread.start()
 
