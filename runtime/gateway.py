@@ -52,7 +52,7 @@ class GatewayService:
 
     def _call(self, method: str, path: str, payload: dict[str, Any] | None = None,
               request_id: str = "gateway", headers: dict[str, str] | None = None,
-              timeout: float = 2.0) -> tuple[int, dict[str, Any]]:
+              timeout: float = 30.0) -> tuple[int, dict[str, Any]]:
         extra = dict(headers or {})
         if self._transport is not None:
             return self._transport(method, path, payload, request_id, extra, timeout)
