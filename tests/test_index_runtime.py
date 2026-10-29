@@ -155,7 +155,7 @@ class IndexRuntimeTests(unittest.TestCase):
         self.assertEqual([item["revision_sequence"] for item in result["candidates"]], [1])
         self.assertTrue(result["truncated"])
 
-    def test_chroma_filters_orphan_vectors_before_nearest_neighbor_query(self):
+    def test_chroma_filters_orphan_vectors_before_search_to_preserve_valid_hit(self):
         valid = self.upsert_request(
             reps=[representation("chunk-valid", "valid lower-ranked hit", ["valid"], [0.8, 0.6, 0.0])]
         )
