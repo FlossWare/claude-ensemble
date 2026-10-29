@@ -125,3 +125,38 @@ def test_gateway_health_route_is_reachable():
         server.shutdown()
         server.server_close()
         thread.join(timeout=2)
+
+
+
+def test_gateway_request_route_dispatches_to_service(monkeypatch):
+    import json
+    import threading
+    from urllib.request import Request, urlopen
+
+    from runtime.gateway import GatewayService
+    from runtime.server import BoundedThreadingHTTPServer, Handler
+
+    def fake_search(self, body, request_id):
+        assert body == {"query": "test query"}
+        return {"request_id": request_id, "status": "complete", "candidates": [], "degraded": False}
+
+    monkeypatch.setattr(GatewayService, "search", fake_search)
+    server = BoundedThreadingHTTPServer(("127.0.0.1", 0), Handler)
+    thread = threading.Thread(target=server.serve_forever, daemon=True)
+    thread.start()
+    try:
+        request = Request(
+            f"http://127.0.0.1:{server.server_port}/api/v1/requests",
+            data=json.dumps({"query": "test query"}).encode("utf-8"),
+            headers={"Content-Type": "application/json"},
+            method="POST",
+        )
+        with urlopen(request, timeout=2) as response:
+            payload = json.loads(response.read())
+            assert response.status == 200
+            assert payload["status"] == "complete"
+            assert payload["request_id"]
+    finally:
+        server.shutdown()
+        server.server_close()
+        thread.join(timeout=2)
