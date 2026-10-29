@@ -150,18 +150,6 @@ jobs:
           HF_HUB_OFFLINE: "1"
           TRANSFORMERS_OFFLINE: "1"
         run: python scripts/validate_memory_index_e2e.py
-      - name: Provision pinned reranking model for CI validation
-        if: hashFiles('scripts/evaluate_local_reranking.py') != ''
-        run: |
-          export HF_HOME="$HOME/.FlossWare/models/hf-home"
-          mkdir -p "$HF_HOME" "$HOME/.FlossWare/models"
-          echo "HF_HOME=$HF_HOME" >> "$GITHUB_ENV"
-          hf download cross-encoder/ms-marco-MiniLM-L6-v2 --revision "$CE_RERANKING_MODEL_VERSION"
-          snapshot="$HF_HOME/hub/models--cross-encoder--ms-marco-MiniLM-L6-v2/snapshots/$CE_RERANKING_MODEL_VERSION"
-          test -d "$snapshot"
-          test "$(basename "$snapshot")" = "$CE_RERANKING_MODEL_VERSION"
-          ln -sfn "$snapshot" "$HOME/.FlossWare/models/ms-marco-MiniLM-L6-v2"
-          echo "CE_RERANKING_MODEL_PATH=$HOME/.FlossWare/models/ms-marco-MiniLM-L6-v2" >> "$GITHUB_ENV"
       - name: Evaluate real reranking inference offline on CPU
         if: hashFiles('scripts/evaluate_local_reranking.py') != ''
         env:
