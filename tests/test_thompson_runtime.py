@@ -123,6 +123,7 @@ def test_thompson_rest_routes_are_reachable(tmp_path):
     import json
     import threading
     from urllib.request import Request, urlopen
+from urllib.error import HTTPError
     from unittest.mock import patch
     from runtime.server import BoundedThreadingHTTPServer, Handler
 
@@ -143,6 +144,11 @@ def test_thompson_rest_routes_are_reachable(tmp_path):
                 selected = json.loads(response.read())
                 assert response.status == 200
                 assert selected["chosen_arm_id"] in {"bm25", "hybrid"}
+            invalid = Request(base + "/api/v1/thompson/updates", data=b"{}", method="POST",
+                              headers={"Content-Type": "application/json", "Idempotency-Key": "http-invalid-key"})
+            with pytest.raises(HTTPError) as error:
+                urlopen(invalid, timeout=2)
+            assert error.value.code == 400
     finally:
         server.shutdown()
         server.server_close()

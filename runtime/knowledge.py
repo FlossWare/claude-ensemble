@@ -361,7 +361,9 @@ class KnowledgeService:
             prior = self._idempotent_response(db, idempotency_key, digest, request_id)
             if prior is not None:
                 prior.pop("index_profile", None)
-                return 202, {**prior, "graph_status": "pending"}
+                graph = db.execute("SELECT graph_status FROM knowledge_operations WHERE operation_id=?",
+                                   (prior["operation_id"],)).fetchone()
+                return 202, {**prior, "graph_status": graph["graph_status"] if graph else "pending"}
             current = db.execute("SELECT * FROM knowledge_sources WHERE source_key=?", (source_key,)).fetchone()
             if current is None or current["status"] != "active" or json.loads(current["scope_json"]) != scope:
                 raise KnowledgeError("not_found", "knowledge source was not found", 404)

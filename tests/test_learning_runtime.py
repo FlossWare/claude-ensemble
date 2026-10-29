@@ -4,6 +4,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 import pytest
 from urllib.request import Request, urlopen
+from urllib.error import HTTPError
 from unittest.mock import patch
 
 from runtime.server import BoundedThreadingHTTPServer, Handler
@@ -133,6 +134,11 @@ def test_learning_health_and_outcome_routes_are_reachable(service):
                 result = json.loads(response.read())
                 assert response.status == 202
                 assert result["status"] == "complete"
+            invalid = Request(base + "/api/v1/learning/outcomes", data=b"{}", method="POST",
+                              headers={"Content-Type": "application/json", "Idempotency-Key": "http-invalid-key"})
+            with pytest.raises(HTTPError) as error:
+                urlopen(invalid, timeout=2)
+            assert error.value.code == 400
     finally:
         ce_server.shutdown()
         ce_server.server_close()
