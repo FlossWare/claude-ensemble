@@ -155,7 +155,7 @@ class IndexRuntimeTests(unittest.TestCase):
         self.assertEqual([item["revision_sequence"] for item in result["candidates"]], [1])
         self.assertTrue(result["truncated"])
 
-    def test_chroma_refills_past_more_than_100_stale_vectors_to_find_valid_hit(self):
+    def test_chroma_filters_orphan_vectors_before_search_to_preserve_valid_hit(self):
         valid = self.upsert_request(
             reps=[representation("chunk-valid", "valid lower-ranked hit", ["valid"], [0.8, 0.6, 0.0])]
         )
@@ -200,8 +200,8 @@ class IndexRuntimeTests(unittest.TestCase):
         with patch.object(store, "query", side_effect=observe_query):
             result = self.service.vector_neighbors(query)
         self.assertEqual([item["source_id"] for item in result["candidates"]], ["knowledge:doc-a"])
-        self.assertEqual(observed_limits, [100, 200])
-        self.assertTrue(result["truncated"])
+        self.assertEqual(observed_limits, [100])
+        self.assertFalse(result["truncated"])
 
     def test_chroma_startup_migration_failure_recovers_on_next_initialization(self):
         first = self.upsert_request(source_id="knowledge:doc-a", operation_id="startup-a")
