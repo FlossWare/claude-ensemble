@@ -1009,9 +1009,14 @@ class IndexService:
                 # search to source IDs authorized by SQLite before ranking, otherwise
                 # enough high-scoring orphans can crowd every valid hit out of top-N.
                 authorized_rows = db.execute(
-                    """SELECT DISTINCT source_id FROM representations
-                       WHERE generation_id=? AND scope_json=? AND vector_json IS NOT NULL
-                         AND embedding_model=? AND embedding_version=? AND embedding_dimensions=?""",
+                    """SELECT DISTINCT r.source_id FROM representations r
+                       WHERE r.generation_id=? AND r.scope_json=? AND r.vector_json IS NOT NULL
+                         AND r.embedding_model=? AND r.embedding_version=? AND r.embedding_dimensions=?
+                         AND NOT EXISTS (
+                           SELECT 1 FROM tombstones t
+                           WHERE t.source_id=r.source_id
+                             AND r.revision_sequence <= t.tombstone_sequence
+                         )""",
                     (gen["generation_id"], scope_json, emb["model"], emb["model_version"], emb["dimensions"]),
                 ).fetchall()
                 authorized_source_ids = sorted({row["source_id"] for row in authorized_rows})
