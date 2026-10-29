@@ -221,9 +221,15 @@ class ChromaVectorStore:
                     or not isinstance(document, str)):
                 raise VectorStoreError("Chroma candidate metadata or document is malformed")
             if (meta.get("generation_id") != self.generation_id
-                    or meta.get("profile_digest") != self.profile_digest
-                    or any(meta.get(f"scope_{key}") != value for key, value in scope.items())):
-                raise VectorStoreError("Chroma returned a candidate outside the requested partition")
+                    or meta.get("profile_digest") != self.profile_digest):
+                raise VectorStoreError("Chroma returned a candidate outside the requested generation/profile")
+            # When scope filtering is disabled, the caller deliberately scans a
+            # broader approximate-neighbor window and authorizes each candidate
+            # against SQLite. Do not reject cross-scope rows here: that would
+            # prevent the authoritative filter from discarding them and refilling
+            # the window to find valid neighbors.
+            if filter_scope and any(meta.get(f"scope_{key}") != value for key, value in scope.items()):
+                raise VectorStoreError("Chroma returned a candidate outside the requested scope")
             if (not isinstance(meta["source_id"], str) or not meta["source_id"]
                     or not isinstance(meta["source_revision"], str)
                     or not isinstance(meta["chunk_id"], str)
