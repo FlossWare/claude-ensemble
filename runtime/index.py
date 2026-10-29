@@ -1004,6 +1004,24 @@ class IndexService:
                 raise _error("incompatible_representation", "query vector profile/dimensions/metric mismatch", 422)
             if self.vector_backend == "chromadb":
                 store = self._vector_store(gen["generation_id"], bundle)
+                # Chroma is a derived store and may contain orphan records after an
+                # interrupted write or external mutation. Restrict its nearest-neighbor
+                # search to source IDs authorized by SQLite before ranking, otherwise
+                # enough high-scoring orphans can crowd every valid hit out of top-N.
+                authorized_rows = db.execute(
+                    """SELECT DISTINCT source_id FROM representations
+                       WHERE generation_id=? AND scope_json=? AND vector_json IS NOT NULL
+                         AND embedding_model=? AND embedding_version=? AND embedding_dimensions=?""",
+                    (gen["generation_id"], scope_json, emb["model"], emb["model_version"], emb["dimensions"]),
+                ).fetchall()
+                authorized_source_ids = sorted({row["source_id"] for row in authorized_rows})
+                requested_source_ids = request.get("source_ids")
+                if requested_source_ids:
+                    requested = set(requested_source_ids)
+                    authorized_source_ids = [source_id for source_id in authorized_source_ids if source_id in requested]
+                if not authorized_source_ids:
+                    return {"candidates": [], "truncated": False,
+                            "index_generation": gen["generation_id"], "request_id": request.get("request_id", "index")}
                 fetch_limit = 100
                 raw_candidates = []
                 candidates = []
@@ -1012,7 +1030,7 @@ class IndexService:
                     try:
                         raw_candidates = store.query(
                             vector, scope=json.loads(scope_json), limit=fetch_limit, metric=metric,
-                            source_ids=request.get("source_ids"),
+                            source_ids=authorized_source_ids,
                             source_revisions=request.get("source_revisions"),
                         )
                     except VectorStoreError as exc:
