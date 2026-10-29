@@ -27,7 +27,7 @@ class VectorStore(Protocol):
     def upsert(self, records: list[dict[str, Any]]) -> None: ...
     def query(self, query_vector: list[float], *, scope: dict[str, str],
               limit: int, metric: str, source_ids: list[str] | None = None,
-              source_revisions: list[str] | None = None) -> list[dict[str, Any]]: ...
+              source_revisions: list[str] | None = None, filter_scope: bool = True) -> list[dict[str, Any]]: ...
     def delete_source(self, source_id: str) -> None: ...
     def list_ids(self) -> set[str]: ...
 
@@ -169,7 +169,7 @@ class ChromaVectorStore:
 
     def query(self, query_vector: list[float], *, scope: dict[str, str],
               limit: int, metric: str, source_ids: list[str] | None = None,
-              source_revisions: list[str] | None = None) -> list[dict[str, Any]]:
+              source_revisions: list[str] | None = None, filter_scope: bool = True) -> list[dict[str, Any]]:
         if metric != self.metric:
             raise VectorStoreError("query metric does not match collection metric")
         if (type(limit) is not int or not 1 <= limit <= MAX_QUERY_RESULTS
@@ -186,12 +186,15 @@ class ChromaVectorStore:
                     or any(not isinstance(value, str) or not value for value in values)):
                 raise VectorStoreError(f"{name} filter is invalid")
         try:
-            result = self._collection.query(
-                query_embeddings=[[float(v) for v in query_vector]],
-                n_results=limit,
-                where=_where(scope, source_ids, source_revisions),
-                include=["metadatas", "documents", "distances"],
-            )
+            query_args = {
+                "query_embeddings": [[float(v) for v in query_vector]],
+                "n_results": limit,
+                "include": ["metadatas", "documents", "distances"],
+            }
+            where = _where(scope if filter_scope else {}, source_ids, source_revisions)
+            if where:
+                query_args["where"] = where
+            result = self._collection.query(**query_args)
         except Exception as exc:
             raise VectorStoreError("Chroma vector query failed") from exc
         ids = result.get("ids")
