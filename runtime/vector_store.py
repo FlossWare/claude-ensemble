@@ -263,6 +263,89 @@ class ChromaVectorStore:
                               "metric": self.metric, "input_type": "document"},
                 **score,
             })
+        # Chroma's approximate HNSW traversal can return fewer than the
+        # requested number of neighbors after a metadata filter, even when
+        # matching vectors exist. For the SQLite-authorized source set, use an
+        # exact metadata read as a bounded-recall fallback rather than silently
+        # losing valid candidates behind orphaned or unrelated vectors.
+        if source_ids and not filter_scope and len(candidates) < limit:
+            try:
+                exact = self._collection.get(
+                    where=_where({}, source_ids, source_revisions),
+                    include=["metadatas", "documents", "embeddings"],
+                )
+            except Exception as exc:
+                raise VectorStoreError("Chroma exact candidate fallback failed") from exc
+            exact_ids = exact.get("ids")
+            exact_metas = exact.get("metadatas")
+            exact_docs = exact.get("documents")
+            exact_vectors = exact.get("embeddings")
+            if not all(isinstance(values, list) for values in
+                       (exact_ids, exact_metas, exact_docs, exact_vectors)):
+                raise VectorStoreError("Chroma exact fallback returned malformed arrays")
+            if not (len(exact_ids) == len(exact_metas) == len(exact_docs) == len(exact_vectors)):
+                raise VectorStoreError("Chroma exact fallback arrays have inconsistent lengths")
+            exact_candidates = []
+            query_norm = math.sqrt(sum(float(value) ** 2 for value in query_vector))
+            for item_id, meta, document, stored_vector in zip(exact_ids, exact_metas, exact_docs, exact_vectors):
+                required_metadata = (
+                    "generation_id", "profile_digest", "source_id", "source_revision",
+                    "revision_sequence", "chunk_id", "chunker_profile", "chunker_version",
+                    "embedding_model", "embedding_version", "embedding_dimensions",
+                )
+                if (not isinstance(item_id, str) or not isinstance(meta, dict)
+                        or any(key not in meta for key in required_metadata)
+                        or not isinstance(document, str)):
+                    raise VectorStoreError("Chroma exact fallback metadata or document is malformed")
+                if (meta.get("generation_id") != self.generation_id
+                        or meta.get("profile_digest") != self.profile_digest):
+                    raise VectorStoreError("Chroma exact fallback returned a candidate outside the requested generation/profile")
+                try:
+                    values = [float(value) for value in stored_vector]
+                except (TypeError, ValueError) as exc:
+                    raise VectorStoreError("Chroma exact fallback returned an invalid embedding") from exc
+                if (len(values) != len(query_vector)
+                        or any(not math.isfinite(value) for value in values)
+                        or not isinstance(meta.get("source_id"), str)
+                        or not isinstance(meta.get("source_revision"), str)
+                        or not isinstance(meta.get("chunk_id"), str)
+                        or not isinstance(meta.get("chunker_profile"), str)
+                        or not isinstance(meta.get("chunker_version"), str)
+                        or not isinstance(meta.get("embedding_model"), str)
+                        or not isinstance(meta.get("embedding_version"), str)
+                        or type(meta.get("revision_sequence")) is not int
+                        or type(meta.get("embedding_dimensions")) is not int):
+                    raise VectorStoreError("Chroma exact fallback candidate identity or dimensions are invalid")
+                dot = sum(float(query) * value for query, value in zip(query_vector, values))
+                if self.metric == "cosine":
+                    stored_norm = math.sqrt(sum(value * value for value in values))
+                    similarity = dot / (query_norm * stored_norm) if query_norm and stored_norm else 0.0
+                    score = {"similarity": similarity}
+                elif self.metric == "dot_product":
+                    score = {"similarity": dot}
+                else:
+                    score = {"distance": math.sqrt(sum((float(query) - value) ** 2
+                                                       for query, value in zip(query_vector, values))}
+                exact_candidates.append({
+                    "vector_id": item_id,
+                    "source_id": meta["source_id"],
+                    "source_revision": meta["source_revision"],
+                    "revision_sequence": meta["revision_sequence"],
+                    "chunk_id": meta["chunk_id"],
+                    "chunker": {"profile": meta["chunker_profile"], "version": meta["chunker_version"]},
+                    "text": document,
+                    "embedding": {"model": meta["embedding_model"],
+                                  "version": meta["embedding_version"],
+                                  "dimensions": meta["embedding_dimensions"],
+                                  "metric": self.metric, "input_type": "document"},
+                    **score,
+                })
+            exact_candidates.sort(key=lambda item: (
+                item.get("distance", -item.get("similarity", 0.0)),
+                item["source_id"], -item["revision_sequence"], item["chunk_id"],
+                item["chunker"]["profile"], item["chunker"]["version"],
+            ))
+            candidates = exact_candidates[:limit]
         return candidates
 
     def replace_source(self, source_id: str, records: list[dict[str, Any]]) -> None:
