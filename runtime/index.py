@@ -1004,29 +1004,33 @@ class IndexService:
                 raise _error("incompatible_representation", "query vector profile/dimensions/metric mismatch", 422)
             if self.vector_backend == "chromadb":
                 store = self._vector_store(gen["generation_id"], bundle)
-                # Chroma is a derived store and may contain orphan records after an
-                # interrupted write or external mutation. Restrict its nearest-neighbor
-                # search to source IDs authorized by SQLite before ranking, otherwise
-                # enough high-scoring orphans can crowd every valid hit out of top-N.
+                # Chroma is an approximate index and may contain orphaned vectors
+                # left by interrupted writes or external corruption. Restrict its
+                # candidate universe to source IDs currently authorized by SQLite
+                # before applying top-N search, otherwise stale vectors can crowd
+                # every bounded refill window out of valid results.
                 authorized_rows = db.execute(
-                    """SELECT DISTINCT r.source_id FROM representations r
-                       WHERE r.generation_id=? AND r.scope_json=? AND r.vector_json IS NOT NULL
-                         AND r.embedding_model=? AND r.embedding_version=? AND r.embedding_dimensions=?
+                    """SELECT DISTINCT r.source_id
+                       FROM representations r
+                       WHERE r.generation_id=? AND r.scope_json=?
+                         AND r.vector_json IS NOT NULL AND r.embedding_model=?
+                         AND r.embedding_version=? AND r.embedding_dimensions=?
                          AND NOT EXISTS (
                            SELECT 1 FROM tombstones t
                            WHERE t.source_id=r.source_id
                              AND r.revision_sequence <= t.tombstone_sequence
                          )""",
-                    (gen["generation_id"], scope_json, emb["model"], emb["model_version"], emb["dimensions"]),
+                    (gen["generation_id"], scope_json, emb["model"],
+                     emb["model_version"], emb["dimensions"]),
                 ).fetchall()
-                authorized_source_ids = sorted({row["source_id"] for row in authorized_rows})
-                requested_source_ids = request.get("source_ids")
-                if requested_source_ids:
-                    requested = set(requested_source_ids)
-                    authorized_source_ids = [source_id for source_id in authorized_source_ids if source_id in requested]
+                authorized_source_ids = {row["source_id"] for row in authorized_rows}
+                if request.get("source_ids"):
+                    authorized_source_ids.intersection_update(request["source_ids"])
                 if not authorized_source_ids:
                     return {"candidates": [], "truncated": False,
-                            "index_generation": gen["generation_id"], "request_id": request.get("request_id", "index")}
+                            "index_generation": gen["generation_id"],
+                            "request_id": request.get("request_id", "index")}
+                query_source_ids = sorted(authorized_source_ids)
                 fetch_limit = 100
                 raw_candidates = []
                 candidates = []
@@ -1035,7 +1039,7 @@ class IndexService:
                     try:
                         raw_candidates = store.query(
                             vector, scope=json.loads(scope_json), limit=fetch_limit, metric=metric,
-                            source_ids=authorized_source_ids,
+                            source_ids=query_source_ids,
                             source_revisions=request.get("source_revisions"),
                         )
                     except VectorStoreError as exc:
