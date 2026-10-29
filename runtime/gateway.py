@@ -7,6 +7,7 @@ import os
 import re
 import unicodedata
 import uuid
+from datetime import datetime, timezone
 from concurrent.futures import ThreadPoolExecutor
 from urllib.error import HTTPError, URLError
 from urllib.parse import quote, urlencode
@@ -88,19 +89,20 @@ class GatewayService:
         pairs = [(key, values[-1]) for key, values in query.items() if values]
         return "?" + urlencode(pairs) if pairs else ""
 
-    def _write_profile(self, request_id: str, expected: dict[str, Any] | None = None) -> dict[str, Any]:
+    def _write_profile(self, request_id: str, expected: dict[str, Any] | None = None, call=None) -> dict[str, Any]:
+        call = call or self._call
         name = os.environ.get("CE_GATEWAY_WRITE_PROFILE_NAME", "")
         if not name:
             raise GatewayError("not_ready", "CE_GATEWAY_WRITE_PROFILE_NAME is not configured", 503, True)
         if expected is not None and expected.get("name") != name:
             raise GatewayError("profile_mismatch", "requested Index profile is not the configured write profile", 409)
         if expected is None:
-            _, response = self._call("GET", f"/api/v1/index/profiles/{quote(name, safe='')}/current", request_id=request_id)
+            _, response = call("GET", f"/api/v1/index/profiles/{quote(name, safe='')}/current", request_id=request_id)
         else:
             version = expected.get("version")
             if not isinstance(version, str) or not version:
                 raise GatewayError("invalid_request", "index_profile.version is required")
-            _, response = self._call("GET", f"/api/v1/index/profiles/{quote(name, safe='')}/versions/{quote(version, safe='')}",
+            _, response = call("GET", f"/api/v1/index/profiles/{quote(name, safe='')}/versions/{quote(version, safe='')}",
                                      request_id=request_id)
         bundle = response.get("bundle")
         if not isinstance(bundle, dict) or not all(isinstance(bundle.get(key), str) for key in ("name", "version", "digest")):
@@ -109,13 +111,14 @@ class GatewayService:
             raise GatewayError("profile_digest_mismatch", "requested profile digest does not match the pinned bundle", 409)
         return {"name": bundle["name"], "version": bundle["version"], "digest": bundle["digest"], "bundle": bundle}
 
-    def _active_generation(self, request_id: str) -> tuple[str, dict[str, Any], dict[str, Any]]:
-        _, active = self._call("GET", "/api/v1/index/generations/active", request_id=request_id)
+    def _active_generation(self, request_id: str, call=None) -> tuple[str, dict[str, Any], dict[str, Any]]:
+        call = call or self._call
+        _, active = call("GET", "/api/v1/index/generations/active", request_id=request_id)
         generation = active.get("generation_id")
         identity = active.get("index_profile")
         if not isinstance(generation, str) or not generation or not isinstance(identity, dict):
             raise GatewayError("not_ready", "Index has no usable active generation", 503, True)
-        pinned = self._write_profile(request_id, identity)
+        pinned = self._write_profile(request_id, identity, call=call)
         return generation, identity, pinned["bundle"]
 
     @staticmethod
@@ -151,7 +154,8 @@ class GatewayService:
         return found
 
     def _fresh_candidates(self, candidates: list[dict[str, Any]], request_id: str,
-                          reasons: list[str], failures: list[dict[str, Any]]) -> list[dict[str, Any]]:
+                          reasons: list[str], failures: list[dict[str, Any]], call=None) -> list[dict[str, Any]]:
+        call = call or self._call
         by_owner: dict[str, list[dict[str, Any]]] = {"memory": [], "knowledge": []}
         for candidate in candidates:
             source_id = candidate.get("source_id", "")
@@ -166,7 +170,7 @@ class GatewayService:
                 continue
             path = "/api/v1/memories/verify-revisions" if owner == "memory" else "/api/v1/knowledge/sources/verify-revisions"
             try:
-                _, response = self._call("POST", path, {"items": [
+                _, response = call("POST", path, {"items": [
                     {"source_id": source, "revision_sequence": sequence} for source, sequence in sorted(unique)
                 ], "request_id": request_id}, request_id)
                 for result in response.get("results", []):
@@ -192,7 +196,7 @@ class GatewayService:
             reasons.append("stale_candidates_filtered")
         return fresh
 
-    def search(self, request: Any, request_id: str) -> dict[str, Any]:
+    def search(self, request: Any, request_id: str, headers: dict[str, str] | None = None) -> dict[str, Any]:
         allowed = {"request_id", "query", "scope", "mode", "context_budget", "exact_identifiers", "limit", "after_operation_id"}
         required = {"query", "scope", "mode", "context_budget"}
         if not isinstance(request, dict) or set(request) - allowed or not required.issubset(request):
@@ -216,17 +220,45 @@ class GatewayService:
         if not isinstance(exact, list) or len(exact) > 32 or any(not isinstance(x, str) or not 1 <= len(x) <= 256 for x in exact):
             raise GatewayError("invalid_request", "exact_identifiers must contain at most 32 bounded strings")
         request_id = request.get("request_id") or request_id or uuid.uuid4().hex
-        generation, index_profile, bundle = self._active_generation(request_id)
+        inbound_headers = {str(key).lower(): value for key, value in dict(headers or {}).items()}
+        deadline = inbound_headers.get("x-ce-deadline")
+        deadline_at = None
+        if deadline is not None:
+            try:
+                if not isinstance(deadline, str) or not deadline.endswith("Z"):
+                    raise ValueError("deadline must end in Z")
+                deadline_at = datetime.fromisoformat(deadline[:-1] + "+00:00")
+                if deadline_at.tzinfo != timezone.utc:
+                    raise ValueError("deadline must be UTC")
+            except (TypeError, ValueError) as exc:
+                raise GatewayError("invalid_parameter", "X-CE-Deadline must be an RFC 3339 UTC timestamp ending in Z") from exc
+
+        def request_call(method, path, payload=None, call_request_id=request_id, headers=None, timeout=30.0):
+            extra = dict(headers or {})
+            if deadline is not None:
+                remaining = (deadline_at - datetime.now(timezone.utc)).total_seconds()
+                if remaining <= 0:
+                    raise GatewayError("deadline_exceeded", "request deadline expired before a dependency call", 504)
+                timeout = min(timeout, remaining)
+                extra["X-CE-Deadline"] = deadline
+            try:
+                return self._call(method, path, payload, call_request_id, headers=extra, timeout=timeout)
+            except GatewayError as exc:
+                if deadline is not None and exc.code == "dependency_unavailable":
+                    raise GatewayError("deadline_exceeded", "dependency call exceeded the request deadline", 504) from exc
+                raise
+
+        generation, index_profile, bundle = self._active_generation(request_id, call=request_call)
         reasons: list[str] = []
         failures: list[dict[str, Any]] = []
         intent = "general"
         entity_response: dict[str, Any] = {"entities": []}
         with ThreadPoolExecutor(max_workers=2) as pool:
-            intent_future = pool.submit(self._call, "POST", "/api/v1/intent-classification/classify", {
+            intent_future = pool.submit(request_call, "POST", "/api/v1/intent-classification/classify", {
                 "request_id": request_id, "text": query_text,
                 "profile": {"name": "default-intents", "version": "0.1"}, "allowed_intents": INTENTS,
             }, request_id)
-            entity_future = pool.submit(self._call, "POST", "/api/v1/entity-extraction/extract", {
+            entity_future = pool.submit(request_call, "POST", "/api/v1/entity-extraction/extract", {
                 "request_id": request_id, "text": query_text,
                 "profile": {"name": "technical-default", "version": "0.1"},
             }, request_id)
@@ -265,7 +297,7 @@ class GatewayService:
         }
         responses: dict[str, dict[str, Any]] = {}
         with ThreadPoolExecutor(max_workers=2) as pool:
-            futures = {name: pool.submit(self._call, method, path, payload, request_id)
+            futures = {name: pool.submit(request_call, method, path, payload, request_id)
                        for name, (method, path, payload) in retrieval_requests.items()}
             for name, future in futures.items():
                 try:
@@ -294,7 +326,7 @@ class GatewayService:
                 all_candidates.append(c)
         if any(bool(response.get("truncated")) for response in responses.values()):
             reasons.append("candidate_pool_truncated")
-        fresh = self._fresh_candidates(all_candidates, request_id, reasons, failures)
+        fresh = self._fresh_candidates(all_candidates, request_id, reasons, failures, call=request_call)
         fresh_by_path = {path: [c for c in fresh if c.get("retrieval_source") == path] for path in ("lexical", "vector")}
         partition = f"{scope['type']}:{scope['id']}:{scope['visibility']}"
         suffix = base64.urlsafe_b64encode(partition.encode("utf-8")).decode("ascii").rstrip("=")
@@ -315,7 +347,7 @@ class GatewayService:
             lists.append({"list_id": f"rl1:{path}:original:{suffix}", "retrieval_path": path,
                           "query_variant_id": "original", "scope_partition_id": partition, "candidates": candidates})
         try:
-            _, ranked_response = self._call("POST", "/api/v1/ranking/rank", {
+            _, ranked_response = request_call("POST", "/api/v1/ranking/rank", {
                 "request_id": request_id, "policy": {"name": "rrf-v1", "version": "1"},
                 "exact_identifiers": identifiers, "lists": lists, "limit": limit,
             }, request_id)
@@ -362,7 +394,12 @@ class GatewayService:
             "degraded": status != "complete", "degradation_reasons": reasons, "failures": failures,
             "plan": {"intent": intent, "variants_used": 1, "policy_version": "gateway-rag-v1",
                      "index_generation": generation, "index_profile": index_profile},
-            "index_freshness": "current", "truncated": context_truncated or any(bool(x.get("truncated")) for x in responses.values()),
+            "index_freshness": (
+                "unknown" if ("freshness_verification_degraded" in reasons
+                               or "stale_candidates_filtered" in reasons
+                               or not all_candidates)
+                else "current"
+            ), "truncated": context_truncated or any(bool(x.get("truncated")) for x in responses.values()),
         }
         if context_parts:
             response["context"] = "\n\n".join(context_parts)[:65536]
@@ -386,7 +423,7 @@ class GatewayService:
         if method == "GET" and path == "/api/v1/gateway/index/write-profile":
             return 200, self._write_profile(request_id)
         if method == "POST" and path == "/api/v1/requests":
-            return 200, self.search(body, request_id)
+            return 200, self.search(body, request_id, headers=headers)
         if method == "POST" and path == "/api/v1/selections":
             payload = dict(body or {})
             payload["request_id"] = payload.get("request_id", request_id)
