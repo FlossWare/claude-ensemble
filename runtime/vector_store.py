@@ -326,8 +326,9 @@ class ChromaVectorStore:
                 elif self.metric == "dot_product":
                     score = {"similarity": dot}
                 else:
-                    score = {"distance": math.sqrt(sum((float(query) - value) ** 2
-                                                       for query, value in zip(query_vector, values))}
+                    score = {"distance": math.sqrt(sum(
+                        (float(query) - value) ** 2 for query, value in zip(query_vector, values)
+                    ))}
                 exact_candidates.append({
                     "vector_id": item_id,
                     "source_id": meta["source_id"],
