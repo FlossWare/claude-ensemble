@@ -163,7 +163,7 @@ class IndexRuntimeTests(unittest.TestCase):
         generation_id = self.service.active_generation()["generation_id"]
         store = self.service._vector_store(generation_id, self.bundle)
         stale_records = []
-        for index in range(110):
+        for index in range(500):
             stale_records.append({
                 "generation_id": generation_id,
                 "profile_digest": self.bundle["digest"],
@@ -200,7 +200,7 @@ class IndexRuntimeTests(unittest.TestCase):
         with patch.object(store, "query", side_effect=observe_query):
             result = self.service.vector_neighbors(query)
         self.assertEqual([item["source_id"] for item in result["candidates"]], ["knowledge:doc-a"])
-        self.assertEqual(observed_limits, [100])
+        self.assertEqual(observed_limits, [100, 200, 400, 800])
         self.assertFalse(result["truncated"])
 
     def test_chroma_startup_migration_failure_recovers_on_next_initialization(self):
