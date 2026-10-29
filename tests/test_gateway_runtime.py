@@ -114,6 +114,44 @@ def test_gateway_filters_stale_candidates_before_ranking(monkeypatch):
     assert "/api/v1/ranking/rank" in calls
 
 
+
+def test_gateway_after_operation_id_waits_until_indexing_is_complete():
+    service = GatewayService()
+    calls = []
+    states = iter(["pending_index", "pending_index", "indexed"])
+
+    def call(method, path, payload=None, request_id="req-barrier", headers=None, timeout=30.0):
+        calls.append((method, path, timeout))
+        return 200, {"status": "accepted", "indexing_status": next(states)}
+
+    service._wait_for_operation(
+        "knowledge:op:abc123",
+        {"type": "project", "id": "p1", "visibility": "private"},
+        "req-barrier",
+        call,
+        None,
+    )
+    assert len(calls) == 3
+    assert all(method == "GET" for method, _, _ in calls)
+    assert all(path == "/api/v1/knowledge/operations/knowledge:op:abc123" for _, path, _ in calls)
+    assert all(0 < timeout <= 1.0 for _, _, timeout in calls)
+
+
+def test_gateway_after_operation_id_rejects_unknown_owner():
+    import pytest
+    from runtime.gateway import GatewayError
+
+    with pytest.raises(GatewayError) as error:
+        GatewayService()._wait_for_operation(
+            "other:op:abc123",
+            {"type": "project", "id": "p1", "visibility": "private"},
+            "req-barrier",
+            lambda *args, **kwargs: (200, {"indexing_status": "indexed"}),
+            None,
+        )
+    assert error.value.code == "invalid_request"
+
+
 def test_gateway_health_route_is_reachable():
     from runtime.server import BoundedThreadingHTTPServer, Handler
     import json
