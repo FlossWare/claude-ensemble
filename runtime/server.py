@@ -425,10 +425,6 @@ class Handler(BaseHTTPRequestHandler):
                                  args=(service, response, details), daemon=True).start()
                 _MEMORY_GRAPH_EXECUTOR.submit(self._memory_graph_project, service)
             self._send(status, response, request_id)
-        except ThompsonError as exc:
-            self._send(exc.status, _error(exc.code, str(exc), retryable=exc.status >= 500), request_id)
-        except LearningError as exc:
-            self._send(exc.status, _error(exc.code, str(exc), retryable=exc.status >= 500), request_id)
         except MemoryServiceError as exc:
             self._send(exc.status, _error(exc.code, str(exc), retryable=exc.status >= 500), request_id)
         except KnowledgeError as exc:
@@ -798,6 +794,10 @@ class Handler(BaseHTTPRequestHandler):
         except RerankingError as exc:
             self._send(exc.status, _error(exc.code, str(exc), retryable=exc.status >= 500), request_id)
         except RetrievalError as exc:
+            self._send(exc.status, _error(exc.code, str(exc), retryable=exc.status >= 500), request_id)
+        except ThompsonError as exc:
+            self._send(exc.status, _error(exc.code, str(exc), retryable=exc.status >= 500), request_id)
+        except LearningError as exc:
             self._send(exc.status, _error(exc.code, str(exc), retryable=exc.status >= 500), request_id)
         except MemoryServiceError as exc:
             self._send(exc.status, _error(exc.code, str(exc), retryable=exc.status >= 500), request_id)
