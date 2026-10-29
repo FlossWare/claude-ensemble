@@ -292,3 +292,112 @@ def test_gateway_request_route_runs_rag_orchestration_over_http(monkeypatch):
         server.shutdown()
         server.server_close()
         thread.join(timeout=2)
+
+
+
+def test_gateway_rag_acceptance_uses_real_http_services_without_transport_mocking(monkeypatch, tmp_path):
+    """Exercise Gateway, retrieval, freshness, and ranking through the actual HTTP handlers."""
+    import json
+    import threading
+    from urllib.request import Request, urlopen
+
+    import runtime.index as index_module
+    import runtime.knowledge as knowledge_module
+    from runtime.index import IndexService, profile_digest
+    from runtime.knowledge import KnowledgeService
+    from runtime.server import BoundedThreadingHTTPServer, Handler
+
+    monkeypatch.setenv("CE_INDEX_VECTOR_BACKEND", "sqlite")
+    monkeypatch.setenv("CE_GATEWAY_WRITE_PROFILE_NAME", "default")
+
+    bundle = {
+        "name": "default",
+        "version": "0.1",
+        "status": "active",
+        "chunking": {"profile": "markdown-default", "version": "0.1", "max_units": 1200, "overlap_units": 120},
+        "tokenization": {"profile": "technical-default", "version": "0.1"},
+        "lexical": {"profile": "bm25-v1", "version": "0.1", "statistics_policy": "scope_partition"},
+        "embedding": {
+            "required": True, "profile": "technical-default", "version": "0.1",
+            "model": "local-nomic", "model_version": "r1", "input_types": ["query", "document"],
+            "dimensions": 3, "normalization": "l2", "metric": "cosine", "max_input_tokens": 8192,
+        },
+        "limits": {
+            "max_chunks": 64, "max_source_bytes": 131072, "max_chunk_text_bytes": 512,
+            "max_request_bytes": 2097152, "max_chunk_representation_bytes": 18000,
+            "max_envelope_bytes": 16384, "max_metadata_bytes": 1024,
+            "max_lexical_terms_per_chunk": 64, "max_lexical_term_bytes": 32,
+        },
+    }
+    bundle["digest"] = profile_digest(bundle)
+    identity = {key: bundle[key] for key in ("name", "version", "digest")}
+    scope = {"type": "project", "id": "gateway-integration", "visibility": "private"}
+    content = "Useful source chunk integration confirms CE-42 behavior."
+    index_service = IndexService(tmp_path / "index.sqlite3", bundle)
+    knowledge_service = KnowledgeService(tmp_path / "knowledge.sqlite3")
+    monkeypatch.setattr(index_module, "_service", index_service)
+    monkeypatch.setattr(knowledge_module, "_SERVICE", knowledge_service)
+
+    _, created = knowledge_service.create({
+        "scope": scope,
+        "source_kind": "document",
+        "content": content,
+        "provenance": {"origin": "gateway-integration-test"},
+        "retention_policy": {"policy": "test"},
+        "index_profile": identity,
+    }, "gateway-integration-source", "gateway-integration-test")
+    source_id = created["source_id"]
+    index_service.upsert({
+        "operation_id": "gateway-integration-index",
+        "request_id": "gateway-integration-test",
+        "source": {
+            "source_id": source_id,
+            "revision": created["revision"],
+            "revision_sequence": 1,
+            "scope": scope,
+        },
+        "index_profile": identity,
+        "representations": [{
+            "chunk_id": "gateway-integration-chunk",
+            "chunker": {"profile": "markdown-default", "version": "0.1"},
+            "text": content,
+            "lexical": {"profile": "bm25-v1", "version": "0.1",
+                        "terms": ["useful", "source", "chunk", "integration", "confirms", "behavior"]},
+            "vector": {"input_type": "document", "model": "local-nomic", "version": "r1",
+                       "dimensions": 3, "values": [1.0, 0.0, 0.0]},
+            "metadata": {},
+        }],
+    }, "gateway-integration-index")
+
+    server = BoundedThreadingHTTPServer(("127.0.0.1", 0), Handler)
+    base_url = f"http://127.0.0.1:{server.server_port}"
+    for name in ("CE_INDEX_BASE_URL", "CE_TOKENIZATION_BASE_URL", "CE_EMBEDDING_BASE_URL", "CE_RERANKING_BASE_URL"):
+        monkeypatch.setenv(name, base_url)
+    thread = threading.Thread(target=server.serve_forever, daemon=True)
+    thread.start()
+    try:
+        body = {
+            "request_id": "req-real-rag",
+            "query": "find useful source chunk integration",
+            "scope": scope,
+            "mode": "lookup",
+            "context_budget": {"unit": "provider_tokens", "model": "test-model", "max": 100},
+        }
+        request = Request(
+            f"{base_url}/api/v1/requests",
+            data=json.dumps(body).encode("utf-8"),
+            headers={"Content-Type": "application/json"},
+            method="POST",
+        )
+        with urlopen(request, timeout=10) as response:
+            payload = json.loads(response.read())
+            assert response.status == 200
+            assert payload["request_id"] == "req-real-rag"
+            assert payload["index_freshness"] == "current"
+            assert any(candidate["source_id"] == source_id for candidate in payload["candidates"])
+            assert f"[{source_id}@1]" in payload["context"]
+            assert payload["candidates"][0]["freshness"] == "verified_current"
+    finally:
+        server.shutdown()
+        server.server_close()
+        thread.join(timeout=2)
