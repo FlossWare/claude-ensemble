@@ -399,6 +399,8 @@ class GatewayService:
                 except GatewayError as exc:
                     reasons.append("graph_degraded")
                     failures.append({"service": "graph", "code": exc.code, "retryable": exc.retryable})
+                    failures.append({"service": "graph", "code": "required_evidence_unavailable",
+                                     "retryable": False, "required": True})
         all_candidates: list[dict[str, Any]] = []
         raw_by_path: dict[str, list[dict[str, Any]]] = {"lexical": [], "vector": []}
         for path, response in responses.items():
