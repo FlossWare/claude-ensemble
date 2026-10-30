@@ -83,6 +83,7 @@ def test_gateway_rag_request_runs_rest_plan_retrieval_freshness_and_ranking(monk
     assert result["candidates"][0]["matched_exact_identifiers"] == ["CE-42"]
     assert "token_budget_estimated" not in result["degradation_reasons"]
     assert "knowledge:src-1@1" in result["context"]
+    assert result["context_budget"]["used"] == len(result["context"].encode("utf-8"))
     assert any(path == "/api/v1/ranking/rank" for _, path, _ in calls)
 
 
@@ -489,6 +490,7 @@ def test_gateway_rag_acceptance_uses_real_http_services_without_transport_mockin
             assert f"[{source_id}@1]" in payload["context"]
             assert payload["candidates"][0]["freshness"] == "verified_current"
             assert "Graph relationship: node-search -[uses]-> node-flossware" in payload["context"]
+            assert payload["context_budget"]["used"] == len(payload["context"].encode("utf-8"))
             assert "/api/v1/graph/traversals" in internal_paths
             assert "/api/v1/reranking/rerank" in internal_paths
             assert propagated
