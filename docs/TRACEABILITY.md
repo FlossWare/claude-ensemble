@@ -39,6 +39,21 @@ Status: proposed architecture acceptance artifact. Rows map the functional inven
 
 Each of the 16 logical service contracts has a corresponding JSON Schema under `docs/contracts/schemas/`; Index profile bundles additionally use `schemas/index-profile.schema.json`. The schema acceptance gate validates endpoint mappings, internal references, and example payloads. Schema presence does not imply runtime conformance; provider/consumer and integration tests remain implementation gates.
 
+## Gateway RAG executable coverage
+
+The following are concrete executable tests, not acceptance specifications:
+
+| Acceptance area | Executable test | Coverage status |
+|---|---|---|
+| Gateway request planning, retrieval, canonical freshness, Ranking, and caller/stage deadline bounds | `tests/test_gateway_runtime.py::test_gateway_rag_request_runs_rest_plan_retrieval_freshness_and_ranking` | Executed by the full test suite; mocked downstream transport |
+| HTTP request dispatcher reaches Gateway orchestration | `tests/test_gateway_runtime.py::test_gateway_request_route_runs_rag_orchestration_over_http` | Executed by the full test suite; HTTP ingress and route, mocked internal REST dependencies |
+| Durable HTTP workflow through Knowledge, Index, retrieval, freshness, Ranking, Graph traversal/support verification, and Reranking | `tests/test_gateway_runtime.py::test_gateway_rag_acceptance_uses_real_http_services_without_transport_mocking` | Executable durable-service integration; Graph and Reranking use deterministic test doubles for intent/entity/model inference |
+| Graph support freshness, exact-match preservation, non-exact reranking, and reranking fallback | `tests/test_gateway_graph_reranking.py::test_gateway_relationship_request_verifies_graph_support_and_reranks_only_non_exact`; `tests/test_gateway_graph_reranking.py::test_gateway_reranking_failure_falls_back_to_ranking_order` | Executed by the full test suite; mocked REST transport |
+| Assembly deadline degradation preserves completed candidates/context | `tests/test_gateway_runtime.py::test_gateway_assembly_deadline_returns_partial_context_instead_of_504` | Added; pending CI execution on current PR head |
+| Real HTTP downstream deadline header propagation and bounded transport timeout | `tests/test_gateway_runtime.py::test_gateway_rag_acceptance_uses_real_http_services_without_transport_mocking` | Added; pending CI execution on current PR head |
+
+The durable HTTP test proves the dispatcher and service contracts are exercised over HTTP with persistent SQLite-backed Knowledge, Index, and Graph state. It does not claim that model inference is real: intent classification, entity extraction, and cross-encoder scoring use deterministic test doubles so the acceptance test remains offline and reproducible.
+
 ## Known acceptance gaps
 
 - The listed AT-* items are specifications, not executed tests.
