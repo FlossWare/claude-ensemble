@@ -595,7 +595,10 @@ class GatewayService:
             else:
                 context_truncated = True
                 context_budget_truncated = True
-        if graph_context:
+        if graph_context and time.monotonic() >= assembly_deadline:
+            context_truncated = True
+            reasons.append("assembly_degraded")
+        elif graph_context:
             graph_text = "\n".join(graph_context)
             prospective_context = "\n\n".join(context_parts + [graph_text])
             graph_estimate, graph_method, graph_fallback_reason = count_context_tokens(
