@@ -586,7 +586,7 @@ class GatewayService:
                 "provenance": candidate["provenance"],
                 "matched_exact_identifiers": candidate.get("matched_exact_identifiers", []),
             })
-            if used_tokens + estimate <= budget["max"]:
+            if estimate <= budget["max"]:
                 context_parts.append(context_fragment)
                 used_tokens = estimate
             else:
@@ -601,7 +601,7 @@ class GatewayService:
                 token_counting_method = graph_method
             if graph_fallback_reason is not None:
                 token_count_fallback_reason = graph_fallback_reason
-            if used_tokens + graph_estimate <= budget["max"]:
+            if graph_estimate <= budget["max"]:
                 context_parts.append(graph_text)
                 used_tokens = graph_estimate
             else:
