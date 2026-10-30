@@ -75,6 +75,10 @@ def test_gateway_rag_request_runs_rest_plan_retrieval_freshness_and_ranking(monk
     assert any(deadline < request_deadline for deadline in parsed_deadlines)
     assert all(0 < timeout <= 30.0 for _, timeout in propagated_deadlines)
     assert result["plan"]["intent"] == "knowledge_lookup"
+    assert result["context_budget"]["model"] == "test-model"
+    assert result["context_budget"]["counting_method"] == "conservative_utf8_byte_upper_bound"
+    assert result["context_budget"]["is_estimate"] is True
+    assert result["context_budget"]["fallback_reason"] == "no_configured_tokenizer"
     assert result["candidates"][0]["freshness"] == "verified_current"
     assert result["candidates"][0]["matched_exact_identifiers"] == ["CE-42"]
     assert "token_budget_estimated" not in result["degradation_reasons"]
@@ -553,3 +557,31 @@ def test_gateway_assembly_deadline_returns_partial_context_instead_of_504(monkey
     assert "assembly_degraded" in result["degradation_reasons"]
     assert result["candidates"][0]["source_id"] == source_candidate["source_id"]
     assert "knowledge:src-1@1" in result["context"]
+
+
+def test_context_budget_uses_configured_local_model_tokenizer(monkeypatch):
+    import runtime.context_budget as context_budget
+
+    class FakeTokenizer:
+        def encode(self, text, add_special_tokens=False):
+            assert text == "provider-specific text"
+            assert add_special_tokens is False
+            return [101, 102, 103, 104]
+
+    monkeypatch.setenv("CE_GATEWAY_TOKENIZER_MAP", '{"test-model": "/provisioned/tokenizer"}')
+    monkeypatch.setattr(context_budget, "_load_tokenizer", lambda path: FakeTokenizer())
+    count, method, fallback = context_budget.count_context_tokens("provider-specific text", "test-model")
+    assert count == 4
+    assert method == "configured_model_tokenizer"
+    assert fallback is None
+
+
+def test_context_budget_fallback_is_explicit_and_uses_utf8_bytes(monkeypatch):
+    from runtime.context_budget import count_context_tokens
+
+    monkeypatch.delenv("CE_GATEWAY_TOKENIZER_MAP", raising=False)
+    value = "Aé"
+    count, method, fallback = count_context_tokens(value, "unconfigured-model")
+    assert count == len(value.encode("utf-8"))
+    assert method == "conservative_utf8_byte_upper_bound"
+    assert fallback == "no_configured_tokenizer"
