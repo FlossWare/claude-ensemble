@@ -75,7 +75,6 @@ Request `POST /api/v1/requests`:
 Response:
 
 <!-- schema-example: docs/contracts/schemas/gateway.schema.json#/$defs/response -->
-<!-- schema-example: docs/contracts/schemas/gateway.schema.json#/$defs/response -->
 ~~~json
 {
   "request_id": "correlation-id",
@@ -92,7 +91,7 @@ Response:
     "unit": "provider_tokens",
     "model": "configured-target-model",
     "max": 1200,
-    "used": 24,
+    "used": 25,
     "counting_method": "conservative_utf8_byte_upper_bound",
     "is_estimate": true,
     "fallback_reason": "no_configured_tokenizer"
