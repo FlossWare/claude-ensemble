@@ -614,6 +614,13 @@
               },
               "retryable": {
                 "type": "boolean"
+              },
+              "message": {
+                "type": "string",
+                "maxLength": 1024
+              },
+              "required": {
+                "type": "boolean"
               }
             }
           }
