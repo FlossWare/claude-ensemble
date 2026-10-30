@@ -472,6 +472,17 @@ def test_gateway_rag_acceptance_uses_real_http_services_without_transport_mockin
         with urlopen(request, timeout=10) as response:
             payload = json.loads(response.read())
             assert response.status == 200
+            from jsonschema import Draft202012Validator
+            from pathlib import Path
+            gateway_schema = json.loads(
+                (Path(__file__).resolve().parents[1] / "docs/contracts/schemas/gateway.schema.json").read_text()
+            )
+            response_schema = {
+                "$schema": gateway_schema["$schema"],
+                "$defs": gateway_schema["$defs"],
+                "$ref": "#/$defs/response",
+            }
+            Draft202012Validator(response_schema).validate(payload)
             assert payload["request_id"] == "req-real-rag"
             assert payload["index_freshness"] == "current"
             assert any(candidate["source_id"] == source_id for candidate in payload["candidates"])
