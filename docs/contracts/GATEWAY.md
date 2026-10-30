@@ -87,7 +87,16 @@ Response:
   "failures": [],
   "plan": {"intent": "general", "variants_used": 1, "policy_version": "v1", "index_generation": "generation-123", "index_profile": {"name": "workspace-profile", "version": "1.0", "digest": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"}},
   "index_freshness": "current",
-  "truncated": false
+  "truncated": false,
+  "context_budget": {
+    "unit": "provider_tokens",
+    "model": "configured-target-model",
+    "max": 1200,
+    "used": 24,
+    "counting_method": "conservative_utf8_byte_upper_bound",
+    "is_estimate": true,
+    "fallback_reason": "no_configured_tokenizer"
+  }
 }
 ~~~
 
