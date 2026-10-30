@@ -753,3 +753,98 @@ def test_gateway_planning_stage_returns_without_waiting_for_slow_worker(monkeypa
     assert "query_understanding_degraded" in result["degradation_reasons"]
     assert result["candidates"]
 
+def test_gateway_stage_latency_budgets_under_concurrent_synthetic_load(monkeypatch):
+    import math
+    import threading
+    import time
+    from concurrent.futures import ThreadPoolExecutor
+
+    monkeypatch.setenv("CE_GATEWAY_WRITE_PROFILE_NAME", "default")
+    monkeypatch.delenv("CE_GATEWAY_TOKENIZER_MAP", raising=False)
+    index_profile = {"name": "default", "version": "0.1", "digest": "a" * 64}
+    bundle = {
+        **index_profile,
+        "lexical": {"profile": "technical-default", "version": "0.1"},
+        "embedding": {"profile": "default-embedding", "version": "0.1"},
+    }
+    candidate = _candidate(text="CE-42 is the exact source")
+    lock = threading.Lock()
+    measurements = []
+    stage_limits = {
+        "planning": 0.100,
+        "retrieval": 0.350,
+        "freshness": 0.250,
+        "ranking": 0.150,
+    }
+
+    def transport(method, path, payload, request_id, headers, timeout):
+        stage = None
+        delay = 0
+        if path in {"/api/v1/intent-classification/classify", "/api/v1/entity-extraction/extract"}:
+            stage, delay = "planning", 0.010
+        elif path in {"/api/v1/lexical-retrieval/search", "/api/v1/vector-retrieval/search"}:
+            stage, delay = "retrieval", 0.020
+        elif path == "/api/v1/knowledge/sources/verify-revisions":
+            stage, delay = "freshness", 0.010
+        elif path == "/api/v1/ranking/rank":
+            stage, delay = "ranking", 0.010
+        started = time.monotonic()
+        if delay:
+            time.sleep(delay)
+        if stage:
+            with lock:
+                measurements.append((request_id, stage, started, time.monotonic()))
+        if method == "GET" and path == "/api/v1/index/generations/active":
+            return 200, {"generation_id": "gen-1", "index_profile": index_profile}
+        if method == "GET" and path == "/api/v1/index/profiles/default/versions/0.1":
+            return 200, {"bundle": bundle}
+        if path == "/api/v1/intent-classification/classify":
+            return 200, {"results": [{"intent": "knowledge_lookup"}]}
+        if path == "/api/v1/entity-extraction/extract":
+            return 200, {"entities": [{"kind": "technical_identifier", "text": "CE-42", "exact": True}]}
+        if path == "/api/v1/lexical-retrieval/search":
+            return 200, {"candidates": [candidate], "truncated": False}
+        if path == "/api/v1/vector-retrieval/search":
+            return 200, {"candidates": [], "truncated": False}
+        if path == "/api/v1/knowledge/sources/verify-revisions":
+            return 200, {"results": [{
+                "source_id": candidate["source_id"],
+                "requested_revision_sequence": candidate["revision_sequence"],
+                "status": "current",
+            }]}
+        if path == "/api/v1/ranking/rank":
+            return 200, {"candidates": [{
+                **candidate, "rank": 1, "score": 10, "score_semantics": "rrf-v1",
+                "evidence": [], "matched_exact_identifiers": ["CE-42"],
+            }]}
+        raise AssertionError(f"unexpected REST call: {method} {path}")
+
+    service = GatewayService(transport=transport)
+
+    def search_one(index):
+        return service.search({
+            "query": "find CE-42",
+            "scope": {"type": "project", "id": "p1", "visibility": "private"},
+            "mode": "lookup",
+            "context_budget": {"unit": "provider_tokens", "model": "test-model", "max": 100},
+        }, f"req-load-{index}", headers={"X-CE-Deadline": "2099-01-01T00:00:00Z"})
+
+    with ThreadPoolExecutor(max_workers=8) as pool:
+        results = list(pool.map(search_one, range(8)))
+
+    assert all(result["status"] == "complete" for result in results)
+    by_request = {}
+    for request_id, stage, started, finished in measurements:
+        by_request.setdefault((request_id, stage), []).append((started, finished))
+    observed = {stage: [] for stage in stage_limits}
+    for index in range(8):
+        request_id = f"req-load-{index}"
+        for stage, limit in stage_limits.items():
+            calls = by_request[(request_id, stage)]
+            elapsed = max(end for _, end in calls) - min(start for start, _ in calls)
+            observed[stage].append(elapsed)
+    for stage, limit in stage_limits.items():
+        samples = sorted(observed[stage])
+        p95 = samples[min(len(samples) - 1, math.ceil(0.95 * len(samples)) - 1)]
+        assert p95 < limit, f"{stage} p95 {p95:.4f}s exceeded {limit:.3f}s"
+
