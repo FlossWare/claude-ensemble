@@ -643,7 +643,11 @@ class GatewayService:
                                or "stale_candidates_filtered" in reasons
                                or not all_candidates)
                 else "current"
-            ), "truncated": context_truncated or any(bool(x.get("truncated")) for x in responses.values()),
+            ), "truncated": (
+                context_truncated
+                or any(bool(x.get("truncated")) for x in responses.values())
+                or bool(graph_response and graph_response.get("truncated"))
+            ),
         }
         if time.monotonic() > assembly_deadline:
             reasons.append("assembly_degraded")
