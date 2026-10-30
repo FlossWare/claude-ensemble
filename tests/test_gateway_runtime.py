@@ -376,6 +376,15 @@ def test_gateway_rag_acceptance_uses_real_http_services_without_transport_mockin
         }],
     }, "gateway-integration-index")
 
+    propagated = []
+    original_call = GatewayService._call
+
+    def recording_call(self, method, path, payload=None, request_id="gateway", headers=None, timeout=30.0):
+        if headers and headers.get("X-CE-Deadline"):
+            propagated.append((headers["X-CE-Deadline"], timeout, path))
+        return original_call(self, method, path, payload, request_id, headers, timeout)
+
+    monkeypatch.setattr(GatewayService, "_call", recording_call)
     server = BoundedThreadingHTTPServer(("127.0.0.1", 0), Handler)
     base_url = f"http://127.0.0.1:{server.server_port}"
     for name in ("CE_INDEX_BASE_URL", "CE_TOKENIZATION_BASE_URL", "CE_EMBEDDING_BASE_URL", "CE_RERANKING_BASE_URL"):
@@ -393,7 +402,10 @@ def test_gateway_rag_acceptance_uses_real_http_services_without_transport_mockin
         request = Request(
             f"{base_url}/api/v1/requests",
             data=json.dumps(body).encode("utf-8"),
-            headers={"Content-Type": "application/json"},
+            headers={
+                "Content-Type": "application/json",
+                "X-CE-Deadline": "2099-01-01T00:00:00Z",
+            },
             method="POST",
         )
         with urlopen(request, timeout=10) as response:
@@ -404,7 +416,80 @@ def test_gateway_rag_acceptance_uses_real_http_services_without_transport_mockin
             assert any(candidate["source_id"] == source_id for candidate in payload["candidates"])
             assert f"[{source_id}@1]" in payload["context"]
             assert payload["candidates"][0]["freshness"] == "verified_current"
+            assert propagated
+            request_deadline = datetime(2099, 1, 1, tzinfo=timezone.utc)
+            parsed = [
+                datetime.fromisoformat(deadline.replace("Z", "+00:00"))
+                for deadline, _, _ in propagated
+            ]
+            assert all(deadline <= request_deadline for deadline in parsed)
+            assert any(deadline < request_deadline for deadline in parsed)
+            assert all(0 < timeout <= 30.0 for _, timeout, _ in propagated)
     finally:
         server.shutdown()
         server.server_close()
         thread.join(timeout=2)
+
+
+
+def test_gateway_assembly_deadline_returns_partial_context_instead_of_504(monkeypatch):
+    import time
+
+    monkeypatch.setenv("CE_GATEWAY_WRITE_PROFILE_NAME", "default")
+    profile_bundle = {
+        "name": "default", "version": "0.1", "digest": "d" * 64,
+        "lexical": {"profile": "bm25-v1", "version": "0.1"},
+        "embedding": {"profile": "technical-default", "version": "0.1"},
+    }
+    source_candidate = _candidate()
+
+    class SlowAssemblyCandidate(dict):
+        def get(self, key, default=None):
+            if key == "text":
+                time.sleep(0.12)
+            return super().get(key, default)
+
+    ranked_candidate = SlowAssemblyCandidate({
+        **source_candidate, "rank": 1, "score": 10,
+        "score_semantics": "rrf-v1", "evidence": [],
+        "matched_exact_identifiers": ["CE-42"],
+    })
+
+    def transport(method, path, payload, request_id, headers, timeout):
+        if path == "/api/v1/index/generations/active":
+            return 200, {"generation_id": "generation-1", "index_profile": {
+                "name": "default", "version": "0.1", "digest": "d" * 64,
+            }}
+        if path == "/api/v1/index/profiles/default/versions/0.1":
+            return 200, {"bundle": profile_bundle}
+        if path == "/api/v1/intent-classification/classify":
+            return 200, {"results": [{"intent": "general"}]}
+        if path == "/api/v1/entity-extraction/extract":
+            return 200, {"entities": []}
+        if path == "/api/v1/lexical-retrieval/search":
+            return 200, {"candidates": [source_candidate], "truncated": False}
+        if path == "/api/v1/vector-retrieval/search":
+            return 200, {"candidates": [], "truncated": False}
+        if path == "/api/v1/knowledge/sources/verify-revisions":
+            return 200, {"results": [{
+                "source_id": source_candidate["source_id"],
+                "requested_revision_sequence": source_candidate["revision_sequence"],
+                "status": "current",
+            }]}
+        if path == "/api/v1/ranking/rank":
+            return 200, {"candidates": [ranked_candidate]}
+        raise AssertionError(f"unexpected REST call: {method} {path}")
+
+    result = GatewayService(transport=transport).search({
+        "query": "find CE-42",
+        "scope": {"type": "project", "id": "p1", "visibility": "private"},
+        "mode": "lookup",
+        "context_budget": {"unit": "provider_tokens", "model": "test-model", "max": 100},
+    }, "req-assembly-deadline")
+
+    assert result["status"] == "partial"
+    assert result["degraded"] is True
+    assert result["truncated"] is True
+    assert "assembly_degraded" in result["degradation_reasons"]
+    assert result["candidates"][0]["source_id"] == source_candidate["source_id"]
+    assert "knowledge:src-1@1" in result["context"]
