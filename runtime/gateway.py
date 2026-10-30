@@ -560,6 +560,7 @@ class GatewayService:
         context_parts = []
         used_tokens = 0
         context_truncated = False
+        context_budget_truncated = False
         token_counting_method = "conservative_utf8_byte_upper_bound"
         token_count_fallback_reason = "no_configured_tokenizer"
         for candidate in ranked[:100]:
@@ -591,6 +592,7 @@ class GatewayService:
                 used_tokens = estimate
             else:
                 context_truncated = True
+                context_budget_truncated = True
         if graph_context:
             graph_text = "\n".join(graph_context)
             prospective_context = "\n\n".join(context_parts + [graph_text])
@@ -606,8 +608,13 @@ class GatewayService:
                 used_tokens = graph_estimate
             else:
                 context_truncated = True
-        if context_truncated:
-            reasons.append("token_budget_estimated")
+                context_budget_truncated = True
+        if context_budget_truncated:
+            reasons.append(
+                "token_budget_estimated"
+                if token_counting_method != "configured_model_tokenizer"
+                else "context_budget_truncated"
+            )
         if ranked and not context_parts:
             reasons.append("context_assembly_failed")
         reasons = list(dict.fromkeys(reasons))[:20]
