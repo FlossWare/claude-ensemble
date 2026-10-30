@@ -418,10 +418,15 @@ class GatewayService:
             for evidence in graph_response.get("resolution_evidence", []):
                 evidence["supports"] = [support for support in evidence.get("supports", [])
                                         if (support.get("source_id"), support.get("revision_sequence")) in verified_keys]
+            verified_node_ids = {
+                item.get("node_id") for item in graph_response.get("resolution_evidence", [])
+                if item.get("supports")
+            }
             verified_paths = []
             for path_item in graph_response.get("paths", []):
+                node_ids = path_item.get("node_ids", [])
                 edges = []
-                valid = True
+                valid = bool(node_ids) and node_ids[0] in verified_node_ids
                 for edge in path_item.get("edges", []):
                     supports = [support for support in edge.get("supports", [])
                                 if (support.get("source_id"), support.get("revision_sequence")) in verified_keys]
@@ -445,6 +450,8 @@ class GatewayService:
                 reasons.append("graph_results_truncated")
             if graph_required and not verified_paths:
                 reasons.append("graph_required_evidence_unavailable")
+                if not fresh:
+                    failures.append({"service": "graph", "code": "required_evidence_unavailable", "retryable": False})
         fresh_by_path = {path: [c for c in fresh if c.get("retrieval_source") == path] for path in ("lexical", "vector")}
         partition = f"{scope['type']}:{scope['id']}:{scope['visibility']}"
         suffix = base64.urlsafe_b64encode(partition.encode("utf-8")).decode("ascii").rstrip("=")
@@ -492,6 +499,11 @@ class GatewayService:
                     "query": query_text, "candidates": rerank_candidates, "limit": len(rerank_candidates),
                 }, request_id)
                 returned = reranked_response.get("candidates", [])
+                if not isinstance(returned, list) or any(
+                    not isinstance(candidate, dict) or not isinstance(candidate.get("chunker"), dict)
+                    for candidate in returned
+                ):
+                    raise GatewayError("candidate_identity_conflict", "reranker returned malformed candidates", 502)
                 expected = {(c["source_id"], c["revision_sequence"], c["chunk_id"],
                              c["chunker"]["profile"], c["chunker"]["version"]) for c in rerank_input}
                 actual = {(c.get("source_id"), c.get("revision_sequence"), c.get("chunk_id"),
