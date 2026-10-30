@@ -504,7 +504,8 @@
               "graph_results_truncated",
               "graph_required_evidence_unavailable",
               "ranking_degraded",
-              "assembly_degraded"
+              "assembly_degraded",
+              "context_budget_truncated"
             ]
           }
         },
