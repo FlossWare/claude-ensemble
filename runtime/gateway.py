@@ -396,25 +396,32 @@ class GatewayService:
                 all_candidates.append(c)
         if any(bool(response.get("truncated")) for response in responses.values()):
             reasons.append("candidate_pool_truncated")
-        fresh = self._fresh_candidates(all_candidates, request_id, reasons, failures, call=request_call)
-        graph_context: list[str] = []
+        graph_supports: list[dict[str, Any]] = []
         if graph_response is not None:
-            graph_supports: list[dict[str, Any]] = []
             for evidence in graph_response.get("resolution_evidence", []):
                 graph_supports.extend(evidence.get("supports", []))
             for path_item in graph_response.get("paths", []):
                 for edge in path_item.get("edges", []):
                     graph_supports.extend(edge.get("supports", []))
-            unique_supports = {
-                (item.get("source_id"), item.get("revision_sequence")): item
-                for item in graph_supports
-                if isinstance(item, dict) and isinstance(item.get("source_id"), str)
-                and type(item.get("revision_sequence")) is int
-            }
-            verified_supports = self._fresh_candidates(
-                list(unique_supports.values()), request_id, reasons, failures, call=request_call
-            )
-            verified_keys = {(item.get("source_id"), item.get("revision_sequence")) for item in verified_supports}
+        graph_support_keys = {
+            (item.get("source_id"), item.get("revision_sequence"))
+            for item in graph_supports
+            if isinstance(item, dict) and isinstance(item.get("source_id"), str)
+            and type(item.get("revision_sequence")) is int
+        }
+        # Text candidates and Graph supports share one canonical verification pass
+        # and therefore one freshness-stage budget.
+        verified_all = self._fresh_candidates(
+            all_candidates + graph_supports, request_id, reasons, failures, call=request_call
+        )
+        verified_keys = {
+            (item.get("source_id"), item.get("revision_sequence"))
+            for item in verified_all
+            if (item.get("source_id"), item.get("revision_sequence")) in graph_support_keys
+        }
+        fresh = [item for item in verified_all if item.get("retrieval_source") in {"lexical", "vector"}]
+        graph_context: list[str] = []
+        if graph_response is not None:
             for evidence in graph_response.get("resolution_evidence", []):
                 evidence["supports"] = [support for support in evidence.get("supports", [])
                                         if (support.get("source_id"), support.get("revision_sequence")) in verified_keys]
