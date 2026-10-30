@@ -345,9 +345,24 @@ class GatewayService:
             }),
         }
         responses: dict[str, dict[str, Any]] = {}
-        with ThreadPoolExecutor(max_workers=2) as pool:
+        graph_response: dict[str, Any] | None = None
+        graph_required = intent == "relationship_exploration"
+        graph_mentions = list(dict.fromkeys(
+            item.get("text") for item in entity_response.get("entities", [])
+            if isinstance(item, dict) and isinstance(item.get("text"), str) and item.get("text")
+        ))[:16]
+        if graph_required and not graph_mentions:
+            reasons.append("graph_entity_extraction_unavailable")
+            failures.append({"service": "graph", "code": "no_resolvable_entity_mentions", "retryable": False})
+        with ThreadPoolExecutor(max_workers=3) as pool:
             futures = {name: pool.submit(request_call, method, path, payload, request_id)
                        for name, (method, path, payload) in retrieval_requests.items()}
+            graph_future = None
+            if graph_required and graph_mentions:
+                graph_future = pool.submit(request_call, "POST", "/api/v1/graph/traversals", {
+                    "request_id": request_id, "scope": scope, "entity_mentions": graph_mentions,
+                    "direction": "both", "max_depth": 3, "max_visited_nodes": 500, "limit": 10,
+                }, request_id)
             for name, future in futures.items():
                 try:
                     _, responses[name] = future.result()
@@ -356,6 +371,12 @@ class GatewayService:
                     failures.append({"service": "lexical-retrieval" if name == "lexical" else "vector-retrieval",
                                      "code": exc.code, "message": str(exc), "retryable": exc.retryable})
                     responses[name] = {"candidates": [], "truncated": False}
+            if graph_future is not None:
+                try:
+                    _, graph_response = graph_future.result()
+                except GatewayError as exc:
+                    reasons.append("graph_degraded")
+                    failures.append({"service": "graph", "code": exc.code, "retryable": exc.retryable})
         all_candidates: list[dict[str, Any]] = []
         raw_by_path: dict[str, list[dict[str, Any]]] = {"lexical": [], "vector": []}
         for path, response in responses.items():
@@ -376,6 +397,54 @@ class GatewayService:
         if any(bool(response.get("truncated")) for response in responses.values()):
             reasons.append("candidate_pool_truncated")
         fresh = self._fresh_candidates(all_candidates, request_id, reasons, failures, call=request_call)
+        graph_context: list[str] = []
+        if graph_response is not None:
+            graph_supports: list[dict[str, Any]] = []
+            for evidence in graph_response.get("resolution_evidence", []):
+                graph_supports.extend(evidence.get("supports", []))
+            for path_item in graph_response.get("paths", []):
+                for edge in path_item.get("edges", []):
+                    graph_supports.extend(edge.get("supports", []))
+            unique_supports = {
+                (item.get("source_id"), item.get("revision_sequence")): item
+                for item in graph_supports
+                if isinstance(item, dict) and isinstance(item.get("source_id"), str)
+                and type(item.get("revision_sequence")) is int
+            }
+            verified_supports = self._fresh_candidates(
+                list(unique_supports.values()), request_id, reasons, failures, call=request_call
+            )
+            verified_keys = {(item.get("source_id"), item.get("revision_sequence")) for item in verified_supports}
+            for evidence in graph_response.get("resolution_evidence", []):
+                evidence["supports"] = [support for support in evidence.get("supports", [])
+                                        if (support.get("source_id"), support.get("revision_sequence")) in verified_keys]
+            verified_paths = []
+            for path_item in graph_response.get("paths", []):
+                edges = []
+                valid = True
+                for edge in path_item.get("edges", []):
+                    supports = [support for support in edge.get("supports", [])
+                                if (support.get("source_id"), support.get("revision_sequence")) in verified_keys]
+                    if not supports:
+                        valid = False
+                        break
+                    edges.append({**edge, "supports": supports})
+                if valid and edges:
+                    verified_paths.append({**path_item, "edges": edges})
+            graph_response["paths"] = verified_paths
+            graph_response["resolution_evidence"] = [
+                item for item in graph_response.get("resolution_evidence", []) if item.get("supports")
+            ]
+            for path_item in verified_paths:
+                edge_descriptions = [
+                    f"{edge['source_node_id']} -[{edge['relationship_type']}]-> {edge['target_node_id']}"
+                    for edge in path_item["edges"]
+                ]
+                graph_context.append("Graph relationship: " + " ; ".join(edge_descriptions))
+            if graph_response.get("truncated"):
+                reasons.append("graph_results_truncated")
+            if graph_required and not verified_paths:
+                reasons.append("graph_required_evidence_unavailable")
         fresh_by_path = {path: [c for c in fresh if c.get("retrieval_source") == path] for path in ("lexical", "vector")}
         partition = f"{scope['type']}:{scope['id']}:{scope['visibility']}"
         suffix = base64.urlsafe_b64encode(partition.encode("utf-8")).decode("ascii").rstrip("=")
@@ -403,8 +472,47 @@ class GatewayService:
             ranked = ranked_response.get("candidates", [])
         except GatewayError as exc:
             failures.append({"service": "ranking", "code": exc.code, "retryable": exc.retryable})
-            reasons.append("context_assembly_failed")
+            reasons.append("ranking_degraded")
             ranked = []
+        exact_ranked = [candidate for candidate in ranked if candidate.get("matched_exact_identifiers")]
+        rerank_input = [candidate for candidate in ranked if not candidate.get("matched_exact_identifiers")][:20]
+        if rerank_input:
+            rerank_candidates = [{
+                "source_id": candidate["source_id"], "source_revision": candidate["source_revision"],
+                "revision_sequence": candidate["revision_sequence"], "chunk_id": candidate["chunk_id"],
+                "chunker": candidate["chunker"], "text": candidate["text"], "prior_rank": candidate["rank"],
+                "prior_score": candidate["score"], "matched_exact_identifiers": [],
+                "provenance": candidate.get("provenance", {}),
+            } for candidate in rerank_input]
+            try:
+                _, reranked_response = request_call("POST", "/api/v1/reranking/rerank", {
+                    "request_id": request_id, "profile": {"name": "default-reranker", "version": "0.1"},
+                    "query": query_text, "candidates": rerank_candidates, "limit": len(rerank_candidates),
+                }, request_id)
+                returned = reranked_response.get("candidates", [])
+                expected = {(c["source_id"], c["revision_sequence"], c["chunk_id"],
+                             c["chunker"]["profile"], c["chunker"]["version"]) for c in rerank_input}
+                actual = {(c.get("source_id"), c.get("revision_sequence"), c.get("chunk_id"),
+                           (c.get("chunker") or {}).get("profile"), (c.get("chunker") or {}).get("version"))
+                          for c in returned}
+                if actual != expected or len(returned) != len(rerank_input):
+                    raise GatewayError("candidate_identity_conflict", "reranker changed or omitted candidate identity", 502)
+                original = {(
+                    c["source_id"], c["revision_sequence"], c["chunk_id"],
+                    c["chunker"]["profile"], c["chunker"]["version"]
+                ): c for c in rerank_input}
+                by_key = {(
+                    c["source_id"], c["revision_sequence"], c["chunk_id"],
+                    c["chunker"]["profile"], c["chunker"]["version"]
+                ): c for c in returned}
+                ranked = exact_ranked + [original[key] for key in (
+                    (c["source_id"], c["revision_sequence"], c["chunk_id"],
+                     c["chunker"]["profile"], c["chunker"]["version"]) for c in returned
+                )]
+            except GatewayError as exc:
+                reasons.append("reranking_degraded")
+                failures.append({"service": "reranking", "code": exc.code, "retryable": exc.retryable})
+                ranked = exact_ranked + rerank_input
         output_candidates = []
         context_parts = []
         used_tokens = 0
@@ -424,6 +532,14 @@ class GatewayService:
             if used_tokens + estimate <= budget["max"]:
                 context_parts.append(f"[{candidate['source_id']}@{candidate['revision_sequence']}] {text}")
                 used_tokens += estimate
+            else:
+                context_truncated = True
+        if graph_context:
+            graph_text = "\\n".join(graph_context)
+            graph_estimate = max(1, (len(graph_text) + 3) // 4)
+            if used_tokens + graph_estimate <= budget["max"]:
+                context_parts.append(graph_text)
+                used_tokens += graph_estimate
             else:
                 context_truncated = True
         if context_truncated:
