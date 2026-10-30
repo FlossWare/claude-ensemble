@@ -479,8 +479,8 @@ class GatewayService:
                 reasons.append("graph_results_truncated")
             if graph_required and not verified_paths:
                 reasons.append("graph_required_evidence_unavailable")
-                if not fresh:
-                    failures.append({"service": "graph", "code": "required_evidence_unavailable", "retryable": False})
+                failures.append({"service": "graph", "code": "required_evidence_unavailable",
+                                 "retryable": False, "required": True})
         fresh_by_path = {path: [c for c in fresh if c.get("retrieval_source") == path] for path in ("lexical", "vector")}
         partition = f"{scope['type']}:{scope['id']}:{scope['visibility']}"
         suffix = base64.urlsafe_b64encode(partition.encode("utf-8")).decode("ascii").rstrip("=")
@@ -560,6 +560,10 @@ class GatewayService:
         used_tokens = 0
         context_truncated = False
         for candidate in ranked[:100]:
+            if time.monotonic() >= assembly_deadline:
+                context_truncated = True
+                reasons.append("assembly_degraded")
+                break
             text = candidate.get("text", "")
             estimate = max(1, (len(text) + 3) // 4)
             output_candidates.append({
@@ -609,7 +613,12 @@ class GatewayService:
             ), "truncated": context_truncated or any(bool(x.get("truncated")) for x in responses.values()),
         }
         if time.monotonic() > assembly_deadline:
-            raise GatewayError("deadline_exceeded", "Gateway context assembly exceeded its 100 ms stage budget", 504)
+            reasons.append("assembly_degraded")
+            context_truncated = True
+            response["status"] = "partial"
+            response["degraded"] = True
+            response["degradation_reasons"] = list(dict.fromkeys(reasons))[:20]
+            response["truncated"] = True
         if context_parts:
             response["context"] = "\n\n".join(context_parts)[:65536]
         return response
