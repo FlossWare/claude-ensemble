@@ -500,6 +500,55 @@ def test_gateway_rag_acceptance_uses_real_http_services_without_transport_mockin
             assert all(deadline <= request_deadline for deadline in parsed)
             assert any(deadline < request_deadline for deadline in parsed)
             assert all(0 < timeout <= 30.0 for _, timeout, _ in propagated)
+
+        from runtime.graph import GraphError
+        from runtime.reranking import RerankingError
+
+        class FailedGraphService:
+            def handle(self, *args, **kwargs):
+                raise GraphError("dependency_unavailable", "injected Graph outage", 503)
+
+        monkeypatch.setattr(server_module, "get_graph_service", lambda: FailedGraphService())
+        graph_failure_body = {**body, "request_id": "req-graph-outage"}
+        graph_failure_request = Request(
+            f"{base_url}/api/v1/requests",
+            data=json.dumps(graph_failure_body).encode("utf-8"),
+            headers={"Content-Type": "application/json", "X-CE-Deadline": "2099-01-01T00:00:00Z"},
+            method="POST",
+        )
+        with urlopen(graph_failure_request, timeout=10) as response:
+            graph_failure = json.loads(response.read())
+            assert response.status == 200
+            Draft202012Validator(response_schema).validate(graph_failure)
+            assert graph_failure["status"] == "partial"
+            assert "graph_degraded" in graph_failure["degradation_reasons"]
+            assert any(
+                failure.get("required") is True and failure["code"] == "required_evidence_unavailable"
+                for failure in graph_failure["failures"]
+            )
+            assert graph_failure["candidates"]
+
+        monkeypatch.setattr(server_module, "get_graph_service", lambda: graph_service)
+
+        class FailedReranker:
+            def rerank(self, request):
+                raise RerankingError("service_unavailable", "injected reranker outage", 503)
+
+        monkeypatch.setattr(server_module, "get_reranking_engine", lambda: FailedReranker())
+        rerank_failure_body = {**body, "request_id": "req-reranker-outage"}
+        rerank_failure_request = Request(
+            f"{base_url}/api/v1/requests",
+            data=json.dumps(rerank_failure_body).encode("utf-8"),
+            headers={"Content-Type": "application/json", "X-CE-Deadline": "2099-01-01T00:00:00Z"},
+            method="POST",
+        )
+        with urlopen(rerank_failure_request, timeout=10) as response:
+            rerank_failure = json.loads(response.read())
+            assert response.status == 200
+            Draft202012Validator(response_schema).validate(rerank_failure)
+            assert rerank_failure["status"] == "partial"
+            assert "reranking_degraded" in rerank_failure["degradation_reasons"]
+            assert rerank_failure["candidates"]
     finally:
         server.shutdown()
         server.server_close()
