@@ -569,8 +569,9 @@ class GatewayService:
                 break
             text = candidate.get("text", "")
             context_fragment = f"[{candidate['source_id']}@{candidate['revision_sequence']}] {text}"
+            counted_fragment = ("\n\n" if context_parts else "") + context_fragment
             estimate, token_counting_method, fallback_reason = count_context_tokens(
-                context_fragment, budget["model"]
+                counted_fragment, budget["model"]
             )
             if fallback_reason is not None:
                 token_count_fallback_reason = fallback_reason
@@ -592,8 +593,9 @@ class GatewayService:
                 context_truncated = True
         if graph_context:
             graph_text = "\n".join(graph_context)
+            counted_graph_text = ("\n\n" if context_parts else "") + graph_text
             graph_estimate, graph_method, graph_fallback_reason = count_context_tokens(
-                graph_text, budget["model"]
+                counted_graph_text, budget["model"]
             )
             if graph_method != token_counting_method:
                 token_counting_method = graph_method
