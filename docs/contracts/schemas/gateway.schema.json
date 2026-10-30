@@ -453,7 +453,8 @@
         "failures",
         "plan",
         "index_freshness",
-        "truncated"
+        "truncated",
+        "context_budget"
       ],
       "properties": {
         "request_id": {
@@ -498,7 +499,12 @@
               "pending_index",
               "active_generation_unavailable",
               "deadline_exceeded",
-              "token_budget_estimated"
+              "token_budget_estimated",
+              "graph_entity_extraction_unavailable",
+              "graph_results_truncated",
+              "graph_required_evidence_unavailable",
+              "ranking_degraded",
+              "assembly_degraded"
             ]
           }
         },
@@ -601,7 +607,9 @@
                   "unsupported_policy",
                   "unsupported_profile",
                   "upstream_failure",
-                  "vector_dimension_mismatch"
+                  "vector_dimension_mismatch",
+                  "no_resolvable_entity_mentions",
+                  "required_evidence_unavailable"
                 ]
               },
               "retryable": {
@@ -727,6 +735,60 @@
                   }
                 }
               }
+            }
+          }
+        },
+        "context_budget": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "unit",
+            "model",
+            "max",
+            "used",
+            "counting_method",
+            "is_estimate",
+            "fallback_reason"
+          ],
+          "properties": {
+            "unit": {
+              "const": "provider_tokens"
+            },
+            "model": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            },
+            "max": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 32000
+            },
+            "used": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 1000000
+            },
+            "counting_method": {
+              "enum": [
+                "configured_model_tokenizer",
+                "conservative_utf8_byte_upper_bound"
+              ]
+            },
+            "is_estimate": {
+              "type": "boolean"
+            },
+            "fallback_reason": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "enum": [
+                "no_configured_tokenizer",
+                "configured_tokenizer_unavailable",
+                "invalid_tokenizer_map",
+                null
+              ]
             }
           }
         }
