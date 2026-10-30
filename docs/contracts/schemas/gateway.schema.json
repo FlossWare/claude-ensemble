@@ -505,7 +505,8 @@
               "graph_required_evidence_unavailable",
               "ranking_degraded",
               "assembly_degraded",
-              "context_budget_truncated"
+              "context_budget_truncated",
+              "unsupported_candidate_owner"
             ]
           }
         },
