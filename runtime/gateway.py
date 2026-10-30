@@ -16,6 +16,7 @@ from urllib.request import Request, urlopen
 from typing import Any
 
 from .internal_calls import INTERNAL_CALL_TOKEN
+from .context_budget import count_context_tokens
 
 
 INTENTS = ["memory_recall", "knowledge_lookup", "relationship_exploration", "troubleshooting",
@@ -559,13 +560,22 @@ class GatewayService:
         context_parts = []
         used_tokens = 0
         context_truncated = False
+        token_counting_method = "conservative_utf8_byte_upper_bound"
+        token_count_fallback_reason = "no_configured_tokenizer"
         for candidate in ranked[:100]:
             if time.monotonic() >= assembly_deadline:
                 context_truncated = True
                 reasons.append("assembly_degraded")
                 break
             text = candidate.get("text", "")
-            estimate = max(1, (len(text) + 3) // 4)
+            context_fragment = f"[{candidate['source_id']}@{candidate['revision_sequence']}] {text}"
+            estimate, token_counting_method, fallback_reason = count_context_tokens(
+                context_fragment, budget["model"]
+            )
+            if fallback_reason is not None:
+                token_count_fallback_reason = fallback_reason
+            else:
+                token_count_fallback_reason = None
             output_candidates.append({
                 "source_id": candidate["source_id"], "source_revision": candidate["source_revision"],
                 "revision_sequence": candidate["revision_sequence"], "chunk_id": candidate["chunk_id"],
@@ -576,13 +586,19 @@ class GatewayService:
                 "matched_exact_identifiers": candidate.get("matched_exact_identifiers", []),
             })
             if used_tokens + estimate <= budget["max"]:
-                context_parts.append(f"[{candidate['source_id']}@{candidate['revision_sequence']}] {text}")
+                context_parts.append(context_fragment)
                 used_tokens += estimate
             else:
                 context_truncated = True
         if graph_context:
             graph_text = "\n".join(graph_context)
-            graph_estimate = max(1, (len(graph_text) + 3) // 4)
+            graph_estimate, graph_method, graph_fallback_reason = count_context_tokens(
+                graph_text, budget["model"]
+            )
+            if graph_method != token_counting_method:
+                token_counting_method = graph_method
+            if graph_fallback_reason is not None:
+                token_count_fallback_reason = graph_fallback_reason
             if used_tokens + graph_estimate <= budget["max"]:
                 context_parts.append(graph_text)
                 used_tokens += graph_estimate
@@ -602,6 +618,12 @@ class GatewayService:
             status = "complete"
         response = {
             "request_id": request_id, "status": status, "candidates": output_candidates,
+            "context_budget": {
+                "unit": "provider_tokens", "model": budget["model"], "max": budget["max"],
+                "used": used_tokens, "counting_method": token_counting_method,
+                "is_estimate": token_counting_method != "configured_model_tokenizer",
+                "fallback_reason": token_count_fallback_reason,
+            },
             "degraded": status != "complete", "degradation_reasons": reasons, "failures": failures,
             "plan": {"intent": intent, "variants_used": 1, "policy_version": "gateway-rag-v1",
                      "index_generation": generation, "index_profile": index_profile},
