@@ -9,7 +9,7 @@ import unicodedata
 import uuid
 import time
 from datetime import datetime, timedelta, timezone
-from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import ThreadPoolExecutor, TimeoutError as FutureTimeoutError
 from urllib.error import HTTPError, URLError
 from urllib.parse import quote, urlencode
 from urllib.request import Request, urlopen
@@ -309,6 +309,7 @@ class GatewayService:
                     timespec="milliseconds"
                 ).replace("+00:00", "Z")
                 return request_call(method, path, payload, request_id, extra, min(timeout, remaining))
+            call.deadline = stage_deadline
             return call
 
         after_operation_id = request.get("after_operation_id")
@@ -322,7 +323,8 @@ class GatewayService:
         failures: list[dict[str, Any]] = []
         intent = "general"
         entity_response: dict[str, Any] = {"entities": []}
-        with ThreadPoolExecutor(max_workers=2) as pool:
+        pool = ThreadPoolExecutor(max_workers=2)
+        try:
             intent_future = pool.submit(planning_call, "POST", "/api/v1/intent-classification/classify", {
                 "request_id": request_id, "text": query_text,
                 "profile": {"name": "default-intents", "version": "0.1"}, "allowed_intents": INTENTS,
@@ -332,18 +334,22 @@ class GatewayService:
                 "profile": {"name": "technical-default", "version": "0.1"},
             }, request_id)
             try:
-                _, response = intent_future.result()
+                _, response = intent_future.result(timeout=max(0, planning_call.deadline - time.monotonic()))
                 results = response.get("results", [])
                 if results and isinstance(results[0].get("intent"), str) and results[0]["intent"] in INTENTS:
                     intent = results[0]["intent"]
             except Exception as exc:
+                intent_future.cancel()
                 reasons.append("query_understanding_degraded")
-                failures.append({"service": "intent-classification", "code": getattr(exc, "code", "dependency_unavailable"), "retryable": True})
+                failures.append({"service": "intent-classification", "code": getattr(exc, "code", "deadline_exceeded" if isinstance(exc, FutureTimeoutError) else "dependency_unavailable"), "retryable": True})
             try:
-                _, entity_response = entity_future.result()
+                _, entity_response = entity_future.result(timeout=max(0, planning_call.deadline - time.monotonic()))
             except Exception as exc:
+                entity_future.cancel()
                 reasons.append("query_understanding_degraded")
-                failures.append({"service": "entity-extraction", "code": getattr(exc, "code", "dependency_unavailable"), "retryable": True})
+                failures.append({"service": "entity-extraction", "code": getattr(exc, "code", "deadline_exceeded" if isinstance(exc, FutureTimeoutError) else "dependency_unavailable"), "retryable": True})
+        finally:
+            pool.shutdown(wait=False, cancel_futures=True)
         identifiers = list(dict.fromkeys(exact + [
             item.get("text") for item in entity_response.get("entities", [])
             if isinstance(item, dict) and item.get("exact") is True and isinstance(item.get("text"), str) and item.get("text")
@@ -376,7 +382,8 @@ class GatewayService:
             failures.append({"service": "graph", "code": "no_resolvable_entity_mentions", "retryable": False})
         retrieval_call = stage_call(350)
         graph_call = stage_call(250)
-        with ThreadPoolExecutor(max_workers=3) as pool:
+        pool = ThreadPoolExecutor(max_workers=3)
+        try:
             futures = {name: pool.submit(retrieval_call, method, path, payload, request_id)
                        for name, (method, path, payload) in retrieval_requests.items()}
             graph_future = None
@@ -387,20 +394,28 @@ class GatewayService:
                 }, request_id)
             for name, future in futures.items():
                 try:
-                    _, responses[name] = future.result()
-                except GatewayError as exc:
+                    _, responses[name] = future.result(timeout=max(0, retrieval_call.deadline - time.monotonic()))
+                except (GatewayError, FutureTimeoutError) as exc:
+                    future.cancel()
+                    code = exc.code if isinstance(exc, GatewayError) else "deadline_exceeded"
+                    retryable = exc.retryable if isinstance(exc, GatewayError) else True
                     reasons.append("lexical_degraded" if name == "lexical" else "vector_degraded")
                     failures.append({"service": "lexical-retrieval" if name == "lexical" else "vector-retrieval",
-                                     "code": exc.code, "message": str(exc), "retryable": exc.retryable})
+                                     "code": code, "message": str(exc), "retryable": retryable})
                     responses[name] = {"candidates": [], "truncated": False}
             if graph_future is not None:
                 try:
-                    _, graph_response = graph_future.result()
-                except GatewayError as exc:
+                    _, graph_response = graph_future.result(timeout=max(0, graph_call.deadline - time.monotonic()))
+                except (GatewayError, FutureTimeoutError) as exc:
+                    graph_future.cancel()
+                    code = exc.code if isinstance(exc, GatewayError) else "deadline_exceeded"
+                    retryable = exc.retryable if isinstance(exc, GatewayError) else True
                     reasons.append("graph_degraded")
-                    failures.append({"service": "graph", "code": exc.code, "retryable": exc.retryable})
+                    failures.append({"service": "graph", "code": code, "retryable": retryable})
                     failures.append({"service": "graph", "code": "required_evidence_unavailable",
                                      "retryable": False, "required": True})
+        finally:
+            pool.shutdown(wait=False, cancel_futures=True)
         all_candidates: list[dict[str, Any]] = []
         raw_by_path: dict[str, list[dict[str, Any]]] = {"lexical": [], "vector": []}
         for path, response in responses.items():
