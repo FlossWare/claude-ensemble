@@ -545,7 +545,7 @@ class GatewayService:
             else:
                 context_truncated = True
         if graph_context:
-            graph_text = "\\n".join(graph_context)
+            graph_text = "\n".join(graph_context)
             graph_estimate = max(1, (len(graph_text) + 3) // 4)
             if used_tokens + graph_estimate <= budget["max"]:
                 context_parts.append(graph_text)
