@@ -276,6 +276,12 @@ class GatewayService:
                     raise ValueError("deadline must be UTC")
             except (TypeError, ValueError) as exc:
                 raise GatewayError("invalid_parameter", "X-CE-Deadline must be an RFC 3339 UTC timestamp ending in Z") from exc
+        else:
+            # Hook recall is tightly bounded; interactive/lookup API calls get
+            # the documented five-second default unless the caller supplies less.
+            request_budget_ms = 1500 if request["mode"] == "prompt_recall" else 5000
+            deadline_at = datetime.now(timezone.utc) + __import__("datetime").timedelta(milliseconds=request_budget_ms)
+            deadline = deadline_at.isoformat(timespec="milliseconds").replace("+00:00", "Z")
 
         def request_call(method, path, payload=None, request_id=request_id, headers=None, timeout=30.0):
             extra = dict(headers or {})
@@ -292,22 +298,34 @@ class GatewayService:
                     raise GatewayError("deadline_exceeded", "dependency call exceeded the request deadline", 504) from exc
                 raise
 
+        def stage_call(budget_ms: int):
+            stage_deadline = time.monotonic() + budget_ms / 1000.0
+            def call(method, path, payload=None, request_id=request_id, headers=None, timeout=30.0):
+                remaining_stage = stage_deadline - time.monotonic()
+                remaining_request = (deadline_at - datetime.now(timezone.utc)).total_seconds()
+                remaining = min(remaining_stage, remaining_request)
+                if remaining <= 0:
+                    raise GatewayError("deadline_exceeded", "Gateway stage budget exhausted", 504)
+                return request_call(method, path, payload, request_id, headers, min(timeout, remaining))
+            return call
+
         after_operation_id = request.get("after_operation_id")
         if after_operation_id is not None:
             if not isinstance(after_operation_id, str):
                 raise GatewayError("invalid_request", "after_operation_id must be a string")
             self._wait_for_operation(after_operation_id, scope, request_id, request_call, deadline_at)
-        generation, index_profile, bundle = self._active_generation(request_id, call=request_call)
+        planning_call = stage_call(100)
+        generation, index_profile, bundle = self._active_generation(request_id, call=planning_call)
         reasons: list[str] = []
         failures: list[dict[str, Any]] = []
         intent = "general"
         entity_response: dict[str, Any] = {"entities": []}
         with ThreadPoolExecutor(max_workers=2) as pool:
-            intent_future = pool.submit(request_call, "POST", "/api/v1/intent-classification/classify", {
+            intent_future = pool.submit(planning_call, "POST", "/api/v1/intent-classification/classify", {
                 "request_id": request_id, "text": query_text,
                 "profile": {"name": "default-intents", "version": "0.1"}, "allowed_intents": INTENTS,
             }, request_id)
-            entity_future = pool.submit(request_call, "POST", "/api/v1/entity-extraction/extract", {
+            entity_future = pool.submit(planning_call, "POST", "/api/v1/entity-extraction/extract", {
                 "request_id": request_id, "text": query_text,
                 "profile": {"name": "technical-default", "version": "0.1"},
             }, request_id)
@@ -354,12 +372,14 @@ class GatewayService:
         if graph_required and not graph_mentions:
             reasons.append("graph_entity_extraction_unavailable")
             failures.append({"service": "graph", "code": "no_resolvable_entity_mentions", "retryable": False})
+        retrieval_call = stage_call(350)
+        graph_call = stage_call(250)
         with ThreadPoolExecutor(max_workers=3) as pool:
-            futures = {name: pool.submit(request_call, method, path, payload, request_id)
+            futures = {name: pool.submit(retrieval_call, method, path, payload, request_id)
                        for name, (method, path, payload) in retrieval_requests.items()}
             graph_future = None
             if graph_required and graph_mentions:
-                graph_future = pool.submit(request_call, "POST", "/api/v1/graph/traversals", {
+                graph_future = pool.submit(graph_call, "POST", "/api/v1/graph/traversals", {
                     "request_id": request_id, "scope": scope, "entity_mentions": graph_mentions,
                     "direction": "both", "max_depth": 3, "max_visited_nodes": 500, "limit": 10,
                 }, request_id)
@@ -411,8 +431,9 @@ class GatewayService:
         }
         # Text candidates and Graph supports share one canonical verification pass
         # and therefore one freshness-stage budget.
+        freshness_call = stage_call(250)
         verified_all = self._fresh_candidates(
-            all_candidates + graph_supports, request_id, reasons, failures, call=request_call
+            all_candidates + graph_supports, request_id, reasons, failures, call=freshness_call
         )
         verified_keys = {
             (item.get("source_id"), item.get("revision_sequence"))
@@ -478,8 +499,9 @@ class GatewayService:
                 candidates.append(selected)
             lists.append({"list_id": f"rl1:{path}:original:{suffix}", "retrieval_path": path,
                           "query_variant_id": "original", "scope_partition_id": partition, "candidates": candidates})
+        ranking_call = stage_call(150)
         try:
-            _, ranked_response = request_call("POST", "/api/v1/ranking/rank", {
+            _, ranked_response = ranking_call("POST", "/api/v1/ranking/rank", {
                 "request_id": request_id, "policy": {"name": "rrf-v1", "version": "1"},
                 "exact_identifiers": identifiers, "lists": lists, "limit": limit,
             }, request_id)
@@ -501,7 +523,8 @@ class GatewayService:
                 "provenance": candidate.get("provenance", {}),
             } for candidate in rerank_input]
             try:
-                _, reranked_response = request_call("POST", "/api/v1/reranking/rerank", {
+                reranking_call = stage_call(250)
+                _, reranked_response = reranking_call("POST", "/api/v1/reranking/rerank", {
                     "request_id": request_id, "profile": {"name": "default-reranker", "version": "0.1"},
                     "query": query_text, "candidates": rerank_candidates, "limit": len(rerank_candidates),
                 }, request_id)
@@ -530,6 +553,7 @@ class GatewayService:
                 reasons.append("reranking_degraded")
                 failures.append({"service": "reranking", "code": exc.code, "retryable": exc.retryable})
                 ranked = exact_ranked + non_exact_ranked
+        assembly_deadline = time.monotonic() + 0.100
         output_candidates = []
         context_parts = []
         used_tokens = 0
@@ -583,6 +607,8 @@ class GatewayService:
                 else "current"
             ), "truncated": context_truncated or any(bool(x.get("truncated")) for x in responses.values()),
         }
+        if time.monotonic() > assembly_deadline:
+            raise GatewayError("deadline_exceeded", "Gateway context assembly exceeded its 100 ms stage budget", 504)
         if context_parts:
             response["context"] = "\n\n".join(context_parts)[:65536]
         return response
