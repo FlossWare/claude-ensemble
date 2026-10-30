@@ -8,7 +8,7 @@ import re
 import unicodedata
 import uuid
 import time
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from concurrent.futures import ThreadPoolExecutor
 from urllib.error import HTTPError, URLError
 from urllib.parse import quote, urlencode
@@ -280,7 +280,7 @@ class GatewayService:
             # Hook recall is tightly bounded; interactive/lookup API calls get
             # the documented five-second default unless the caller supplies less.
             request_budget_ms = 1500 if request["mode"] == "prompt_recall" else 5000
-            deadline_at = datetime.now(timezone.utc) + __import__("datetime").timedelta(milliseconds=request_budget_ms)
+            deadline_at = datetime.now(timezone.utc) + timedelta(milliseconds=request_budget_ms)
             deadline = deadline_at.isoformat(timespec="milliseconds").replace("+00:00", "Z")
 
         def request_call(method, path, payload=None, request_id=request_id, headers=None, timeout=30.0):
@@ -290,23 +290,24 @@ class GatewayService:
                 if remaining <= 0:
                     raise GatewayError("deadline_exceeded", "request deadline expired before a dependency call", 504)
                 timeout = min(timeout, remaining)
-                extra["X-CE-Deadline"] = deadline
-            try:
-                return self._call(method, path, payload, request_id, headers=extra, timeout=timeout)
-            except GatewayError as exc:
-                if deadline is not None and exc.code == "dependency_unavailable":
-                    raise GatewayError("deadline_exceeded", "dependency call exceeded the request deadline", 504) from exc
-                raise
+                extra.setdefault("X-CE-Deadline", deadline)
+            return self._call(method, path, payload, request_id, headers=extra, timeout=timeout)
 
         def stage_call(budget_ms: int):
             stage_deadline = time.monotonic() + budget_ms / 1000.0
+            stage_deadline_at = datetime.now(timezone.utc) + timedelta(milliseconds=budget_ms)
+            stage_header = stage_deadline_at.isoformat(timespec="milliseconds").replace("+00:00", "Z")
             def call(method, path, payload=None, request_id=request_id, headers=None, timeout=30.0):
                 remaining_stage = stage_deadline - time.monotonic()
                 remaining_request = (deadline_at - datetime.now(timezone.utc)).total_seconds()
                 remaining = min(remaining_stage, remaining_request)
                 if remaining <= 0:
                     raise GatewayError("deadline_exceeded", "Gateway stage budget exhausted", 504)
-                return request_call(method, path, payload, request_id, headers, min(timeout, remaining))
+                extra = dict(headers or {})
+                extra["X-CE-Deadline"] = min(stage_deadline_at, deadline_at).isoformat(
+                    timespec="milliseconds"
+                ).replace("+00:00", "Z")
+                return request_call(method, path, payload, request_id, extra, min(timeout, remaining))
             return call
 
         after_operation_id = request.get("after_operation_id")
