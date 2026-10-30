@@ -691,3 +691,65 @@ def test_context_budget_fallback_is_explicit_and_uses_utf8_bytes(monkeypatch):
     assert count == len(value.encode("utf-8"))
     assert method == "conservative_utf8_byte_upper_bound"
     assert fallback == "no_configured_tokenizer"
+
+def test_gateway_planning_stage_returns_without_waiting_for_slow_worker(monkeypatch):
+    import threading
+    import time
+
+    monkeypatch.setenv("CE_GATEWAY_WRITE_PROFILE_NAME", "default")
+    monkeypatch.delenv("CE_GATEWAY_TOKENIZER_MAP", raising=False)
+    index_profile = {"name": "default", "version": "0.1", "digest": "a" * 64}
+    bundle = {
+        **index_profile,
+        "lexical": {"profile": "technical-default", "version": "0.1"},
+        "embedding": {"profile": "default-embedding", "version": "0.1"},
+    }
+    candidate = _candidate()
+    slow_started = threading.Event()
+    slow_finished = threading.Event()
+
+    def transport(method, path, payload, request_id, headers, timeout):
+        if method == "GET" and path == "/api/v1/index/generations/active":
+            return 200, {"generation_id": "gen-1", "index_profile": index_profile}
+        if method == "GET" and path == "/api/v1/index/profiles/default/versions/0.1":
+            return 200, {"bundle": bundle}
+        if path == "/api/v1/intent-classification/classify":
+            slow_started.set()
+            time.sleep(0.4)  # Deliberately ignores the transport timeout.
+            slow_finished.set()
+            return 200, {"results": [{"intent": "knowledge_lookup"}]}
+        if path == "/api/v1/entity-extraction/extract":
+            return 200, {"entities": []}
+        if path == "/api/v1/lexical-retrieval/search":
+            return 200, {"candidates": [candidate], "truncated": False}
+        if path == "/api/v1/vector-retrieval/search":
+            return 200, {"candidates": [], "truncated": False}
+        if path == "/api/v1/knowledge/sources/verify-revisions":
+            return 200, {"results": [{
+                "source_id": candidate["source_id"],
+                "requested_revision_sequence": candidate["revision_sequence"],
+                "status": "current",
+            }]}
+        if path == "/api/v1/ranking/rank":
+            return 200, {"candidates": [{
+                **candidate, "rank": 1, "score": 10, "score_semantics": "rrf-v1",
+                "evidence": [], "matched_exact_identifiers": [],
+            }]}
+        raise AssertionError(f"unexpected REST call: {method} {path}")
+
+    started = time.monotonic()
+    result = GatewayService(transport=transport).search({
+        "query": "find the source",
+        "scope": {"type": "project", "id": "p1", "visibility": "private"},
+        "mode": "lookup",
+        "context_budget": {"unit": "provider_tokens", "model": "test-model", "max": 100},
+    }, "req-slow-planning", headers={"X-CE-Deadline": "2099-01-01T00:00:00Z"})
+    elapsed = time.monotonic() - started
+
+    assert slow_started.is_set()
+    assert elapsed < 0.30
+    assert slow_finished.is_set() is False
+    assert result["status"] == "partial"
+    assert "query_understanding_degraded" in result["degradation_reasons"]
+    assert result["candidates"]
+
