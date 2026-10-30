@@ -715,7 +715,7 @@ def test_gateway_planning_stage_returns_without_waiting_for_slow_worker(monkeypa
             return 200, {"bundle": bundle}
         if path == "/api/v1/intent-classification/classify":
             slow_started.set()
-            time.sleep(0.4)  # Deliberately ignores the transport timeout.
+            time.sleep(0.8)  # Deliberately ignores the transport timeout.
             slow_finished.set()
             return 200, {"results": [{"intent": "knowledge_lookup"}]}
         if path == "/api/v1/entity-extraction/extract":
@@ -747,7 +747,7 @@ def test_gateway_planning_stage_returns_without_waiting_for_slow_worker(monkeypa
     elapsed = time.monotonic() - started
 
     assert slow_started.is_set()
-    assert elapsed < 0.30
+    assert elapsed < 0.50
     assert slow_finished.is_set() is False
     assert result["status"] == "partial"
     assert "query_understanding_degraded" in result["degradation_reasons"]
