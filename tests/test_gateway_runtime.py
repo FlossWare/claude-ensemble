@@ -461,7 +461,7 @@ def test_gateway_rag_acceptance_uses_real_http_services_without_transport_mockin
             "query": "How does Search relate to FlossWare?",
             "scope": scope,
             "mode": "lookup",
-            "context_budget": {"unit": "provider_tokens", "model": "test-model", "max": 100},
+            "context_budget": {"unit": "provider_tokens", "model": "test-model", "max": 1000},
         }
         request = Request(
             f"{base_url}/api/v1/requests",
