@@ -339,7 +339,7 @@ def test_gateway_rag_acceptance_uses_real_http_services_without_transport_mockin
     bundle["digest"] = profile_digest(bundle)
     identity = {key: bundle[key] for key in ("name", "version", "digest")}
     scope = {"type": "project", "id": "gateway-integration", "visibility": "private"}
-    content = "Useful source chunk integration confirms CE-42 behavior."
+    content = "Search service uses FlossWare and confirms CE-42 behavior."
     index_service = IndexService(tmp_path / "index.sqlite3", bundle)
     knowledge_service = KnowledgeService(tmp_path / "knowledge.sqlite3")
     monkeypatch.setattr(index_module, "_service", index_service)
@@ -354,6 +354,55 @@ def test_gateway_rag_acceptance_uses_real_http_services_without_transport_mockin
         "index_profile": identity,
     }, "gateway-integration-source", "gateway-integration-test")
     source_id = created["source_id"]
+
+    import runtime.graph as graph_module
+    import runtime.server as server_module
+    from runtime.graph import GraphService
+    from runtime.reranking import EXPECTED_MODEL_ID, RerankingEngine
+
+    graph_service = GraphService(tmp_path / "graph.sqlite3")
+    graph_service.project({
+        "operation_id": "knowledge-gateway-integration",
+        "source_id": source_id,
+        "source_revision": created["revision"],
+        "revision_sequence": 1,
+        "owner_projection_sequence": 1,
+        "scope": scope,
+        "nodes": [
+            {"node_id": "node-search", "node_type": "service", "label": "Search"},
+            {"node_id": "node-flossware", "node_type": "project", "label": "FlossWare"},
+        ],
+        "edges": [{
+            "edge_id": "edge-search-flossware",
+            "source_node_id": "node-search",
+            "target_node_id": "node-flossware",
+            "relationship_type": "uses",
+            "directed": True,
+        }],
+    }, "gateway-integration-graph")
+    monkeypatch.setattr(graph_module, "_service_instance", graph_service)
+
+    class FixedCrossEncoder:
+        def predict(self, pairs, **kwargs):
+            return [0.9 for _ in pairs]
+
+    monkeypatch.setattr(
+        server_module, "classify_intent",
+        lambda request: {"results": [{"intent": "relationship_exploration"}]},
+    )
+
+    class FixedEntityExtractor:
+        def extract(self, text):
+            return [{"text": "Search"}, {"text": "FlossWare"}]
+
+    monkeypatch.setattr(server_module, "get_entity_extractor", lambda: FixedEntityExtractor())
+    monkeypatch.setattr(
+        server_module, "get_reranking_engine",
+        lambda: RerankingEngine(
+            model=FixedCrossEncoder(), model_id=EXPECTED_MODEL_ID, model_version="integration-test"
+        ),
+    )
+
     index_service.upsert({
         "operation_id": "gateway-integration-index",
         "request_id": "gateway-integration-test",
@@ -369,7 +418,7 @@ def test_gateway_rag_acceptance_uses_real_http_services_without_transport_mockin
             "chunker": {"profile": "markdown-default", "version": "0.1"},
             "text": content,
             "lexical": {"profile": "bm25-v1", "version": "0.1",
-                        "terms": ["useful", "source", "chunk", "integration", "confirms", "behavior"]},
+                        "terms": ["search", "service", "uses", "flossware", "confirms", "behavior"]},
             "vector": {"input_type": "document", "model": "local-nomic", "version": "r1",
                        "dimensions": 3, "values": [1.0, 0.0, 0.0]},
             "metadata": {},
@@ -385,7 +434,15 @@ def test_gateway_rag_acceptance_uses_real_http_services_without_transport_mockin
         return original_call(self, method, path, payload, request_id, headers, timeout)
 
     monkeypatch.setattr(GatewayService, "_call", recording_call)
-    server = BoundedThreadingHTTPServer(("127.0.0.1", 0), Handler)
+    internal_paths = []
+
+    class RecordingHandler(Handler):
+        def do_POST(self):
+            if self.headers.get("X-CE-Internal-Call") == "true":
+                internal_paths.append(self.path)
+            super().do_POST()
+
+    server = BoundedThreadingHTTPServer(("127.0.0.1", 0), RecordingHandler)
     base_url = f"http://127.0.0.1:{server.server_port}"
     for name in ("CE_INDEX_BASE_URL", "CE_TOKENIZATION_BASE_URL", "CE_EMBEDDING_BASE_URL", "CE_RERANKING_BASE_URL"):
         monkeypatch.setenv(name, base_url)
@@ -394,7 +451,7 @@ def test_gateway_rag_acceptance_uses_real_http_services_without_transport_mockin
     try:
         body = {
             "request_id": "req-real-rag",
-            "query": "find useful source chunk integration",
+            "query": "How does Search relate to FlossWare?",
             "scope": scope,
             "mode": "lookup",
             "context_budget": {"unit": "provider_tokens", "model": "test-model", "max": 100},
@@ -416,6 +473,9 @@ def test_gateway_rag_acceptance_uses_real_http_services_without_transport_mockin
             assert any(candidate["source_id"] == source_id for candidate in payload["candidates"])
             assert f"[{source_id}@1]" in payload["context"]
             assert payload["candidates"][0]["freshness"] == "verified_current"
+            assert "Graph relationship: node-search -[uses]-> node-flossware" in payload["context"]
+            assert "/api/v1/graph/traversals" in internal_paths
+            assert "/api/v1/reranking/rerank" in internal_paths
             assert propagated
             request_deadline = datetime(2099, 1, 1, tzinfo=timezone.utc)
             parsed = [
