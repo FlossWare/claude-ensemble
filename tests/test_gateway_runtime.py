@@ -534,6 +534,47 @@ def test_gateway_rag_acceptance_uses_real_http_services_without_transport_mockin
 
         monkeypatch.setattr(server_module, "get_graph_service", lambda: graph_service)
 
+        class EmptyEntityExtractor:
+            def extract(self, text):
+                return []
+
+        monkeypatch.setattr(server_module, "get_entity_extractor", lambda: EmptyEntityExtractor())
+        empty_graph_body = {**body, "request_id": "req-empty-graph-evidence"}
+        empty_graph_request = Request(
+            f"{base_url}/api/v1/requests",
+            data=json.dumps(empty_graph_body).encode("utf-8"),
+            headers={"Content-Type": "application/json", "X-CE-Deadline": "2099-01-01T00:00:00Z"},
+            method="POST",
+        )
+        with urlopen(empty_graph_request, timeout=10) as response:
+            empty_graph = json.loads(response.read())
+            assert response.status == 200
+            Draft202012Validator(response_schema).validate(empty_graph)
+            assert empty_graph["status"] == "partial"
+            assert "graph_entity_extraction_unavailable" in empty_graph["degradation_reasons"]
+            assert any(
+                failure["code"] == "no_resolvable_entity_mentions"
+                for failure in empty_graph["failures"]
+            )
+            assert empty_graph["candidates"]
+
+        monkeypatch.setattr(server_module, "get_entity_extractor", lambda: FixedEntityExtractor())
+        isolated_scope = {**scope, "id": "different-project"}
+        isolated_body = {**body, "request_id": "req-scope-isolation", "scope": isolated_scope}
+        isolated_request = Request(
+            f"{base_url}/api/v1/requests",
+            data=json.dumps(isolated_body).encode("utf-8"),
+            headers={"Content-Type": "application/json", "X-CE-Deadline": "2099-01-01T00:00:00Z"},
+            method="POST",
+        )
+        with urlopen(isolated_request, timeout=10) as response:
+            isolated = json.loads(response.read())
+            assert response.status == 200
+            Draft202012Validator(response_schema).validate(isolated)
+            assert all(candidate["source_id"] != source_id for candidate in isolated["candidates"])
+            assert source_id not in isolated.get("context", "")
+            assert "Graph relationship:" not in isolated.get("context", "")
+
         class FailedReranker:
             def rerank(self, request):
                 raise RerankingError("service_unavailable", "injected reranker outage", 503)
