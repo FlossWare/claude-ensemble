@@ -3,7 +3,8 @@ from __future__ import annotations
 from runtime.gateway import GatewayService
 
 
-def test_gateway_relationship_request_verifies_graph_support_and_reranks_only_non_exact():
+def test_gateway_relationship_request_verifies_graph_support_and_reranks_only_non_exact(monkeypatch):
+    monkeypatch.setenv("CE_GATEWAY_WRITE_PROFILE_NAME", "default")
     calls = []
     profile_bundle = {
         "name": "default", "version": "0.1", "digest": "d" * 64,
@@ -109,7 +110,8 @@ def test_gateway_relationship_request_verifies_graph_support_and_reranks_only_no
                for payload in graph_verification)
 
 
-def test_gateway_reranking_failure_falls_back_to_ranking_order():
+def test_gateway_reranking_failure_falls_back_to_ranking_order(monkeypatch):
+    monkeypatch.setenv("CE_GATEWAY_WRITE_PROFILE_NAME", "default")
     calls = []
     profile_bundle = {
         "name": "default", "version": "0.1", "digest": "d" * 64,
