@@ -22,6 +22,7 @@ def _candidate(source_id="knowledge:src-1", revision="rev-1", sequence=1, text="
 
 def test_gateway_rag_request_runs_rest_plan_retrieval_freshness_and_ranking(monkeypatch):
     monkeypatch.setenv("CE_GATEWAY_WRITE_PROFILE_NAME", "default")
+    monkeypatch.delenv("CE_GATEWAY_TOKENIZER_MAP", raising=False)
     index_profile = {"name": "default", "version": "0.1", "digest": "a" * 64}
     bundle = {
         **index_profile,
@@ -309,6 +310,7 @@ def test_gateway_request_route_runs_rag_orchestration_over_http(monkeypatch):
 
 def test_gateway_rag_acceptance_uses_real_http_services_without_transport_mocking(monkeypatch, tmp_path):
     """Exercise Gateway, retrieval, freshness, and ranking through the actual HTTP handlers."""
+    monkeypatch.delenv("CE_GATEWAY_TOKENIZER_MAP", raising=False)
     import json
     import threading
     from urllib.request import Request, urlopen
@@ -562,6 +564,7 @@ def test_gateway_assembly_deadline_returns_partial_context_instead_of_504(monkey
     import time
 
     monkeypatch.setenv("CE_GATEWAY_WRITE_PROFILE_NAME", "default")
+    monkeypatch.delenv("CE_GATEWAY_TOKENIZER_MAP", raising=False)
     profile_bundle = {
         "name": "default", "version": "0.1", "digest": "d" * 64,
         "lexical": {"profile": "bm25-v1", "version": "0.1"},
