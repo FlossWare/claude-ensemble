@@ -475,7 +475,9 @@ class GatewayService:
             reasons.append("ranking_degraded")
             ranked = []
         exact_ranked = [candidate for candidate in ranked if candidate.get("matched_exact_identifiers")]
-        rerank_input = [candidate for candidate in ranked if not candidate.get("matched_exact_identifiers")][:20]
+        non_exact_ranked = [candidate for candidate in ranked if not candidate.get("matched_exact_identifiers")]
+        rerank_input = non_exact_ranked[:20]
+        non_reranked_tail = non_exact_ranked[20:]
         if rerank_input:
             rerank_candidates = [{
                 "source_id": candidate["source_id"], "source_revision": candidate["source_revision"],
@@ -501,18 +503,14 @@ class GatewayService:
                     c["source_id"], c["revision_sequence"], c["chunk_id"],
                     c["chunker"]["profile"], c["chunker"]["version"]
                 ): c for c in rerank_input}
-                by_key = {(
+                ranked = exact_ranked + [original[(
                     c["source_id"], c["revision_sequence"], c["chunk_id"],
                     c["chunker"]["profile"], c["chunker"]["version"]
-                ): c for c in returned}
-                ranked = exact_ranked + [original[key] for key in (
-                    (c["source_id"], c["revision_sequence"], c["chunk_id"],
-                     c["chunker"]["profile"], c["chunker"]["version"]) for c in returned
-                )]
+                )] for c in returned] + non_reranked_tail
             except GatewayError as exc:
                 reasons.append("reranking_degraded")
                 failures.append({"service": "reranking", "code": exc.code, "retryable": exc.retryable})
-                ranked = exact_ranked + rerank_input
+                ranked = exact_ranked + non_exact_ranked
         output_candidates = []
         context_parts = []
         used_tokens = 0
