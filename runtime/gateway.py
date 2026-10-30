@@ -569,9 +569,9 @@ class GatewayService:
                 break
             text = candidate.get("text", "")
             context_fragment = f"[{candidate['source_id']}@{candidate['revision_sequence']}] {text}"
-            counted_fragment = ("\n\n" if context_parts else "") + context_fragment
+            prospective_context = "\n\n".join(context_parts + [context_fragment])
             estimate, token_counting_method, fallback_reason = count_context_tokens(
-                counted_fragment, budget["model"]
+                prospective_context, budget["model"]
             )
             if fallback_reason is not None:
                 token_count_fallback_reason = fallback_reason
@@ -588,14 +588,14 @@ class GatewayService:
             })
             if used_tokens + estimate <= budget["max"]:
                 context_parts.append(context_fragment)
-                used_tokens += estimate
+                used_tokens = estimate
             else:
                 context_truncated = True
         if graph_context:
             graph_text = "\n".join(graph_context)
-            counted_graph_text = ("\n\n" if context_parts else "") + graph_text
+            prospective_context = "\n\n".join(context_parts + [graph_text])
             graph_estimate, graph_method, graph_fallback_reason = count_context_tokens(
-                counted_graph_text, budget["model"]
+                prospective_context, budget["model"]
             )
             if graph_method != token_counting_method:
                 token_counting_method = graph_method
@@ -603,7 +603,7 @@ class GatewayService:
                 token_count_fallback_reason = graph_fallback_reason
             if used_tokens + graph_estimate <= budget["max"]:
                 context_parts.append(graph_text)
-                used_tokens += graph_estimate
+                used_tokens = graph_estimate
             else:
                 context_truncated = True
         if context_truncated:
