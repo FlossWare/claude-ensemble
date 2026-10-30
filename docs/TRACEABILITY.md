@@ -51,6 +51,8 @@ The following are concrete executable tests, not acceptance specifications:
 | Graph support freshness, exact-match preservation, non-exact reranking, and reranking fallback | `tests/test_gateway_graph_reranking.py::test_gateway_relationship_request_verifies_graph_support_and_reranks_only_non_exact`; `tests/test_gateway_graph_reranking.py::test_gateway_reranking_failure_falls_back_to_ranking_order` | Executed by the full test suite; mocked REST transport |
 | Assembly deadline degradation preserves completed candidates/context | `tests/test_gateway_runtime.py::test_gateway_assembly_deadline_returns_partial_context_instead_of_504` | Added; pending CI execution on current PR head |
 | Real HTTP downstream deadline header propagation and bounded transport timeout | `tests/test_gateway_runtime.py::test_gateway_rag_acceptance_uses_real_http_services_without_transport_mocking` | Added; pending CI execution on current PR head |
+| Configured model tokenizer selection | `tests/test_gateway_runtime.py::test_context_budget_uses_configured_local_model_tokenizer` | Added; deterministic tokenizer double, pending CI |
+| Explicit conservative fallback and UTF-8 byte counting | `tests/test_gateway_runtime.py::test_context_budget_fallback_is_explicit_and_uses_utf8_bytes` | Added; pending CI |
 
 The durable HTTP test proves the dispatcher and service contracts are exercised over HTTP with persistent SQLite-backed Knowledge, Index, and Graph state. It does not claim that model inference is real: intent classification, entity extraction, and cross-encoder scoring use deterministic test doubles so the acceptance test remains offline and reproducible.
 
@@ -60,3 +62,4 @@ The durable HTTP test proves the dispatcher and service contracts are exercised 
 - Hook injection with a real Claude Code lifecycle still requires an executable integration test.
 - Notion/Git alignment is a manual release gate until a reliable export/diff is available.
 - Latency budgets are normative targets and remain unverified until measured under the specified dispatcher/load test.
+- Gateway context counting uses a locally configured model tokenizer when available; otherwise the runtime reports a conservative UTF-8 byte upper-bound estimate. Provider-token accuracy remains unproven for models without a configured tokenizer.
