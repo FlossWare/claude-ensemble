@@ -1,4 +1,5 @@
 import base64
+from datetime import datetime, timezone
 
 from runtime.gateway import GatewayService
 
@@ -65,7 +66,13 @@ def test_gateway_rag_request_runs_rest_plan_retrieval_freshness_and_ranking(monk
     }, "req-1", headers={"X-CE-Deadline": "2099-01-01T00:00:00Z"})
     assert result["status"] == "complete"
     assert propagated_deadlines
-    assert all(deadline == "2099-01-01T00:00:00Z" for deadline, _ in propagated_deadlines)
+    request_deadline = datetime(2099, 1, 1, tzinfo=timezone.utc)
+    parsed_deadlines = [
+        datetime.fromisoformat(deadline.replace("Z", "+00:00"))
+        for deadline, _ in propagated_deadlines
+    ]
+    assert all(deadline <= request_deadline for deadline in parsed_deadlines)
+    assert any(deadline < request_deadline for deadline in parsed_deadlines)
     assert all(0 < timeout <= 30.0 for _, timeout in propagated_deadlines)
     assert result["plan"]["intent"] == "knowledge_lookup"
     assert result["candidates"][0]["freshness"] == "verified_current"
